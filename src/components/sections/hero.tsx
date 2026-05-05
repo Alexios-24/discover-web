@@ -94,7 +94,7 @@ function ShuffleCard({ card }: { card: FloatingCard }) {
       transition={{
         duration: 0.45,
         delay: card.delay,
-        ease: [0.22, 0.68, 0.35, 1],
+        ease: [0.22, 0.68, 0.35, 1] as const,
       }}
     >
       <img

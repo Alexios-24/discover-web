@@ -93,7 +93,7 @@ export function TopHeader() {
             initial={{ opacity: 0, y: -8, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.96 }}
-            transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
+            transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] as const }}
             className="absolute inset-x-0 top-[12px] w-[400px] mx-auto pointer-events-auto"
           >
             <button className="w-full flex items-center gap-1 h-9 bg-white border border-gray-300 rounded-md px-2 shadow-xs hover:border-gray-400 transition-colors cursor-pointer">

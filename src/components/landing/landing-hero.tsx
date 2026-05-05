@@ -162,7 +162,7 @@ function OrbitCard({ src, angle, rx, ry, w, h }: OrbitCardProps) {
 const fadeUp = (delay: number) => ({
   initial: { opacity: 0, y: 20 },
   animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.6, delay, ease: [0.2, 0.8, 0.2, 1] },
+  transition: { duration: 0.6, delay, ease: [0.2, 0.8, 0.2, 1] as const },
 });
 
 export function LandingHero() {
@@ -317,7 +317,7 @@ export function LandingHero() {
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -12 }}
-                transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
+                transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] as const }}
                 className="flex flex-col gap-2"
               >
                 <h1

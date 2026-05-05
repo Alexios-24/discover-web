@@ -87,7 +87,7 @@ export function LiveFeed() {
                   initial={{ opacity: 0, x: -30, scale: 0.96 }}
                   animate={{ opacity: 1, x: 0, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.96 }}
-                  transition={{ duration: 0.5, ease: [0.2, 0.8, 0.2, 1] }}
+                  transition={{ duration: 0.5, ease: [0.2, 0.8, 0.2, 1] as const }}
                   className={`flex items-center gap-3.5 px-5 py-4 rounded-[14px] border ${
                     i === 0
                       ? "border-lime bg-lime/10"

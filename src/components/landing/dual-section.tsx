@@ -35,7 +35,7 @@ function CommunitiesCard() {
     <motion.div
       initial={{ rotate: -1.5 }}
       whileHover={{ rotate: 0, scale: 1.015 }}
-      transition={{ duration: 0.5, ease: [0.2, 0.8, 0.2, 1] }}
+      transition={{ duration: 0.5, ease: [0.2, 0.8, 0.2, 1] as const }}
       className="relative rounded-[32px] p-12 min-h-[600px] flex flex-col overflow-hidden"
       style={{
         background: "linear-gradient(180deg, #F5F3EE, #FFFFFF)",
@@ -143,7 +143,7 @@ function CoursesCard() {
     <motion.div
       initial={{ rotate: 1.5 }}
       whileHover={{ rotate: 0, scale: 1.015 }}
-      transition={{ duration: 0.5, ease: [0.2, 0.8, 0.2, 1] }}
+      transition={{ duration: 0.5, ease: [0.2, 0.8, 0.2, 1] as const }}
       className="relative rounded-[32px] p-12 min-h-[600px] flex flex-col overflow-hidden"
       style={{
         background: "linear-gradient(180deg, #F5F3EE, #FFFFFF)",

@@ -38,3 +38,96 @@ body {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* Landing page animations */
+@keyframes marquee-x {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.animate-marquee {
+  animation: marquee-x 40s linear infinite;
+}
+.animate-marquee-slow {
+  animation: marquee-x 70s linear infinite;
+}
+.animate-marquee-reverse {
+  animation: marquee-x 60s linear infinite reverse;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.4); opacity: 0.6; }
+}
+.animate-pulse-dot {
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+@keyframes word-rise {
+  from { transform: translateY(110%); }
+  to { transform: translateY(0); }
+}
+.animate-word-rise {
+  animation: word-rise 1.1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+@keyframes underline-grow {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+.animate-underline-grow {
+  animation: underline-grow 1.4s 1.1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  transform: scaleX(0);
+  transform-origin: left;
+}
+
+@keyframes feed-slide-in {
+  from { transform: translateY(-12px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.animate-feed-in {
+  animation: feed-slide-in 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* Grain overlay */
+.grain::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.4'/%3E%3C/svg%3E");
+  opacity: 0.05;
+  pointer-events: none;
+  z-index: 50;
+  mix-blend-mode: overlay;
+}
+
+/* Floating orbs — positions from Figma variants */
+@keyframes orb-blue {
+  0%   { left: -120px; bottom: -180px; }
+  20%  { left: 530px;  bottom: -230px; }
+  40%  { left: 1190px; bottom: 128px; }
+  60%  { left: 550px;  bottom: 538px; }
+  80%  { left: -240px; bottom: 308px; }
+  100% { left: -120px; bottom: -180px; }
+}
+@keyframes orb-pink {
+  0%   { left: 1081px; bottom: 527px; }
+  20%  { left: 461px;  bottom: 497px; }
+  40%  { left: -139px; bottom: 267px; }
+  60%  { left: 331px;  bottom: -113px; }
+  80%  { left: 1031px; bottom: -33px; }
+  100% { left: 1081px; bottom: 527px; }
+}
+.animate-orb-blue {
+  animation: orb-blue 25s ease-in-out infinite;
+}
+.animate-orb-pink {
+  animation: orb-pink 25s ease-in-out infinite;
+}
+
+/* Hero grid */
+.hero-grid-bg {
+  background-image:
+    linear-gradient(to right, rgba(245, 243, 238, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(245, 243, 238, 0.04) 1px, transparent 1px);
+  background-size: 60px 60px;
+}

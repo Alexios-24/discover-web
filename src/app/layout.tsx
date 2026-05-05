@@ -12,12 +12,12 @@ const montserrat = Montserrat({
   subsets: ["latin"],
   variable: "--font-montserrat",
   display: "swap",
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "500", "600", "700", "800", "900"],
 });
 
 export const metadata: Metadata = {
-  title: "Discover — GoKollab",
-  description: "Find communities, courses, and creators that transform your life.",
+  title: "GoKollab — Communities & courses, alive.",
+  description: "One platform for creators who refuse to choose between community and courses.",
 };
 
 export default function RootLayout({

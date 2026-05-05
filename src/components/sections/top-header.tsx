@@ -47,13 +47,18 @@ export function TopHeader() {
               pointerEvents: isScrolled ? "none" : "auto",
             }}
           >
-            {["Communities", "Courses", "Features", "Pricing"].map((item) => (
+            {[
+              { label: "Communities", href: "/discover" },
+              { label: "Courses", href: "/discover" },
+              { label: "Features", href: "/" },
+              { label: "Pricing", href: "/" },
+            ].map((item) => (
               <a
-                key={item}
-                href="#"
+                key={item.label}
+                href={item.href}
                 className="px-[14px] py-2 rounded-md text-[15px] leading-5 font-medium text-gray-700 hover:bg-gray-50 transition-colors"
               >
-                {item}
+                {item.label}
               </a>
             ))}
           </nav>

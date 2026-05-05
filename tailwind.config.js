@@ -39,6 +39,20 @@ module.exports = {
           400: "#FD6F8E",
         },
         primary200: "#B2CCFF",
+        lime: {
+          DEFAULT: "#D6FF3A",
+          dark: "#5A7A0F",
+        },
+        magenta: {
+          DEFAULT: "#FF3EB5",
+          dark: "#6E1D5E",
+        },
+        ink: {
+          DEFAULT: "#0A0A0A",
+          dim: "#9B988F",
+          faint: "#3A382F",
+        },
+        cream: "#F5F3EE",
         border: "#EAECF0",
         input: "#EAECF0",
         ring: "#343DE5",

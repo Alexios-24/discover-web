@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, ArrowRight } from "lucide-react";
+import { Search, ArrowRight, BadgeCheck } from "lucide-react";
 
 interface WordDef {
   text: string;
@@ -164,6 +164,62 @@ const fadeUp = (delay: number) => ({
   animate: { opacity: 1, y: 0 },
   transition: { duration: 0.6, delay, ease: [0.2, 0.8, 0.2, 1] as const },
 });
+
+function useCountUp(end: number, duration = 1800, delay = 600) {
+  const [value, setValue] = useState(0);
+  const ref = useRef<number>(0);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      const start = performance.now();
+      const tick = (now: number) => {
+        const elapsed = now - start;
+        const progress = Math.min(elapsed / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        setValue(Math.round(end * eased));
+        if (progress < 1) ref.current = requestAnimationFrame(tick);
+      };
+      ref.current = requestAnimationFrame(tick);
+    }, delay);
+    return () => {
+      clearTimeout(timeout);
+      cancelAnimationFrame(ref.current);
+    };
+  }, [end, duration, delay]);
+
+  return value;
+}
+
+interface StatDef {
+  value: number;
+  suffix: string;
+  label: string;
+}
+
+const LAUNCH_STATS: StatDef[] = [
+  { value: 40, suffix: ",000+", label: "creators" },
+  { value: 0, suffix: "%", label: "platform fee" },
+];
+
+const DISCOVER_STATS: StatDef[] = [
+  { value: 4, suffix: "M+", label: "members" },
+  { value: 100, suffix: "K", label: "communities" },
+  { value: 10, suffix: "K", label: "courses" },
+];
+
+function StatItem({ stat, delay }: { stat: StatDef; delay: number }) {
+  const count = useCountUp(stat.value, 1600, delay);
+  return (
+    <div className="flex gap-[4px] items-center whitespace-nowrap text-[16px]">
+      <div className="font-semibold text-white leading-[24px]">
+        {count}{stat.suffix}
+      </div>
+      <div className="text-[#D0D5DD] leading-[24px]">
+        {stat.label}
+      </div>
+    </div>
+  );
+}
 
 export function LandingHero() {
   const [activeTab, setActiveTab] = useState<"launch" | "discover">("discover");
@@ -392,6 +448,36 @@ export function LandingHero() {
                 </div>
               </div>
             </Link>
+          </motion.div>
+
+          {/* Trust stats */}
+          <motion.div {...fadeUp(0.55)} className="w-full">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={`stats-${activeTab}`}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] as const }}
+                className="flex gap-[8px] items-center justify-center w-full"
+              >
+                <div className="flex items-center justify-center size-[18px]">
+                  <BadgeCheck size={18} className="text-[#6172F3]" />
+                </div>
+                <div className="flex gap-[16px] items-center">
+                  {(activeTab === "launch" ? LAUNCH_STATS : DISCOVER_STATS).map(
+                    (stat, i) => (
+                      <div key={stat.label} className="flex items-center gap-[16px]">
+                        {i > 0 && (
+                          <div className="size-[5px] rounded-full bg-[#344054]" />
+                        )}
+                        <StatItem stat={stat} delay={700 + i * 200} />
+                      </div>
+                    ),
+                  )}
+                </div>
+              </motion.div>
+            </AnimatePresence>
           </motion.div>
         </div>
       </div>

@@ -3,6 +3,9 @@
 import { LandingNav } from "@/components/landing/landing-nav";
 import { LandingHero } from "@/components/landing/landing-hero";
 import { VideoShowcase } from "@/components/landing/video-showcase";
+import { CategoryShowcase } from "@/components/landing/category-showcase";
+import { TrendingSection } from "@/components/landing/trending-section";
+import { CreatorsSection } from "@/components/landing/creators-section";
 import { LiveFeed } from "@/components/landing/live-feed";
 import { DualSection } from "@/components/landing/dual-section";
 import { FeaturedSection } from "@/components/landing/featured-section";
@@ -43,6 +46,9 @@ export default function LandingPage() {
         <LandingNav />
         <HeroSwitch />
         <VideoShowcase />
+        <CategoryShowcase />
+        <TrendingSection />
+        <CreatorsSection />
         <FeaturedSection />
         <DualSection />
         <LiveFeed />

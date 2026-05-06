@@ -124,6 +124,18 @@ body {
   animation: orb-pink 25s ease-in-out infinite;
 }
 
+/* Creators marquee */
+@keyframes marquee-creators {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.animate-marquee-creators {
+  animation: marquee-creators 30s linear infinite;
+}
+.animate-marquee-creators:hover {
+  animation-play-state: paused;
+}
+
 /* Hero grid */
 .hero-grid-bg {
   background-image:

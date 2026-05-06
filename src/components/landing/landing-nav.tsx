@@ -15,15 +15,14 @@ export function LandingNav() {
   const [pastHero, setPastHero] = useState(false);
 
   useEffect(() => {
-    const hero = document.getElementById("landing-hero");
-    if (!hero) return;
+    const onScroll = () => {
+      setPastHero(window.scrollY > 50);
+    };
 
-    const observer = new IntersectionObserver(
-      ([entry]) => setPastHero(!entry.isIntersecting),
-      { threshold: 0 },
-    );
-    observer.observe(hero);
-    return () => observer.disconnect();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll(); // Check initial state
+
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   return (

@@ -222,7 +222,7 @@ function StatItem({ stat, delay }: { stat: StatDef; delay: number }) {
 }
 
 export function LandingHero() {
-  const [activeTab, setActiveTab] = useState<"launch" | "discover">("discover");
+  const [activeTab, setActiveTab] = useState<"launch" | "discover">("launch");
   const innerRef = useRef<HTMLDivElement>(null);
   const outerRef = useRef<HTMLDivElement>(null);
   const angleRef = useRef(0);

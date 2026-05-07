@@ -162,7 +162,7 @@ export function CreatorsSection() {
 
   return (
     <section className="w-full py-16 bg-white overflow-hidden">
-      <div className="max-w-[1332px] mx-auto px-[54px] mb-8">
+      <div className="max-w-[1440px] mx-auto px-[54px] mb-8">
         <h2 className="font-montserrat font-bold text-[40px] leading-normal text-[#101828] text-center w-full">
           Top experts building on Kollab
         </h2>

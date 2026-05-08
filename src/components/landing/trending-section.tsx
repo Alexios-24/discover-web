@@ -193,10 +193,17 @@ export function TrendingSection() {
 
         {/* Cards row */}
         <div className="flex flex-wrap gap-6 w-full">
-          {CARDS.map((card) => (
-            <div key={card.title} className="flex-1 min-w-[300px]">
+          {CARDS.map((card, index) => (
+            <motion.div
+              key={card.title}
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.6, ease: "easeOut", delay: index * 0.15 }}
+              className="flex-1 min-w-[300px]"
+            >
               <Card card={card} />
-            </div>
+            </motion.div>
           ))}
         </div>
       </div>

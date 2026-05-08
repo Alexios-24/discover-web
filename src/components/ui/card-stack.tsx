@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion, useInView } from "framer-motion";
 
 function cn(...classes: Array<string | undefined | null | false>) {
   return classes.filter(Boolean).join(" ");
@@ -41,6 +41,8 @@ export type CardStackProps<T extends CardStackItem> = {
   className?: string;
   onChangeIndex?: (index: number, item: T) => void;
   renderCard?: (item: T, state: { active: boolean }) => React.ReactNode;
+  scatterOnView?: boolean;
+  scatterDelayMs?: number;
 };
 
 function wrapIndex(n: number, len: number) {
@@ -79,9 +81,21 @@ export function CardStack<T extends CardStackItem>({
   className,
   onChangeIndex,
   renderCard,
+  scatterOnView = false,
+  scatterDelayMs = 400,
 }: CardStackProps<T>) {
   const reduceMotion = useReducedMotion();
   const len = items.length;
+
+  const containerRef = React.useRef<HTMLDivElement>(null);
+  const isInView = useInView(containerRef, { once: true, amount: 0.4 });
+  const [hasScattered, setHasScattered] = React.useState(!scatterOnView);
+
+  React.useEffect(() => {
+    if (!scatterOnView || hasScattered || !isInView) return;
+    const timer = setTimeout(() => setHasScattered(true), scatterDelayMs);
+    return () => clearTimeout(timer);
+  }, [scatterOnView, isInView, hasScattered, scatterDelayMs]);
 
   const [active, setActive] = React.useState(() =>
     wrapIndex(initialIndex, len),
@@ -121,7 +135,7 @@ export function CardStack<T extends CardStackItem>({
   };
 
   React.useEffect(() => {
-    if (!autoAdvance || reduceMotion || !len) return;
+    if (!autoAdvance || reduceMotion || !len || !hasScattered) return;
     if (pauseOnHover && hovering) return;
 
     const id = window.setInterval(() => {
@@ -129,12 +143,13 @@ export function CardStack<T extends CardStackItem>({
     }, Math.max(700, intervalMs));
 
     return () => window.clearInterval(id);
-  }, [autoAdvance, intervalMs, hovering, pauseOnHover, reduceMotion, len, loop, active, next]);
+  }, [autoAdvance, intervalMs, hovering, pauseOnHover, reduceMotion, len, loop, active, next, hasScattered]);
 
   if (!len) return null;
 
   return (
     <div
+      ref={containerRef}
       className={cn("w-full", className)}
       onMouseEnter={() => setHovering(true)}
       onMouseLeave={() => setHovering(false)}
@@ -157,17 +172,20 @@ export function CardStack<T extends CardStackItem>({
 
               if (!visible) return null;
 
-              const rotateZ = off * stepDeg;
-              const x = off * cardSpacing;
-              const y = abs * 10;
-              const z = -abs * depthPx;
+              const scattered = hasScattered;
+              const rotateZ = scattered ? off * stepDeg : 0;
+              const x = scattered ? off * cardSpacing : 0;
+              const y = scattered ? abs * 10 : 0;
+              const z = scattered ? -abs * depthPx : -abs * 4;
               const isActive = off === 0;
-              const scale = isActive ? activeScale : inactiveScale;
-              const lift = isActive ? -activeLiftPx : 0;
-              const rotateX = isActive ? 0 : tiltXDeg;
+              const scale = scattered
+                ? isActive ? activeScale : inactiveScale
+                : isActive ? 1 : 0.98;
+              const lift = scattered && isActive ? -activeLiftPx : 0;
+              const rotateX = scattered && !isActive ? tiltXDeg : 0;
               const zIndex = 100 - abs;
 
-              const dragProps = isActive
+              const dragProps = isActive && scattered
                 ? {
                     drag: "x" as const,
                     dragConstraints: { left: 0, right: 0 },
@@ -191,9 +209,9 @@ export function CardStack<T extends CardStackItem>({
                   key={item.id}
                   className={cn(
                     "absolute bottom-0 overflow-hidden shadow-xl will-change-transform select-none",
-                    isActive
+                    isActive && scattered
                       ? "cursor-grab active:cursor-grabbing"
-                      : "cursor-pointer",
+                      : scattered ? "cursor-pointer" : "",
                   )}
                   style={{
                     width: cardWidth,
@@ -205,7 +223,9 @@ export function CardStack<T extends CardStackItem>({
                   initial={
                     reduceMotion
                       ? false
-                      : { opacity: 0, y: y + 40, x, rotateZ, rotateX, scale }
+                      : scatterOnView
+                        ? { opacity: 1, x: 0, y: 0, rotateZ: 0, rotateX: 0, scale: isActive ? 1 : 0.98 }
+                        : { opacity: 0, y: y + 40, x, rotateZ, rotateX, scale }
                   }
                   animate={{
                     opacity: 1,
@@ -217,10 +237,11 @@ export function CardStack<T extends CardStackItem>({
                   }}
                   transition={{
                     type: "spring",
-                    stiffness: springStiffness,
-                    damping: springDamping,
+                    stiffness: scattered ? springStiffness : 120,
+                    damping: scattered ? springDamping : 18,
+                    ...(scatterOnView && !scattered ? {} : {}),
                   }}
-                  onClick={() => setActive(i)}
+                  onClick={() => scattered && setActive(i)}
                   {...dragProps}
                 >
                   <div
@@ -248,7 +269,7 @@ export function CardStack<T extends CardStackItem>({
           {items.map((it, idx) => (
             <button
               key={it.id}
-              onClick={() => setActive(idx)}
+              onClick={() => hasScattered && setActive(idx)}
               className={cn(
                 "h-2 w-2 rounded-[4px] transition-colors",
                 idx === active ? "bg-[#475467]" : "bg-[#D0D5DD] hover:bg-[#98A2B3]",

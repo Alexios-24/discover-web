@@ -120,9 +120,9 @@ export function ZoomParallax({ cards, overlay }: ZoomParallaxProps) {
                 <motion.div
                   key={i}
                   style={{ scale }}
-                  className={`absolute top-0 flex h-full w-full items-center justify-center ${card.positionClass}`}
+                  className={`pointer-events-none absolute top-0 flex h-full w-full items-center justify-center ${card.positionClass}`}
                 >
-                  <div className="relative w-[18vw] aspect-[16/9]">
+                  <div className="pointer-events-auto relative w-[18vw] aspect-[16/9]">
                     {card.content(scale)}
                   </div>
                 </motion.div>

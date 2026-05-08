@@ -177,6 +177,11 @@ export function CategoryShowcase() {
   const [pos, setPos] = useState(0);
   const [animate, setAnimate] = useState(true);
   const bgRef = useRef<HTMLDivElement>(null);
+  const sectionRef = useRef<HTMLDivElement>(null);
+
+  const scrollIndexRef = useRef(0);
+  const cooldownRef = useRef(false);
+  const finishedRef = useRef(false);
 
   const advance = useCallback(() => {
     setAnimate(true);
@@ -184,6 +189,50 @@ export function CategoryShowcase() {
   }, []);
 
   useEffect(() => {
+    if (finishedRef.current) return;
+
+    const el = sectionRef.current;
+    if (!el) return;
+
+    const handleWheel = (e: WheelEvent) => {
+      if (finishedRef.current) return;
+
+      const rect = el.getBoundingClientRect();
+      const inView = rect.top < window.innerHeight * 0.5 && rect.bottom > window.innerHeight * 0.5;
+      if (!inView) return;
+
+      if (e.deltaY < 15) return;
+
+      if (cooldownRef.current) {
+        e.preventDefault();
+        return;
+      }
+
+      const nextIdx = scrollIndexRef.current + 1;
+
+      if (nextIdx >= N) {
+        finishedRef.current = true;
+        return;
+      }
+
+      e.preventDefault();
+      cooldownRef.current = true;
+      scrollIndexRef.current = nextIdx;
+
+      setAnimate(true);
+      setPos(nextIdx);
+
+      setTimeout(() => {
+        cooldownRef.current = false;
+      }, 850);
+    };
+
+    window.addEventListener("wheel", handleWheel, { passive: false });
+    return () => window.removeEventListener("wheel", handleWheel);
+  }, []);
+
+  useEffect(() => {
+    if (finishedRef.current) return;
     const id = setInterval(advance, CYCLE_MS);
     return () => clearInterval(id);
   }, [advance]);
@@ -193,6 +242,7 @@ export function CategoryShowcase() {
       const t = setTimeout(() => {
         setAnimate(false);
         setPos(0);
+        scrollIndexRef.current = 0;
       }, 800);
       return () => clearTimeout(t);
     }
@@ -218,7 +268,10 @@ export function CategoryShowcase() {
   const loopLabels = [...SETS.map((s) => s.label), SETS[0].label];
 
   return (
-    <section className="w-full px-[54px] py-20 bg-white">
+    <section
+      ref={sectionRef}
+      className="w-full px-[54px] py-20 bg-white"
+    >
       <div className="max-w-[1332px] mx-auto flex flex-col items-center gap-8">
         {/* Heading */}
         <div className="flex flex-col gap-2 items-center text-center w-full">

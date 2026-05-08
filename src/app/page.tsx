@@ -9,12 +9,7 @@ import { TopPicksSection } from "@/components/landing/top-picks-section";
 import { CreatorsSection } from "@/components/landing/creators-section";
 import { FeaturedProducts } from "@/components/landing/featured-products";
 import { BrowseAllSection } from "@/components/landing/browse-all-section";
-import { LiveFeed } from "@/components/landing/live-feed";
-import { DualSection } from "@/components/landing/dual-section";
-import { FeaturedSection } from "@/components/landing/featured-section";
-import { BentoGrid } from "@/components/landing/bento-grid";
-import { StatsSection } from "@/components/landing/stats-section";
-import { FinalCTA } from "@/components/landing/final-cta";
+import { NumbersSection } from "@/components/landing/numbers-section";
 import { LandingFooter } from "@/components/landing/footer";
 import { ParticleCanvas } from "@/components/landing/particle-canvas";
 import {
@@ -55,12 +50,7 @@ export default function LandingPage() {
         <CreatorsSection />
         <FeaturedProducts />
         <BrowseAllSection />
-        <FeaturedSection />
-        <DualSection />
-        <LiveFeed />
-        <BentoGrid />
-        <StatsSection />
-        <FinalCTA />
+        <NumbersSection />
         <LandingFooter />
         <VariantSwitcher />
       </main>

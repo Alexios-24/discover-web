@@ -425,9 +425,9 @@ export function LandingHero() {
 
           {/* CTA Button */}
           <motion.div {...fadeUp(0.45)}>
-            <Link href="/discover" className="inline-block">
+            <Link href="/discover" className="group inline-block">
               <div
-                className="relative rounded-xl p-[2px] overflow-hidden"
+                className="relative rounded-xl p-[2px] overflow-hidden transition-[filter] duration-300"
                 style={{
                   filter:
                     "drop-shadow(0px 0px 6px rgba(255,255,255,0.25))",
@@ -440,7 +440,7 @@ export function LandingHero() {
                       "conic-gradient(from 90deg, #101828 0%, #2D233C 1.84%, #492E50 3.68%, #663964 5.53%, #834478 7.37%, #BC5A9F 11.05%, #F670C7 14.73%, #BE65DF 21.23%, #875BF7 27.73%, #5F8DF9 33.75%, #36BFFA 39.76%, #299FEC 42.23%, #1B80DD 44.69%, #0E60CF 47.15%, #0040C1 49.62%, #04369B 62.21%, #082C75 74.81%, #0C224E 87.4%, #101828 100%)",
                   }}
                 />
-                <div className="relative flex items-center justify-center gap-2 h-[48px] bg-indigo-600 rounded-[10px] px-5 py-3 backdrop-blur-[15px]">
+                <div className="relative flex items-center justify-center gap-2 h-[48px] bg-indigo-600 group-hover:bg-black/75 rounded-[10px] group-hover:rounded-xl px-5 py-3 backdrop-blur-[15px] transition-[background-color,border-radius] duration-300">
                   <span className="text-[16px] leading-6 font-semibold text-white whitespace-nowrap">
                     Get started for free
                   </span>

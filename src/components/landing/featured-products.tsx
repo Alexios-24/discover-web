@@ -4,6 +4,7 @@ import { Globe } from "lucide-react";
 import { useEffect, useState } from "react";
 import { type MotionValue } from "framer-motion";
 import { ZoomParallax, type ParallaxCard } from "@/components/ui/zoom-parallax";
+import { CursorTooltip } from "@/components/ui/animated-tooltip";
 
 interface ProductCard {
   title: string;
@@ -68,15 +69,14 @@ const CARDS: ProductCard[] = [
 function CardContent({
   card,
   parentScale,
+  showTooltip = false,
 }: {
   card: ProductCard;
   parentScale: MotionValue<number>;
+  showTooltip?: boolean;
 }) {
   const isGlobe = card.pricing === "Free";
 
-  // Subscribe to parent scale so we can apply an inverse transform on the
-  // text overlay — the image scales with the card, but the title / tag /
-  // members count stay at a constant pixel size.
   const [scale, setScale] = useState(1);
   useEffect(() => {
     setScale(parentScale.get());
@@ -87,7 +87,9 @@ function CardContent({
   const inverseScale = 1 / Math.max(scale, 0.001);
   const dynamicRadius = 16 * inverseScale;
 
-  return (
+  const tooltipEnabled = showTooltip && scale > 1.5;
+
+  const inner = (
     <div
       className="relative w-full h-full overflow-hidden cursor-pointer [transform:translateZ(0)]"
       style={{ borderRadius: `${dynamicRadius}px` }}
@@ -133,6 +135,16 @@ function CardContent({
       </div>
     </div>
   );
+
+  if (showTooltip) {
+    return (
+      <CursorTooltip label="Join now" enabled={tooltipEnabled}>
+        {inner}
+      </CursorTooltip>
+    );
+  }
+
+  return inner;
 }
 
 /*
@@ -155,7 +167,7 @@ function CardContent({
 const PARALLAX_CARDS: ParallaxCard[] = [
   // 0 — Kollabers (CENTRE: 470.5,392 size 391×220 in 1332×814 frame)
   {
-    content: (s) => <CardContent card={CARDS[0]} parentScale={s} />,
+    content: (s) => <CardContent card={CARDS[0]} parentScale={s} showTooltip />,
     positionClass: "[&>div]:!w-[18vw]",
     scale: 2.5,
   },

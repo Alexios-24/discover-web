@@ -7,7 +7,7 @@ interface Creator {
   role: string;
   image: string;
   hasGradient: boolean;
-  gradientColor?: string; // Fallback if image color extraction fails
+  gradientColor?: string;
 }
 
 const CREATORS: Creator[] = [
@@ -84,7 +84,6 @@ function useImageColor(imageUrl: string, fallbackColor: string | undefined): str
       canvas.height = 64;
       ctx.drawImage(img, 0, 0, 64, 64);
       try {
-        // Sample the bottom area for the gradient color
         const data = ctx.getImageData(0, 48, 64, 16).data;
         let r = 0, g = 0, b = 0;
         let count = 0;
@@ -98,7 +97,6 @@ function useImageColor(imageUrl: string, fallbackColor: string | undefined): str
         g = Math.floor(g / count);
         b = Math.floor(b / count);
 
-        // Darken slightly to ensure text readability
         r = Math.floor(r * 0.8);
         g = Math.floor(g * 0.8);
         b = Math.floor(b * 0.8);
@@ -140,7 +138,6 @@ function CreatorCard({ creator }: { creator: Creator }) {
         />
       )}
 
-      {/* Text overlay */}
       <div className="absolute bottom-0 left-0 right-0 flex flex-col items-center gap-[10px] px-3 py-6 z-10">
         <div className="text-center font-semibold text-[24px] text-white leading-[26px] h-[52px] flex flex-col justify-center overflow-hidden w-full">
           {creator.name.map((line, i) => (

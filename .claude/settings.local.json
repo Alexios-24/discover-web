@@ -24,7 +24,10 @@
       "Bash(npx next *)",
       "Bash(npx tsc *)",
       "mcp__Claude_in_Chrome__tabs_context_mcp",
-      "Bash(lsof -ti:3000)"
+      "Bash(lsof -ti:3000)",
+      "Bash(curl -s http://localhost:3000/ -o /tmp/landing.html)",
+      "Read(//tmp/**)",
+      "Bash(grep -oE \"Communities|Courses|Creators|Get started for free|Documentation|Help center|Integrations|Pricing|2026 Kollab\" /tmp/landing.html | sort -u)"
     ]
   }
 }

@@ -65,8 +65,12 @@ function TopPickCardRenderer(
   const isGlobe = card.pricing === "Free";
 
   return (
-    <div className="relative h-full w-full">
-      <div className="absolute inset-0">
+    <div className="relative h-full w-full overflow-hidden group/card">
+      <div
+        className={`absolute inset-0 transition-transform duration-500 ease-out ${
+          active ? "group-hover/card:scale-110" : ""
+        }`}
+      >
         <img
           src={card.imageSrc}
           alt={card.title}
@@ -124,7 +128,7 @@ export function TopPicksSection() {
             items={CARDS}
             initialIndex={0}
             autoAdvance
-            intervalMs={4000}
+            intervalMs={3000}
             pauseOnHover
             showDots
             loop
@@ -141,6 +145,8 @@ export function TopPicksSection() {
             springStiffness={160}
             springDamping={22}
             maxVisible={5}
+            scatterOnView
+            scatterDelayMs={300}
             renderCard={(item, state) =>
               TopPickCardRenderer(item, state)
             }

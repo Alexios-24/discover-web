@@ -13,7 +13,7 @@ const SM_R = 8;
 const LG_W = 1242;
 const LG_H = 699;
 const LG_R = 16;
-const PEEK_PX = 50;
+const PEEK_PX = 15;
 
 function lerp(a: number, b: number, t: number) {
   return a + (b - a) * t;
@@ -62,7 +62,7 @@ export function VideoShowcase() {
 
       const label = labelRef.current;
       if (label) {
-        label.style.top = `${vidTop - 36}px`;
+        label.style.top = `${vidTop - 48}px`;
         label.style.opacity = `${1 - clamp01(t / 0.15)}`;
       }
 

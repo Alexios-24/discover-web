@@ -2,6 +2,7 @@
 
 import { LandingNav } from "@/components/landing/landing-nav";
 import { LandingHero } from "@/components/landing/landing-hero";
+import { LandingHeroV2 } from "@/components/landing/landing-hero-v2";
 import { VideoShowcase } from "@/components/landing/video-showcase";
 import { CategoryShowcase } from "@/components/landing/category-showcase";
 import { TrendingSection } from "@/components/landing/trending-section";
@@ -11,7 +12,6 @@ import { FeaturedProducts } from "@/components/landing/featured-products";
 import { BrowseAllSection } from "@/components/landing/browse-all-section";
 import { NumbersSection } from "@/components/landing/numbers-section";
 import { LandingFooter } from "@/components/landing/footer";
-import { ParticleCanvas } from "@/components/landing/particle-canvas";
 import {
   VariantProvider,
   VariantSwitcher,
@@ -22,16 +22,7 @@ function HeroSwitch() {
   const { variant } = useVariant();
 
   if (variant === "v2") {
-    return (
-      <section id="landing-hero" className="relative h-screen flex items-center justify-center bg-[#030305] overflow-hidden">
-        <div className="absolute inset-0 z-0">
-          <ParticleCanvas className="absolute inset-0" />
-        </div>
-        <p className="relative z-10 text-white/30 text-sm font-medium tracking-wide">
-          V2 hero — coming soon
-        </p>
-      </section>
-    );
+    return <LandingHeroV2 />;
   }
 
   return <LandingHero />;

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { X, ArrowDownUp, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { FiltersPanel, hasActiveFilters, type FilterState } from "./filters-panel";
@@ -101,6 +102,10 @@ export function DiscoverContent() {
     priceMax: 5000,
   });
 
+  const searchParams = useSearchParams();
+  const query = searchParams?.get("q") ?? "";
+  const hasQuery = query.length > 0;
+
   const isActive = hasActiveFilters(filters);
   const tags = isActive ? getFilterTags(filters, setFilters) : [];
 
@@ -142,7 +147,22 @@ export function DiscoverContent() {
 
         {/* Content sections */}
         <div className="flex flex-col gap-[54px] w-full">
-          {isActive ? (
+          {hasQuery ? (
+            <>
+              {tags.length > 0 && (
+                <div className="flex items-center gap-2 flex-wrap">
+                  {tags.map((tag, i) => (
+                    <FilterTag
+                      key={i}
+                      label={tag.label}
+                      onRemove={tag.onRemove}
+                    />
+                  ))}
+                </div>
+              )}
+              <BrowseProducts />
+            </>
+          ) : isActive ? (
             <>
               <div className="flex flex-col gap-6 w-full">
                 <div className="flex items-center gap-2 flex-wrap">

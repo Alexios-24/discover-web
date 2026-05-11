@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, ArrowRight, BadgeCheck } from "lucide-react";
+import { Search, ArrowRight, BadgeCheck, X } from "lucide-react";
 
 interface WordDef {
   text: string;
@@ -223,6 +224,9 @@ function StatItem({ stat, delay }: { stat: StatDef; delay: number }) {
 
 export function LandingHero() {
   const [activeTab, setActiveTab] = useState<"launch" | "discover">("launch");
+  const [searchValue, setSearchValue] = useState("");
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const router = useRouter();
   const innerRef = useRef<HTMLDivElement>(null);
   const outerRef = useRef<HTMLDivElement>(null);
   const angleRef = useRef(0);
@@ -230,6 +234,18 @@ export function LandingHero() {
   const targetSpeedRef = useRef(0.08);
   const lastScrollRef = useRef(0);
   const rafRef = useRef(0);
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = searchValue.trim();
+    if (!trimmed) return;
+    router.push(`/discover?q=${encodeURIComponent(trimmed)}`);
+  };
+
+  const handleClearSearch = () => {
+    setSearchValue("");
+    searchInputRef.current?.focus();
+  };
 
   const animate = useCallback(() => {
     speedRef.current += (targetSpeedRef.current - speedRef.current) * 0.05;
@@ -415,12 +431,31 @@ export function LandingHero() {
 
           {/* Search bar */}
           <motion.div {...fadeUp(0.35)}>
-            <div className="flex items-center gap-2 w-[400px] h-[44px] bg-white/[0.1] border border-white/[0.2] rounded-xl px-[13px] py-[9px] shadow-[0px_25px_50px_rgba(0,0,0,0.25)]">
+            <form
+              onSubmit={handleSearchSubmit}
+              className="flex items-center gap-2 w-[400px] h-[44px] bg-white/[0.1] border border-white/[0.2] rounded-xl px-[13px] py-[9px] shadow-[0px_25px_50px_rgba(0,0,0,0.25)] focus-within:bg-white/[0.14] focus-within:border-white/[0.3] transition-colors"
+            >
               <Search size={20} className="text-gray-400 shrink-0" />
-              <span className="text-[16px] leading-6 text-gray-400">
-                Search for communities, courses, creators
-              </span>
-            </div>
+              <input
+                ref={searchInputRef}
+                type="text"
+                value={searchValue}
+                onChange={(e) => setSearchValue(e.target.value)}
+                placeholder="Search for communities, courses, creators"
+                className="flex-1 min-w-0 bg-transparent outline-none text-[16px] leading-6 text-white placeholder:text-gray-400 caret-white"
+                aria-label="Search"
+              />
+              {searchValue && (
+                <button
+                  type="button"
+                  onClick={handleClearSearch}
+                  aria-label="Clear search"
+                  className="shrink-0 flex items-center justify-center w-5 h-5 text-gray-400 hover:text-white transition-colors"
+                >
+                  <X size={18} />
+                </button>
+              )}
+            </form>
           </motion.div>
 
           {/* CTA Button */}

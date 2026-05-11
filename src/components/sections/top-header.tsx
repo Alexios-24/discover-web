@@ -1,16 +1,32 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown, Languages, Search } from "lucide-react";
+import { ChevronDown, Languages, Search, X } from "lucide-react";
 
 export function TopHeader() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const urlQuery = searchParams?.get("q") ?? "";
+  const hasUrlQuery = urlQuery.length > 0;
+
   const [isScrolled, setIsScrolled] = useState(false);
+  const [searchValue, setSearchValue] = useState(urlQuery);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Keep input value in sync with URL when query changes externally
+  useEffect(() => {
+    setSearchValue(urlQuery);
+  }, [urlQuery]);
 
   const handleScroll = useCallback(() => {
     const heroSearch = document.getElementById("hero-search");
-    if (!heroSearch) return;
-
+    if (!heroSearch) {
+      // On pages without the hero search anchor, fall back to scroll-based showing
+      setIsScrolled(window.scrollY > 60);
+      return;
+    }
     const rect = heroSearch.getBoundingClientRect();
     const headerHeight = 60;
     setIsScrolled(rect.bottom <= headerHeight);
@@ -22,13 +38,34 @@ export function TopHeader() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [handleScroll]);
 
+  // Show the header search whenever there's an active query OR when scrolled past the hero
+  const showHeaderSearch = hasUrlQuery || isScrolled;
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = searchValue.trim();
+    if (!trimmed) {
+      router.push("/discover");
+      return;
+    }
+    router.push(`/discover?q=${encodeURIComponent(trimmed)}`);
+  };
+
+  const handleClear = () => {
+    setSearchValue("");
+    if (hasUrlQuery) {
+      router.push("/discover");
+    }
+    inputRef.current?.focus();
+  };
+
   return (
     <header
       className="sticky top-0 z-50 w-full relative transition-[background-color,backdrop-filter,border-color,box-shadow] duration-300 ease-out"
       style={{
         backgroundColor: "#ffffff",
-        borderBottom: isScrolled ? "none" : "1px solid rgba(234,236,240,0.6)",
-        boxShadow: isScrolled ? "none" : "0px 1px 2px 0px rgba(16,24,40,0.05)",
+        borderBottom: showHeaderSearch ? "none" : "1px solid rgba(234,236,240,0.6)",
+        boxShadow: showHeaderSearch ? "none" : "0px 1px 2px 0px rgba(16,24,40,0.05)",
       }}
     >
       <div className="max-w-[1440px] mx-auto h-[60px] flex items-center gap-6 px-[54px] py-2">
@@ -43,8 +80,8 @@ export function TopHeader() {
           <nav
             className="flex items-center gap-1 transition-opacity duration-300 ease-out"
             style={{
-              opacity: isScrolled ? 0 : 1,
-              pointerEvents: isScrolled ? "none" : "auto",
+              opacity: showHeaderSearch ? 0 : 1,
+              pointerEvents: showHeaderSearch ? "none" : "auto",
             }}
           >
             {[
@@ -86,9 +123,9 @@ export function TopHeader() {
         </div>
       </div>
 
-      {/* Centered Search — appears when hero search leaves viewport */}
+      {/* Centered Search — visible when there's a query or when scrolled past hero search */}
       <AnimatePresence>
-        {isScrolled && (
+        {showHeaderSearch && (
           <motion.div
             initial={{ opacity: 0, y: -8, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -96,12 +133,31 @@ export function TopHeader() {
             transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] as const }}
             className="absolute inset-x-0 top-[12px] w-[400px] mx-auto pointer-events-auto"
           >
-            <button className="w-full flex items-center gap-1 h-9 bg-white border border-gray-300 rounded-md px-2 shadow-xs hover:border-gray-400 transition-colors cursor-pointer">
+            <form
+              onSubmit={handleSubmit}
+              className="w-full flex items-center gap-1 h-9 bg-white border border-gray-300 rounded-md px-2 shadow-xs focus-within:border-gray-400 transition-colors"
+            >
               <Search size={16} className="text-gray-500 shrink-0" />
-              <span className="flex-1 min-w-0 text-[14px] leading-5 text-gray-500 text-left truncate">
-                Search for communities, courses, creators
-              </span>
-            </button>
+              <input
+                ref={inputRef}
+                type="text"
+                value={searchValue}
+                onChange={(e) => setSearchValue(e.target.value)}
+                placeholder="Search for communities, courses, creators"
+                className="flex-1 min-w-0 bg-transparent outline-none text-[14px] leading-5 text-gray-900 placeholder:text-gray-500"
+                aria-label="Search"
+              />
+              {searchValue && (
+                <button
+                  type="button"
+                  onClick={handleClear}
+                  aria-label="Clear search"
+                  className="shrink-0 flex items-center justify-center w-5 h-5 text-gray-500 hover:text-gray-900 transition-colors"
+                >
+                  <X size={16} />
+                </button>
+              )}
+            </form>
           </motion.div>
         )}
       </AnimatePresence>

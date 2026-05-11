@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Search } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useSearchParams, useRouter } from "next/navigation";
 
 type HoverWord = "communities" | "courses" | "creators" | null;
 
@@ -109,6 +110,28 @@ function ShuffleCard({ card }: { card: FloatingCard }) {
 
 export function DiscoverHero() {
   const [hoveredWord, setHoveredWord] = useState<HoverWord>(null);
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const query = searchParams?.get("q") ?? "";
+
+  // Search-results variant — replaces the welcome hero when ?q= is present
+  if (query) {
+    return (
+      <section className="w-full px-[54px] pt-8 pb-2 flex items-center justify-between gap-6">
+        <h1 className="font-inter text-[24px] leading-[32px] text-gray-900">
+          Search results for{" "}
+          <span className="font-semibold">&ldquo;{query}&rdquo;</span>
+        </h1>
+        <button
+          type="button"
+          onClick={() => router.push("/discover")}
+          className="shrink-0 border border-gray-300 rounded-lg px-[14px] py-2 text-[14px] leading-5 font-semibold text-gray-700 shadow-xs hover:bg-gray-50 transition-colors"
+        >
+          Clear search
+        </button>
+      </section>
+    );
+  }
 
   return (
     <section className="w-full h-[187px] px-[54px] relative flex items-center justify-center">

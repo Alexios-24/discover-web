@@ -7,18 +7,20 @@ import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
 
-const PARTICLE_COUNT = 120000;
+const PARTICLE_COUNT = 50000;
 const BG_COLOR = 0x030305;
 
 const particleVertexShader = /* glsl */ `
   uniform float uTime;
   uniform vec3 uMouse;
+  uniform float uPointScale;
 
   attribute vec3 aRandom;
   attribute float aIndex;
 
   varying vec3 vColor;
   varying float vAlpha;
+  varying float vMouseProximity;
 
   vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
   vec4 mod289(vec4 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
@@ -71,7 +73,7 @@ const particleVertexShader = /* glsl */ `
   vec3 getPosSphere(float idx) {
     float phi = acos(-1.0 + (2.0 * idx) / ${PARTICLE_COUNT}.0);
     float theta = sqrt(${PARTICLE_COUNT}.0 * 3.1415926) * phi;
-    float r = 12.0 + aRandom.x * 2.0;
+    float r = 14.0 + aRandom.x * 3.0;
     return vec3(r * sin(phi) * cos(theta), r * sin(phi) * sin(theta), r * cos(phi));
   }
 
@@ -86,20 +88,20 @@ const particleVertexShader = /* glsl */ `
 
     vec3 pos = getPosSphere(aIndex) + noiseBase * 4.0;
 
-    // Mouse push
     if (uMouse.x > -90.0) {
       float d = distance(pos, uMouse);
-      float influence = smoothstep(12.0, 0.0, d);
-      pos += normalize(pos - uMouse) * influence * 8.0;
+      float scatter = smoothstep(6.0, 0.0, d);
+      pos += normalize(pos - uMouse) * scatter * 1.2;
     }
 
     vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
-    gl_PointSize = (1.5 + aRandom.y * 2.0) * (30.0 / -mvPosition.z);
+    gl_PointSize = (1.5 + aRandom.y * 2.0) * (30.0 / -mvPosition.z) * uPointScale;
     gl_Position = projectionMatrix * mvPosition;
 
     float depthFade = smoothstep(60.0, 10.0, -mvPosition.z);
     vAlpha = depthFade * (0.2 + aRandom.z * 0.6);
     vColor = pos;
+    vMouseProximity = 0.0;
   }
 `;
 
@@ -108,6 +110,7 @@ const particleFragmentShader = /* glsl */ `
   uniform vec3 uColor2;
   varying vec3 vColor;
   varying float vAlpha;
+  varying float vMouseProximity;
 
   void main() {
     vec2 center = gl_PointCoord - 0.5;
@@ -171,11 +174,13 @@ export function ParticleCanvas({ className }: { className?: string }) {
     const container = containerRef.current;
     if (!container) return;
 
-    const isMobile = window.innerWidth < 768;
-    const particleCount = isMobile ? 65000 : PARTICLE_COUNT;
+    const vw = window.innerWidth;
+    const isMobile = vw < 768;
+
+    const particleCount = isMobile ? 25000 : PARTICLE_COUNT;
     const cameraZ = isMobile ? 40 : 28;
 
-    // Renderer
+    // Renderer — use pixelRatio 1 so particle density is DPR-independent
     const renderer = new THREE.WebGLRenderer({
       antialias: false,
       powerPreference: "high-performance",
@@ -183,7 +188,7 @@ export function ParticleCanvas({ className }: { className?: string }) {
       stencil: false,
       depth: true,
     });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setPixelRatio(1);
     renderer.setSize(container.clientWidth, container.clientHeight);
     renderer.toneMapping = THREE.CineonToneMapping;
     renderer.toneMappingExposure = 1.2;
@@ -191,7 +196,7 @@ export function ParticleCanvas({ className }: { className?: string }) {
 
     // Scene
     const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(BG_COLOR, 0.015);
+    scene.fog = new THREE.FogExp2(BG_COLOR, 0.02);
     scene.background = new THREE.Color(BG_COLOR);
 
     // Camera
@@ -213,9 +218,9 @@ export function ParticleCanvas({ className }: { className?: string }) {
       0.4,
       0.85,
     );
-    bloomPass.threshold = 0.1;
-    bloomPass.strength = 1.0;
-    bloomPass.radius = 0.8;
+    bloomPass.threshold = 0.15;
+    bloomPass.strength = 0.85;
+    bloomPass.radius = 0.7;
     composer.addPass(bloomPass);
 
     const finalPass = new ShaderPass(outputShader);
@@ -246,12 +251,16 @@ export function ParticleCanvas({ className }: { className?: string }) {
       `${particleCount}.0`,
     );
 
+    const REF_WIDTH = 1440;
+    const pointScale = isMobile ? 1.0 : REF_WIDTH / Math.max(vw, REF_WIDTH);
+
     const material = new THREE.ShaderMaterial({
       uniforms: {
         uTime: { value: 0 },
         uMouse: { value: new THREE.Vector3(-100, 0, 0) },
         uColor1: { value: new THREE.Color("#818cf8") },
         uColor2: { value: new THREE.Color("#2dd4bf") },
+        uPointScale: { value: pointScale },
       },
       vertexShader: vertSrc,
       fragmentShader: particleFragmentShader,
@@ -269,15 +278,26 @@ export function ParticleCanvas({ className }: { className?: string }) {
 
     const onMouseMove = (e: MouseEvent) => {
       const rect = container.getBoundingClientRect();
+      const isOutside =
+        e.clientX < rect.left ||
+        e.clientX > rect.right ||
+        e.clientY < rect.top ||
+        e.clientY > rect.bottom;
+
+      if (isOutside) {
+        mouseTarget.set(-100, 0, 0);
+        return;
+      }
+
       const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
       const y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
-      mouseTarget.set(x * 30, y * 20, 0);
+      mouseTarget.set(x * 20, y * 12, 12);
     };
     const onMouseLeave = () => {
       mouseTarget.set(-100, 0, 0);
     };
 
-    container.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mousemove", onMouseMove);
     container.addEventListener("mouseleave", onMouseLeave);
 
     // Resize
@@ -305,7 +325,7 @@ export function ParticleCanvas({ className }: { className?: string }) {
       finalPass.uniforms.uTime.value = time;
 
       // Smooth mouse lerp
-      mouseSmooth.lerp(mouseTarget, 0.1);
+      mouseSmooth.lerp(mouseTarget, 0.12);
       material.uniforms.uMouse.value.copy(mouseSmooth);
 
       // Camera sway
@@ -322,7 +342,7 @@ export function ParticleCanvas({ className }: { className?: string }) {
 
     cleanupRef.current = () => {
       cancelAnimationFrame(raf);
-      container.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mousemove", onMouseMove);
       container.removeEventListener("mouseleave", onMouseLeave);
       window.removeEventListener("resize", onResize);
       geometry.dispose();

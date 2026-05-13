@@ -18,24 +18,59 @@ export interface ParallaxCard {
 
 interface ZoomParallaxProps {
   cards: ParallaxCard[];
+  /**
+   * Optional alternative card set used on viewports narrower than
+   * MOBILE_BREAKPOINT_PX. Positions/scales are tuned independently of the
+   * desktop layout (typically: cards in their final Figma vw sizes with
+   * fixed layoutScale = 1).
+   */
+  mobileCards?: ParallaxCard[];
+  /**
+   * Center-card width in vw on desktop (used to size the overlay anchor).
+   * Defaults to 18 (the original base width).
+   */
+  centerCardWidthVw?: number;
+  /** Same as `centerCardWidthVw`, used when the mobile card set is active. */
+  mobileCenterCardWidthVw?: number;
   /** Optional overlay that fades in once the centre card has filled the viewport */
   overlay?: ReactNode;
 }
 
 // F1 above-centre extent = 14.75vw + 16.73vw/2 = 23.115vw
 const F1_EXTENT_VW = 0.23115;
-// Kollabers base half-height = 18vw × 9/16 / 2 = 5.0625vw
-const KOLLABERS_HALF_H_VW = 0.050625;
 const HEADING_GAP_PX = 32; // F1 top → sticky top gap (matches mb-8 in sibling sections)
 const TEXT_GAP_PX = 24; // overlay text bottom → Kollabers card top gap
 const MIN_LAYOUT_SCALE = 0.45;
-// Cap layoutScale on narrow viewports so the constellation of cards stays
-// roughly inside the viewport on mobile (some bleed off the sides is OK,
-// but the desktop formula would push them entirely off-screen on portrait).
-const MOBILE_MAX_LAYOUT_SCALE = 1.4;
+// On mobile we keep the constellation at exact Figma vw values, so the
+// scale is fixed to 1 instead of being computed from F1's extent.
+const MOBILE_FIXED_LAYOUT_SCALE = 1.0;
 const MOBILE_BREAKPOINT_PX = 768;
 
-export function ZoomParallax({ cards, overlay }: ZoomParallaxProps) {
+export function ZoomParallax({
+  cards: desktopCards,
+  mobileCards,
+  centerCardWidthVw = 18,
+  mobileCenterCardWidthVw = 18,
+  overlay,
+}: ZoomParallaxProps) {
+  // SSR-safe: render desktop layout on the server, switch after hydration.
+  // Mobile detection must run client-side because window is unavailable
+  // during SSR and we don't want a hydration mismatch.
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () =>
+      setIsMobile(window.innerWidth < MOBILE_BREAKPOINT_PX);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
+  const cards = isMobile && mobileCards ? mobileCards : desktopCards;
+  const activeCenterWidthVw = isMobile && mobileCards
+    ? mobileCenterCardWidthVw
+    : centerCardWidthVw;
+  // Half-height in vw fraction: width × 9/16 / 2 / 100.
+  const centerHalfHVwFraction = (activeCenterWidthVw * (9 / 16)) / 2 / 100;
   const container = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: container,
@@ -61,15 +96,18 @@ export function ZoomParallax({ cards, overlay }: ZoomParallaxProps) {
     function updateLayout() {
       const w = window.innerWidth;
       const h = window.innerHeight;
-      let s = Math.max(
-        MIN_LAYOUT_SCALE,
-        (h * 0.5 - HEADING_GAP_PX) / (w * F1_EXTENT_VW),
-      );
-      // On portrait/mobile the desktop formula explodes (tall viewport,
-      // narrow card extent) so cap it so the constellation stays inside
-      // the viewport instead of being pushed entirely off-screen.
-      if (w < MOBILE_BREAKPOINT_PX) {
-        s = Math.min(s, MOBILE_MAX_LAYOUT_SCALE);
+      const isMobileNow = w < MOBILE_BREAKPOINT_PX;
+
+      let s: number;
+      if (isMobileNow && mobileCards) {
+        // Mobile layout: positions/sizes are already in their target vw
+        // values, so no extra scaling is required.
+        s = MOBILE_FIXED_LAYOUT_SCALE;
+      } else {
+        s = Math.max(
+          MIN_LAYOUT_SCALE,
+          (h * 0.5 - HEADING_GAP_PX) / (w * F1_EXTENT_VW),
+        );
       }
       layoutScaleRef.current = s;
       setLayoutScale(s);
@@ -86,14 +124,14 @@ export function ZoomParallax({ cards, overlay }: ZoomParallaxProps) {
 
       const opacity = Math.max(0, Math.min(1, (p - 0.6) / 0.25));
 
-      // Kollabers card's ACTUAL top edge at the current scroll progress.
+      // Centre card's ACTUAL top edge at the current scroll progress.
       // The card scales from 1→centerMaxScale over progress 0→1.
       // Visual half-height = base × scrollScale × layoutScale.
       const w = window.innerWidth;
       const h = window.innerHeight;
       const L = layoutScaleRef.current;
       const scrollScale = 1 + (centerMaxScale - 1) * p;
-      const cardHalfH = KOLLABERS_HALF_H_VW * w * scrollScale * L;
+      const cardHalfH = centerHalfHVwFraction * w * scrollScale * L;
       const cardTop = h / 2 - cardHalfH;
 
       // Overlay bottom sits TEXT_GAP_PX above card top.
@@ -111,7 +149,7 @@ export function ZoomParallax({ cards, overlay }: ZoomParallaxProps) {
       window.removeEventListener("resize", update);
       window.removeEventListener("resize", updateLayout);
     };
-  }, [centerMaxScale]);
+  }, [centerMaxScale, mobileCards, centerHalfHVwFraction]);
 
   return (
     <div ref={container} className="relative h-[300vh]">

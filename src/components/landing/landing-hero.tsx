@@ -460,38 +460,50 @@ export function LandingHero() {
 
       {/* Center content */}
       <div className="relative z-10 flex items-center justify-center h-full max-md:px-4">
-        <div className="flex flex-col items-center gap-8 w-[723px] text-center max-md:w-full">
-          {/* Tab switcher */}
-          <motion.div {...fadeUp(0.1)}>
-            <div className="inline-flex items-center justify-center w-[200px] h-[44px] bg-white/[0.25] rounded-full p-2 relative">
-              <div
-                className="absolute h-[36px] rounded-full transition-all duration-300 ease-out bg-white/[0.25] border border-gray-200"
-                style={{
-                  left: activeTab === "launch" ? "4px" : "50%",
-                  right: activeTab === "discover" ? "4px" : "50%",
-                }}
-              />
-              <button
-                onClick={() => setActiveTab("launch")}
-                className="relative z-10 flex-1 h-[32px] flex items-center justify-center rounded-[20px] text-[14px] leading-5 font-medium text-white transition-colors"
-              >
-                Launch
-              </button>
-              <button
-                onClick={() => setActiveTab("discover")}
-                className="relative z-10 flex-1 h-[32px] flex items-center justify-center rounded-[20px] text-[14px] leading-5 font-medium text-white transition-colors"
-              >
-                Discover
-              </button>
-            </div>
-          </motion.div>
+        <div
+          className="
+            flex flex-col items-center gap-8 w-[723px] text-center
+            max-md:w-full max-md:h-full max-md:gap-0
+          "
+        >
+          {/* TOP GROUP — tab + heading + subtitle.
+              md:contents removes this wrapper at md+ so children flow as
+              direct siblings of the gap-8 stack (preserves desktop).
+              On mobile, this wrapper takes the upper half (flex-1) and
+              bottom-aligns its content so the search bar sits at viewport
+              vertical center. */}
+          <div
+            className="
+              md:contents
+              max-md:flex-1 max-md:flex max-md:flex-col max-md:items-center
+              max-md:justify-end max-md:gap-6 max-md:pb-6 max-md:w-full
+            "
+          >
+            {/* Tab switcher */}
+            <motion.div {...fadeUp(0.1)}>
+              <div className="inline-flex items-center justify-center w-[200px] h-[44px] bg-white/[0.25] rounded-full p-2 relative">
+                <div
+                  className="absolute h-[36px] rounded-full transition-all duration-300 ease-out bg-white/[0.25] border border-gray-200"
+                  style={{
+                    left: activeTab === "launch" ? "4px" : "50%",
+                    right: activeTab === "discover" ? "4px" : "50%",
+                  }}
+                />
+                <button
+                  onClick={() => setActiveTab("launch")}
+                  className="relative z-10 flex-1 h-[32px] flex items-center justify-center rounded-[20px] text-[14px] leading-5 font-medium text-white transition-colors"
+                >
+                  Launch
+                </button>
+                <button
+                  onClick={() => setActiveTab("discover")}
+                  className="relative z-10 flex-1 h-[32px] flex items-center justify-center rounded-[20px] text-[14px] leading-5 font-medium text-white transition-colors"
+                >
+                  Discover
+                </button>
+              </div>
+            </motion.div>
 
-          {/* Heading + subtitle + search wrapped together on mobile so the
-              subtitle→search gap is the Figma-specified 24px while the
-              wrapper still has the desktop's 32px gap to its siblings.
-              `md:contents` removes the wrapper at md+ so desktop layout is
-              identical to before. */}
-          <div className="md:contents flex flex-col items-center w-full max-md:gap-6">
             {/* Heading + Subtext */}
             <motion.div {...fadeUp(0.2)} className="flex flex-col gap-2 w-full">
               <AnimatePresence mode="wait">
@@ -514,7 +526,7 @@ export function LandingHero() {
                     {activeTab === "launch" ? (
                       <>
                         <span className="block">Build your business</span>
-                        <span className="flex items-center justify-center gap-4 max-md:gap-2">
+                        <span className="flex items-center justify-center gap-4 max-md:gap-[6px]">
                           <span>with</span>
                           <CyclingText words={LAUNCH_WORDS} scale={cyclingScale} />
                         </span>
@@ -522,7 +534,7 @@ export function LandingHero() {
                     ) : (
                       <>
                         <span className="block">Ready to grow?</span>
-                        <span className="flex items-center justify-center gap-4 max-md:gap-2">
+                        <span className="flex items-center justify-center gap-4 max-md:gap-[6px]">
                           <span>Discover</span>
                           <CyclingText words={DISCOVER_WORDS} scale={cyclingScale} />
                         </span>
@@ -537,39 +549,53 @@ export function LandingHero() {
                 </motion.div>
               </AnimatePresence>
             </motion.div>
-
-            {/* Search bar */}
-            <motion.div {...fadeUp(0.35)} className="max-md:w-full">
-              <form
-                onSubmit={handleSearchSubmit}
-                className="flex items-center gap-2 w-[400px] h-[44px] bg-white/[0.1] border border-white/[0.2] rounded-xl px-[13px] py-[9px] shadow-[0px_25px_50px_rgba(0,0,0,0.25)] focus-within:bg-white/[0.14] focus-within:border-white/[0.3] transition-colors max-md:w-[360px] max-md:h-[40px]"
-              >
-                <Search size={20} className="text-gray-400 shrink-0" />
-                <input
-                  ref={searchInputRef}
-                  type="text"
-                  value={searchValue}
-                  onChange={(e) => setSearchValue(e.target.value)}
-                  placeholder="Search for communities, courses, creators"
-                  className="flex-1 min-w-0 bg-transparent outline-none text-[16px] leading-6 text-white placeholder:text-gray-400 caret-white max-md:text-[14px] max-md:leading-[20px]"
-                  aria-label="Search"
-                />
-                {searchValue && (
-                  <button
-                    type="button"
-                    onClick={handleClearSearch}
-                    aria-label="Clear search"
-                    className="shrink-0 flex items-center justify-center w-5 h-5 text-gray-400 hover:text-white transition-colors"
-                  >
-                    <X size={18} />
-                  </button>
-                )}
-              </form>
-            </motion.div>
           </div>
 
-          {/* CTA Button */}
-          <motion.div {...fadeUp(0.45)}>
+          {/* Search bar — sits at viewport vertical center on mobile,
+              squeezed between the flex-1 top/bottom groups. */}
+          <motion.div
+            {...fadeUp(0.35)}
+            className="max-md:w-full max-md:flex max-md:justify-center"
+          >
+            <form
+              onSubmit={handleSearchSubmit}
+              className="flex items-center gap-2 w-[400px] h-[44px] bg-white/[0.1] border border-white/[0.2] rounded-xl px-[13px] py-[9px] shadow-[0px_25px_50px_rgba(0,0,0,0.25)] focus-within:bg-white/[0.14] focus-within:border-white/[0.3] transition-colors max-md:w-[360px] max-md:h-[40px]"
+            >
+              <Search size={20} className="text-gray-400 shrink-0" />
+              <input
+                ref={searchInputRef}
+                type="text"
+                value={searchValue}
+                onChange={(e) => setSearchValue(e.target.value)}
+                placeholder="Search for communities, courses, creators"
+                className="flex-1 min-w-0 bg-transparent outline-none text-[16px] leading-6 text-white placeholder:text-gray-400 caret-white max-md:text-[14px] max-md:leading-[20px]"
+                aria-label="Search"
+              />
+              {searchValue && (
+                <button
+                  type="button"
+                  onClick={handleClearSearch}
+                  aria-label="Clear search"
+                  className="shrink-0 flex items-center justify-center w-5 h-5 text-gray-400 hover:text-white transition-colors"
+                >
+                  <X size={18} />
+                </button>
+              )}
+            </form>
+          </motion.div>
+
+          {/* BOTTOM GROUP — CTA + stats. Mirrors top group: md:contents on
+              desktop, flex-1 + top-aligned on mobile so the search bar
+              stays at exact vertical center. */}
+          <div
+            className="
+              md:contents
+              max-md:flex-1 max-md:flex max-md:flex-col max-md:items-center
+              max-md:justify-start max-md:gap-6 max-md:pt-6 max-md:w-full
+            "
+          >
+            {/* CTA Button */}
+            <motion.div {...fadeUp(0.45)}>
             <Link href="/discover" className="group inline-block">
               <div
                 className="relative rounded-xl p-[2px] overflow-hidden transition-[filter] duration-300"
@@ -624,6 +650,7 @@ export function LandingHero() {
               </motion.div>
             </AnimatePresence>
           </motion.div>
+          </div>
         </div>
       </div>
     </section>

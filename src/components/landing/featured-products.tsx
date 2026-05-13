@@ -84,8 +84,28 @@ function CardContent({
     return unsub;
   }, [parentScale]);
 
+  // Detect mobile so we can opt-out of the inverse-scale compensation and
+  // use Figma-spec values for radius and inner content size.
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
   const inverseScale = 1 / Math.max(scale, 0.001);
-  const dynamicRadius = 16 * inverseScale;
+  // Desktop keeps the radius visually constant via inverseScale compensation.
+  // Mobile follows Figma: 9.089px at default (191×107 card) which scales up
+  // to ~18px at the zoomed-in state (380×214) — i.e. radius grows with the
+  // card, so we use a static value rather than counter-scaling.
+  const dynamicRadius = isMobile ? 9.089 : 16 * inverseScale;
+  // Mobile content stays anchored to the card's footprint, so we drop the
+  // inverseScale counter-scale that desktop uses to keep content at constant
+  // visual size as the whole card zooms. On mobile the text grows naturally
+  // with the card, matching the Figma transition from default → scrolled.
+  const contentInverseScale = isMobile ? 1 : inverseScale;
+  const contentWidthPct = isMobile ? 100 : scale * 100;
 
   const tooltipEnabled = showTooltip && scale > 1.5;
 
@@ -102,31 +122,31 @@ function CardContent({
       />
       <div
         style={{
-          transform: `scale(${inverseScale})`,
+          transform: `scale(${contentInverseScale})`,
           transformOrigin: "left bottom",
-          width: `${scale * 100}%`,
+          width: `${contentWidthPct}%`,
         }}
         className="absolute bottom-0 left-0"
       >
         <div
-          className="flex items-end p-4 max-md:p-2"
+          className="flex items-end p-4 max-md:p-[9.089px]"
           style={{
             background: `linear-gradient(to bottom, transparent 0%, ${card.gradientTo}80 47.77%, ${card.gradientTo} 100%)`,
           }}
         >
-          <div className="flex-1 min-w-0 flex flex-col gap-2 max-md:gap-1">
-            <h3 className="text-[18px] leading-[28px] font-semibold text-white font-inter truncate max-md:text-[11px] max-md:leading-[14px]">
+          <div className="flex-1 min-w-0 flex flex-col gap-2 max-md:gap-[9.06px]">
+            <h3 className="text-[18px] leading-[28px] font-semibold text-white font-inter truncate max-md:text-[8px] max-md:leading-[12px]">
               {card.title}
             </h3>
-            <div className="flex items-center gap-[6px] whitespace-nowrap max-md:gap-1">
-              <span className="flex items-center gap-[2px] h-6 px-2 rounded-[12px] bg-white/25 shrink-0 max-md:h-[16px] max-md:px-1 max-md:rounded-[8px]">
-                {isGlobe && <Globe size={16} className="text-white max-md:size-[10px]" />}
-                <span className="text-[13px] leading-[18px] font-medium text-white font-inter max-md:text-[9px] max-md:leading-[12px]">
+            <div className="flex items-center gap-[6px] whitespace-nowrap max-md:gap-[8px]">
+              <span className="flex items-center gap-[2px] h-6 px-2 rounded-[12px] bg-white/25 shrink-0 max-md:h-[13.6px] max-md:px-[4.5px] max-md:rounded-[12px]">
+                {isGlobe && <Globe size={16} className="text-white max-md:size-[9px]" />}
+                <span className="text-[13px] leading-[18px] font-medium text-white font-inter max-md:text-[7.4px] max-md:leading-[10.2px]">
                   {card.pricing}
                 </span>
               </span>
-              <span className="size-[6px] rounded-full bg-white/60 shrink-0 max-md:size-[3px]" />
-              <span className="text-[14px] leading-[18px] text-[#EAECF0] font-inter shrink-0 max-md:text-[9px] max-md:leading-[12px]">
+              <span className="size-[6px] rounded-full bg-white/60 shrink-0 max-md:size-[3.4px]" />
+              <span className="text-[14px] leading-[18px] text-[#EAECF0] font-inter shrink-0 max-md:text-[9px] max-md:leading-[13.6px]">
                 {card.members}
               </span>
             </div>
@@ -216,9 +236,81 @@ const PARALLAX_CARDS: ParallaxCard[] = [
   },
 ];
 
+/*
+ * Mobile layout — derived from Figma frame 2325:21458 (412×398 mosaic of
+ * 7 cards). All deltas are computed relative to Kollabers's CENTER (so
+ * Kollabers itself stays at viewport center on scroll), and widths/offsets
+ * are converted to vw at the 412px design width.
+ *
+ *   Kollabers card  — 191×107, treated as the constellation centre.
+ *   Kollabers scale — 2.0  (→ 92.7vw wide ≈ 382px at end of scroll, matching
+ *                          Figma scrolled-state card 380.776×214.187).
+ *   Other cards     — scaled 4–6 so they fly fully off-screen by the time
+ *                     Kollabers fills the viewport.
+ *
+ * On a 412×850 phone, the default-state Kollabers ends up at viewport
+ * center with the other 6 cards arranged in a tight mosaic around it,
+ * matching the Figma "Featured products" default view.
+ */
+const MOBILE_PARALLAX_CARDS: ParallaxCard[] = [
+  // 0 — Kollabers (CENTRE: 191×107, anchor for all other deltas)
+  {
+    content: (s) => <CardContent card={CARDS[0]} parentScale={s} showTooltip />,
+    positionClass: "[&>div]:!w-[46.36vw]",
+    scale: 2.0,
+  },
+  // 1 — F1 enthusiasts (TOP-RIGHT: 316×178, Δ = (62.5, -156.7) ≈ (15.17, -38.03)vw)
+  {
+    content: (s) => <CardContent card={CARDS[1]} parentScale={s} />,
+    positionClass:
+      "[&>div]:!left-[15.17vw] [&>div]:!-top-[38.03vw] [&>div]:!w-[76.7vw]",
+    scale: 4,
+  },
+  // 2 — Understanding gaming industry (LEFT-TOP bleed: 211.6×119,
+  //     Δ = (-216.7, -47.2) ≈ (-52.59, -11.46)vw)
+  {
+    content: (s) => <CardContent card={CARDS[2]} parentScale={s} />,
+    positionClass:
+      "[&>div]:!-left-[52.59vw] [&>div]:!-top-[11.46vw] [&>div]:!w-[51.35vw]",
+    scale: 5,
+  },
+  // 3 — How to read books effectively (RIGHT-MIDDLE bleed: 191×107,
+  //     Δ = (205, -0.2) ≈ (49.76, -0.05)vw)
+  {
+    content: (s) => <CardContent card={CARDS[3]} parentScale={s} />,
+    positionClass:
+      "[&>div]:!left-[49.76vw] [&>div]:!-top-[0.05vw] [&>div]:!w-[46.36vw]",
+    scale: 5,
+  },
+  // 4 — Understanding human psychology (LEFT-BOTTOM bleed: 213×120,
+  //     Δ = (-216, 92.3) ≈ (-52.43, 22.40)vw)
+  {
+    content: (s) => <CardContent card={CARDS[4]} parentScale={s} />,
+    positionClass:
+      "[&>div]:!-left-[52.43vw] [&>div]:!top-[22.40vw] [&>div]:!w-[51.7vw]",
+    scale: 5,
+  },
+  // 5 — Red dead redemption (BOTTOM-CENTRE-LEFT: 150×84,
+  //     Δ = (-20.5, 110.3) ≈ (-4.98, 26.77)vw)
+  {
+    content: (s) => <CardContent card={CARDS[5]} parentScale={s} />,
+    positionClass:
+      "[&>div]:!-left-[4.98vw] [&>div]:!top-[26.77vw] [&>div]:!w-[36.41vw]",
+    scale: 6,
+  },
+  // 6 — PS5 officials (BOTTOM-CENTRE-RIGHT: 149.3×84,
+  //     Δ = (142.2, 110.3) ≈ (34.51, 26.77)vw)
+  {
+    content: (s) => <CardContent card={CARDS[6]} parentScale={s} />,
+    positionClass:
+      "[&>div]:!left-[34.51vw] [&>div]:!top-[26.77vw] [&>div]:!w-[36.25vw]",
+    scale: 6,
+  },
+];
+
 function FullscreenHeader() {
   return (
-    <div className="text-center font-montserrat font-bold text-[40px] leading-normal text-[#101828] max-md:text-[22px] max-md:leading-[30px] max-md:px-4">
+    <div className="text-center font-montserrat font-bold text-[40px] leading-normal text-[#101828] max-md:text-[20px] max-md:leading-[normal] max-md:px-4">
       The{" "}
       <span className="relative inline-block">
         <span className="text-[#343DE5]">official</span>
@@ -227,7 +319,7 @@ function FullscreenHeader() {
           aria-hidden
           src="/official-underline.svg"
           alt=""
-          className="absolute left-0 right-0 -bottom-[4px] w-full h-[14px] rotate-[4.56deg] max-md:-bottom-[2px] max-md:h-[10px]"
+          className="absolute left-0 right-0 -bottom-[4px] w-full h-[14px] rotate-[4.56deg] max-md:-bottom-[2px] max-md:h-[8px]"
         />
       </span>{" "}
       community of Kollab
@@ -243,10 +335,17 @@ export function FeaturedProducts() {
           Featured products
         </h2>
       </div>
-      {/* Same scroll-driven parallax on every breakpoint — the ZoomParallax
-          component clamps its internal layoutScale on mobile so the cards
-          stay readable instead of bleeding fully off-screen. */}
-      <ZoomParallax cards={PARALLAX_CARDS} overlay={<FullscreenHeader />} />
+      {/* Desktop uses PARALLAX_CARDS; mobile swaps to MOBILE_PARALLAX_CARDS
+          (a Figma-matched mosaic of 7 cards where Kollabers sits at
+          centre and 6 others spread around it). The ZoomParallax handles
+          the swap and layoutScale internally. */}
+      <ZoomParallax
+        cards={PARALLAX_CARDS}
+        mobileCards={MOBILE_PARALLAX_CARDS}
+        centerCardWidthVw={18}
+        mobileCenterCardWidthVw={46.36}
+        overlay={<FullscreenHeader />}
+      />
     </section>
   );
 }

@@ -548,7 +548,7 @@ export function LandingHeroV2() {
                       {activeTab === "launch" ? (
                         <>
                           <span className="block">Build your business</span>
-                          <span className="flex items-center gap-4 max-md:justify-center">
+                          <span className="flex items-center gap-4 max-md:gap-[6px] max-md:justify-center">
                             <span>with</span>
                             <CyclingText words={LAUNCH_WORDS} />
                           </span>
@@ -556,7 +556,7 @@ export function LandingHeroV2() {
                       ) : (
                         <>
                           <span className="block">Ready to grow?</span>
-                          <span className="flex items-center gap-4 max-md:justify-center">
+                          <span className="flex items-center gap-4 max-md:gap-[6px] max-md:justify-center">
                             <span>Discover</span>
                             <CyclingText words={DISCOVER_WORDS} />
                           </span>

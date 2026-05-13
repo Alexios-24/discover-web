@@ -156,6 +156,23 @@ const OUTER_THUMBS = [
   "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=188&h=106&auto=format&fit=crop&q=60",
 ];
 
+// Mobile orbit — bounding boxes & per-card rotations transcribed exactly
+// from Figma "Frame 1597878518" (node 2322:57273). Coordinates live inside
+// an unrotated 441×485 frame; the parent wrapper applies a 90° rotation
+// so the constellation matches the design.
+const MOBILE_ORBIT_CARDS = [
+  { x: 17.89, y: 18.62, w: 54.93, h: 48.41, rotation: -32.4 },
+  { x: -70.19, y: 110.08, w: 52.94, h: 52.94, rotation: -45 },
+  { x: -105.59, y: 230.65, w: 27.85, h: 48.54, rotation: -91.18 },
+  { x: -69.4, y: 349.33, w: 52.94, h: 52.94, rotation: -135 },
+  { x: 30.52, y: 463.23, w: 54.63, h: 43.19, rotation: -157.51 },
+  { x: 331.15, y: 465.06, w: 54.31, h: 41.71, rotation: 159.93 },
+  { x: 458.69, y: 360.76, w: 44.77, h: 54.88, rotation: 115.24 },
+  { x: 510.65, y: 251.01, w: 26.87, h: 48, rotation: 90 },
+  { x: 474.1, y: 117.45, w: 48.14, h: 54.95, rotation: 58.17 },
+  { x: 366.52, y: 24, w: 55.01, h: 47.09, rotation: 29.63 },
+] as const;
+
 interface OrbitCardProps {
   src: string;
   angle: number;
@@ -253,11 +270,11 @@ const DISCOVER_STATS: StatDef[] = [
 function StatItem({ stat, delay }: { stat: StatDef; delay: number }) {
   const count = useCountUp(stat.value, 1600, delay);
   return (
-    <div className="flex gap-[4px] items-center whitespace-nowrap text-[16px]">
-      <div className="font-semibold text-white leading-[24px]">
+    <div className="flex gap-[4px] items-center whitespace-nowrap text-[16px] max-md:text-[14px]">
+      <div className="font-semibold text-white leading-[24px] max-md:leading-[20px]">
         {count}{stat.suffix}
       </div>
-      <div className="text-[#D0D5DD] leading-[24px]">
+      <div className="text-[#D0D5DD] leading-[24px] max-md:text-[#98a2b3] max-md:leading-[20px]">
         {stat.label}
       </div>
     </div>
@@ -270,9 +287,10 @@ export function LandingHero() {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const responsive = useResponsiveSize();
-  // Mobile: ~36px font, half-scale of cycling text. Tablet: ~56px font, ~0.72 scale.
+  // Mobile: 34px Figma heading → 34/72 ≈ 0.47 cycling scale.
+  // Tablet: ~56px heading → 0.72. Desktop default 1.
   const cyclingScale =
-    responsive === "sm" ? 0.5 : responsive === "md" ? 0.72 : 1;
+    responsive === "sm" ? 0.47 : responsive === "md" ? 0.72 : 1;
   const innerRef = useRef<HTMLDivElement>(null);
   const outerRef = useRef<HTMLDivElement>(null);
   // Separate ref for the mobile orbit — desktop refs point to display:none nodes
@@ -338,8 +356,8 @@ export function LandingHero() {
 
   return (
     <section id="landing-hero" className="relative h-screen overflow-hidden bg-black">
-      {/* Floating gradient orbs */}
-      <div className="absolute inset-0 z-[1] pointer-events-none overflow-hidden">
+      {/* Floating gradient orbs — desktop / tablet */}
+      <div className="absolute inset-0 z-[1] pointer-events-none overflow-hidden max-md:hidden">
         {/* Blue/indigo orb */}
         <div
           className="absolute animate-orb-blue"
@@ -360,6 +378,36 @@ export function LandingHero() {
             background:
               "radial-gradient(circle at center, rgba(180,30,120,0.5) 0%, rgba(140,20,90,0.25) 30%, transparent 65%)",
             filter: "blur(80px)",
+          }}
+        />
+      </div>
+
+      {/* Mobile-only gradient orbs — match Figma "Billing modal gradient":
+          a rose/magenta glow anchored top-right and a blue/violet glow
+          anchored bottom-left, each oozing off the viewport edges. */}
+      <div className="absolute inset-0 z-[1] pointer-events-none overflow-hidden hidden max-md:block">
+        <div
+          className="absolute"
+          style={{
+            width: 460,
+            height: 460,
+            right: -110,
+            top: -180,
+            background:
+              "radial-gradient(circle at 35% 65%, rgba(253,111,142,0.55) 0%, rgba(140,30,90,0.35) 35%, transparent 75%)",
+            filter: "blur(60px)",
+          }}
+        />
+        <div
+          className="absolute"
+          style={{
+            width: 460,
+            height: 460,
+            left: -130,
+            bottom: -180,
+            background:
+              "radial-gradient(circle at 65% 35%, rgba(52,61,229,0.6) 0%, rgba(20,20,160,0.35) 35%, transparent 75%)",
+            filter: "blur(60px)",
           }}
         />
       </div>
@@ -406,36 +454,63 @@ export function LandingHero() {
         </div>
       </div>
 
-      {/* Mobile-only orbit — cards orbit on a tall, wide ellipse so that at
-          horizontal extremes they are pushed off the side of the viewport
-          (where the text lives) and only ever appear at the top and bottom
-          of the section — like cosmos.so's hero. */}
-      <div className="absolute inset-0 z-[4] hidden max-md:flex items-center justify-center pointer-events-none overflow-hidden">
+      {/* Mobile-only orbit — replicates the Figma "Frame 1597878518" frame
+          (441×485, rotated 90°) where 10 small thumbnail cards are
+          scattered around the hero. The outer ref slowly rotates the
+          whole constellation so the cards drift in unison. */}
+      <div className="absolute inset-0 z-[3] hidden max-md:flex items-center justify-center pointer-events-none overflow-hidden">
         <div
           ref={mobileOrbitRef}
-          className="relative opacity-70 will-change-transform"
-          style={{ width: 720, height: 820 }}
+          className="relative will-change-transform"
+          style={{ width: 0, height: 0 }}
         >
-          {INNER_THUMBS.slice(0, 8).map((src, i) => (
-            <OrbitCard
-              key={`mob-${i}`}
-              src={src}
-              angle={(360 / 8) * i}
-              // rx is intentionally LARGER than half a mobile viewport so that
-              // when a card swings to 0° / 180° it sits entirely off-screen,
-              // never colliding with the centered heading / CTA stack.
-              rx={340}
-              ry={380}
-              w={92}
-              h={52}
-            />
-          ))}
+          <div
+            className="absolute opacity-50"
+            style={{
+              width: 441,
+              height: 485,
+              left: -441 / 2,
+              top: -485 / 2,
+              transform: "rotate(90deg)",
+            }}
+          >
+            {MOBILE_ORBIT_CARDS.map((card, i) => (
+              <div
+                key={`mob-orbit-${i}`}
+                className="absolute flex items-center justify-center"
+                style={{
+                  left: card.x,
+                  top: card.y,
+                  width: card.w,
+                  height: card.h,
+                }}
+              >
+                <div
+                  className="overflow-hidden"
+                  style={{
+                    width: 48,
+                    height: 26.87,
+                    borderRadius: 6.624,
+                    transform: `rotate(${card.rotation}deg)`,
+                    boxShadow: "0 4px 16px rgba(0,0,0,0.35)",
+                  }}
+                >
+                  <img
+                    src={INNER_THUMBS[i % INNER_THUMBS.length]}
+                    alt=""
+                    className="w-full h-full object-cover"
+                    loading="eager"
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
       {/* Center content */}
       <div className="relative z-10 flex items-center justify-center h-full max-md:px-4">
-        <div className="flex flex-col items-center gap-8 w-[723px] text-center max-md:gap-5 max-md:w-full">
+        <div className="flex flex-col items-center gap-8 w-[723px] text-center max-md:w-full">
           {/* Tab switcher */}
           <motion.div {...fadeUp(0.1)}>
             <div className="inline-flex items-center justify-center w-[200px] h-[44px] bg-white/[0.25] rounded-full p-2 relative">
@@ -461,80 +536,87 @@ export function LandingHero() {
             </div>
           </motion.div>
 
-          {/* Heading + Subtext */}
-          <motion.div {...fadeUp(0.2)} className="flex flex-col gap-2">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={activeTab}
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -12 }}
-                transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] as const }}
-                className="flex flex-col gap-2"
-              >
-                <h1
-                  className="font-montserrat font-bold text-white max-lg:!text-[56px] max-lg:!leading-[64px] max-md:!text-[36px] max-md:!leading-[44px] max-md:!tracking-[-0.9px]"
-                  style={{
-                    fontSize: "72px",
-                    lineHeight: "80px",
-                    letterSpacing: "-1.8px",
-                  }}
+          {/* Heading + subtitle + search wrapped together on mobile so the
+              subtitle→search gap is the Figma-specified 24px while the
+              wrapper still has the desktop's 32px gap to its siblings.
+              `md:contents` removes the wrapper at md+ so desktop layout is
+              identical to before. */}
+          <div className="md:contents flex flex-col items-center w-full max-md:gap-6">
+            {/* Heading + Subtext */}
+            <motion.div {...fadeUp(0.2)} className="flex flex-col gap-2 w-full">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={activeTab}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -12 }}
+                  transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] as const }}
+                  className="flex flex-col gap-2"
                 >
-                  {activeTab === "launch" ? (
-                    <>
-                      <span className="block">Build your business</span>
-                      <span className="flex items-center justify-center gap-4 max-md:gap-2">
-                        <span>with</span>
-                        <CyclingText words={LAUNCH_WORDS} scale={cyclingScale} />
-                      </span>
-                    </>
-                  ) : (
-                    <>
-                      <span className="block">Ready to grow?</span>
-                      <span className="flex items-center justify-center gap-4 max-md:gap-2">
-                        <span>Discover</span>
-                        <CyclingText words={DISCOVER_WORDS} scale={cyclingScale} />
-                      </span>
-                    </>
-                  )}
-                </h1>
-                <p className="text-[18px] leading-7 text-gray-300 max-md:text-[15px] max-md:leading-6 max-md:px-2">
-                  {activeTab === "launch"
-                    ? "The all-in-one platform to create, launch, and monetize your knowledge."
-                    : "Explore thousands of courses & communities built by creators like you."}
-                </p>
-              </motion.div>
-            </AnimatePresence>
-          </motion.div>
+                  <h1
+                    className="font-montserrat font-bold text-white max-lg:!text-[56px] max-lg:!leading-[64px] max-md:!text-[34px] max-md:!leading-[normal] max-md:!tracking-[-1.8px]"
+                    style={{
+                      fontSize: "72px",
+                      lineHeight: "80px",
+                      letterSpacing: "-1.8px",
+                    }}
+                  >
+                    {activeTab === "launch" ? (
+                      <>
+                        <span className="block">Build your business</span>
+                        <span className="flex items-center justify-center gap-4 max-md:gap-2">
+                          <span>with</span>
+                          <CyclingText words={LAUNCH_WORDS} scale={cyclingScale} />
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="block">Ready to grow?</span>
+                        <span className="flex items-center justify-center gap-4 max-md:gap-2">
+                          <span>Discover</span>
+                          <CyclingText words={DISCOVER_WORDS} scale={cyclingScale} />
+                        </span>
+                      </>
+                    )}
+                  </h1>
+                  <p className="text-[18px] leading-7 text-gray-300 max-md:text-[16px] max-md:leading-6">
+                    {activeTab === "launch"
+                      ? "The all-in-one platform to create, launch, and monetize your knowledge."
+                      : "Explore thousands of courses & communities built by creators like you."}
+                  </p>
+                </motion.div>
+              </AnimatePresence>
+            </motion.div>
 
-          {/* Search bar */}
-          <motion.div {...fadeUp(0.35)}>
-            <form
-              onSubmit={handleSearchSubmit}
-              className="flex items-center gap-2 w-[400px] h-[44px] bg-white/[0.1] border border-white/[0.2] rounded-xl px-[13px] py-[9px] shadow-[0px_25px_50px_rgba(0,0,0,0.25)] focus-within:bg-white/[0.14] focus-within:border-white/[0.3] transition-colors max-md:w-[min(360px,calc(100vw-32px))]"
-            >
-              <Search size={20} className="text-gray-400 shrink-0" />
-              <input
-                ref={searchInputRef}
-                type="text"
-                value={searchValue}
-                onChange={(e) => setSearchValue(e.target.value)}
-                placeholder="Search for communities, courses, creators"
-                className="flex-1 min-w-0 bg-transparent outline-none text-[16px] leading-6 text-white placeholder:text-gray-400 caret-white max-md:text-[13px] max-md:leading-5"
-                aria-label="Search"
-              />
-              {searchValue && (
-                <button
-                  type="button"
-                  onClick={handleClearSearch}
-                  aria-label="Clear search"
-                  className="shrink-0 flex items-center justify-center w-5 h-5 text-gray-400 hover:text-white transition-colors"
-                >
-                  <X size={18} />
-                </button>
-              )}
-            </form>
-          </motion.div>
+            {/* Search bar */}
+            <motion.div {...fadeUp(0.35)} className="max-md:w-full">
+              <form
+                onSubmit={handleSearchSubmit}
+                className="flex items-center gap-2 w-[400px] h-[44px] bg-white/[0.1] border border-white/[0.2] rounded-xl px-[13px] py-[9px] shadow-[0px_25px_50px_rgba(0,0,0,0.25)] focus-within:bg-white/[0.14] focus-within:border-white/[0.3] transition-colors max-md:w-full max-md:h-[40px]"
+              >
+                <Search size={20} className="text-gray-400 shrink-0" />
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  value={searchValue}
+                  onChange={(e) => setSearchValue(e.target.value)}
+                  placeholder="Search for communities, courses, creators"
+                  className="flex-1 min-w-0 bg-transparent outline-none text-[16px] leading-6 text-white placeholder:text-gray-400 caret-white max-md:text-[14px] max-md:leading-5"
+                  aria-label="Search"
+                />
+                {searchValue && (
+                  <button
+                    type="button"
+                    onClick={handleClearSearch}
+                    aria-label="Clear search"
+                    className="shrink-0 flex items-center justify-center w-5 h-5 text-gray-400 hover:text-white transition-colors"
+                  >
+                    <X size={18} />
+                  </button>
+                )}
+              </form>
+            </motion.div>
+          </div>
 
           {/* CTA Button */}
           <motion.div {...fadeUp(0.45)}>

@@ -463,20 +463,22 @@ export function LandingHero() {
         <div
           className="
             flex flex-col items-center gap-8 w-[723px] text-center
-            max-md:w-full max-md:h-full max-md:gap-0
+            max-md:w-full max-md:gap-6
           "
         >
           {/* TOP GROUP — tab + heading + subtitle.
               md:contents removes this wrapper at md+ so children flow as
               direct siblings of the gap-8 stack (preserves desktop).
-              On mobile, this wrapper takes the upper half (flex-1) and
-              bottom-aligns its content so the search bar sits at viewport
-              vertical center. */}
+              On mobile, this wrapper just groups tab + heading + subtitle
+              with their own internal gap, while the parent column's
+              `items-center` vertically centers the whole content block —
+              giving symmetric breathing room from the top/bottom orbiting
+              cards. */}
           <div
             className="
               md:contents
-              max-md:flex-1 max-md:flex max-md:flex-col max-md:items-center
-              max-md:justify-end max-md:gap-6 max-md:pb-6 max-md:w-full
+              max-md:flex max-md:flex-col max-md:items-center
+              max-md:gap-6 max-md:w-full
             "
           >
             {/* Tab switcher */}
@@ -551,8 +553,9 @@ export function LandingHero() {
             </motion.div>
           </div>
 
-          {/* Search bar — sits at viewport vertical center on mobile,
-              squeezed between the flex-1 top/bottom groups. */}
+          {/* Search bar — sits between the heading group and the CTA
+              group, contributing to the single centered content block on
+              mobile. */}
           <motion.div
             {...fadeUp(0.35)}
             className="max-md:w-full max-md:flex max-md:justify-center"
@@ -585,13 +588,13 @@ export function LandingHero() {
           </motion.div>
 
           {/* BOTTOM GROUP — CTA + stats. Mirrors top group: md:contents on
-              desktop, flex-1 + top-aligned on mobile so the search bar
-              stays at exact vertical center. */}
+              desktop, simple flex column on mobile so the entire content
+              block (tab → stats) is centered as one unit by the parent. */}
           <div
             className="
               md:contents
-              max-md:flex-1 max-md:flex max-md:flex-col max-md:items-center
-              max-md:justify-start max-md:gap-6 max-md:pt-6 max-md:w-full
+              max-md:flex max-md:flex-col max-md:items-center
+              max-md:gap-6 max-md:w-full
             "
           >
             {/* CTA Button */}

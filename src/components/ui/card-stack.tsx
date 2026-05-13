@@ -38,6 +38,8 @@ export type CardStackProps<T extends CardStackItem> = {
   intervalMs?: number;
   pauseOnHover?: boolean;
   showDots?: boolean;
+  /** Minimum container height in px. Falls back to `cardHeight + 80`. */
+  containerMinHeight?: number;
   className?: string;
   onChangeIndex?: (index: number, item: T) => void;
   renderCard?: (item: T, state: { active: boolean }) => React.ReactNode;
@@ -78,6 +80,7 @@ export function CardStack<T extends CardStackItem>({
   intervalMs = 2800,
   pauseOnHover = true,
   showDots = true,
+  containerMinHeight,
   className,
   onChangeIndex,
   renderCard,
@@ -156,7 +159,9 @@ export function CardStack<T extends CardStackItem>({
     >
       <div
         className="relative w-full"
-        style={{ height: Math.max(380, cardHeight + 80) }}
+        style={{
+          height: containerMinHeight ?? Math.max(380, cardHeight + 80),
+        }}
         tabIndex={0}
         onKeyDown={onKeyDown}
       >

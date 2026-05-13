@@ -77,6 +77,17 @@ export function TopHeader() {
       }}
     >
       <div className="max-w-[1440px] mx-auto h-[60px] flex items-center gap-6 px-[54px] py-2 max-md:px-4 max-md:gap-3">
+        {/* Hamburger — visible below lg; sits to the left of the logo on mobile/tablet */}
+        <button
+          type="button"
+          aria-label={menuOpen ? "Close menu" : "Open menu"}
+          aria-expanded={menuOpen}
+          onClick={() => setMenuOpen((v) => !v)}
+          className="hidden max-lg:flex items-center justify-center w-9 h-9 -ml-1 rounded-md text-[#101828] transition-colors order-first"
+        >
+          {menuOpen ? <X size={22} /> : <Menu size={22} />}
+        </button>
+
         {/* Logo + Nav */}
         <div className="flex items-center gap-6 flex-1 min-w-0">
           <a href="/" className="flex items-center shrink-0 h-8" aria-label="Kollab home">
@@ -127,16 +138,6 @@ export function TopHeader() {
 
           <button className="bg-indigo-600 border border-indigo-600 rounded-md px-[14px] py-2 text-[14px] leading-5 font-semibold text-white shadow-xs hover:bg-indigo-600/90 transition-colors max-md:px-3 max-md:py-1.5 max-md:text-[13px]">
             Get started
-          </button>
-
-          <button
-            type="button"
-            aria-label={menuOpen ? "Close menu" : "Open menu"}
-            aria-expanded={menuOpen}
-            onClick={() => setMenuOpen((v) => !v)}
-            className="hidden max-lg:flex items-center justify-center w-9 h-9 rounded-md text-[#101828] transition-colors"
-          >
-            {menuOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
         </div>
       </div>

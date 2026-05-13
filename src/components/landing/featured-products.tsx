@@ -1,8 +1,8 @@
 "use client";
 
 import { Globe } from "lucide-react";
-import { useEffect, useState } from "react";
-import { type MotionValue } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
+import { motion, useScroll, useTransform, type MotionValue } from "framer-motion";
 import { ZoomParallax, type ParallaxCard } from "@/components/ui/zoom-parallax";
 import { CursorTooltip } from "@/components/ui/animated-tooltip";
 
@@ -250,78 +250,67 @@ export function FeaturedProducts() {
           overlay={<FullscreenHeader />}
         />
       </div>
-      {/* Mobile: simple vertical grid (parallax effect is too cramped on phones) */}
-      <div className="hidden max-md:flex flex-col gap-6 px-4 pt-8 pb-16">
-        <MobileFeaturedHeader />
-        <MobileFeaturedKollabers card={CARDS[0]} />
-        <div className="grid grid-cols-2 gap-3">
-          {CARDS.slice(1).map((card) => (
-            <MobileFeaturedTile key={card.title} card={card} />
-          ))}
-        </div>
+      {/* Mobile: simplified parallax — Kollabers card grows while the
+          "official community of Kollab" text fades in (same scroll feel as
+          desktop, just one card instead of a fan). */}
+      <div className="hidden max-md:block">
+        <MobileFeaturedParallax />
       </div>
     </section>
   );
 }
 
-function MobileFeaturedHeader() {
-  return (
-    <div className="text-center font-montserrat font-bold text-[18px] leading-[24px] text-[#101828] px-2">
-      The{" "}
-      <span className="relative inline-block">
-        <span className="text-[#343DE5]">official</span>
-        <img
-          aria-hidden
-          src="/official-underline.svg"
-          alt=""
-          className="absolute left-0 right-0 -bottom-[2px] w-full h-[8px] rotate-[4.56deg]"
-        />
-      </span>{" "}
-      community of Kollab
-    </div>
-  );
-}
+function MobileFeaturedParallax() {
+  const ref = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ["start start", "end end"],
+  });
 
-function MobileFeaturedKollabers({ card }: { card: ProductCard }) {
+  // Kollabers card scales from a small thumbnail to roughly the full viewport
+  // width as the user scrolls through the section.
+  const scale = useTransform(scrollYProgress, [0, 1], [1, 2.6]);
+  const overlayOpacity = useTransform(scrollYProgress, [0.35, 0.65], [0, 1]);
+  const fadeOut = useTransform(scrollYProgress, [0.85, 1], [1, 0]);
+
   return (
-    <div className="relative w-full aspect-[16/9] overflow-hidden rounded-[16px]">
-      <img
-        src={card.image}
-        alt={card.title}
-        className="absolute inset-0 w-full h-full object-cover"
-        loading="lazy"
-      />
-      <div
-        className="absolute inset-x-0 bottom-0 flex items-end p-3 gap-2"
-        style={{
-          background: `linear-gradient(to bottom, transparent 0%, ${card.gradientTo}80 47.77%, ${card.gradientTo} 100%)`,
-        }}
-      >
-        <div className="flex-1 min-w-0 flex flex-col gap-1">
-          <h3 className="text-[16px] leading-[20px] font-semibold text-white truncate font-inter">
-            {card.title}
-          </h3>
-          <div className="flex items-center gap-1.5 whitespace-nowrap">
-            <span className="flex items-center gap-[2px] h-5 px-1.5 rounded-[10px] bg-white/25 shrink-0">
-              <Globe size={12} className="text-white" />
-              <span className="text-[11px] leading-[14px] font-medium text-white font-inter">
-                {card.pricing}
-              </span>
-            </span>
-            <span className="size-[4px] rounded-full bg-white/60 shrink-0" />
-            <span className="text-[12px] leading-4 text-[#EAECF0] font-inter">
-              {card.members}
-            </span>
+    <div ref={ref} className="relative h-[220vh]">
+      <div className="sticky top-0 h-screen overflow-hidden">
+        {/* Centered Kollabers card */}
+        <motion.div
+          style={{ scale, opacity: fadeOut }}
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60vw] aspect-[16/9]"
+        >
+          <MobileKollabersCard card={CARDS[0]} />
+        </motion.div>
+
+        {/* "official community of Kollab" overlay text */}
+        <motion.div
+          style={{ opacity: overlayOpacity }}
+          className="absolute inset-x-0 top-[18%] flex justify-center px-4 pointer-events-none z-[5]"
+        >
+          <div className="text-center font-montserrat font-bold text-[22px] leading-[30px] text-[#101828]">
+            The{" "}
+            <span className="relative inline-block">
+              <span className="text-[#343DE5]">official</span>
+              <img
+                aria-hidden
+                src="/official-underline.svg"
+                alt=""
+                className="absolute left-0 right-0 -bottom-[2px] w-full h-[10px] rotate-[4.56deg]"
+              />
+            </span>{" "}
+            community of Kollab
           </div>
-        </div>
+        </motion.div>
       </div>
     </div>
   );
 }
 
-function MobileFeaturedTile({ card }: { card: ProductCard }) {
+function MobileKollabersCard({ card }: { card: ProductCard }) {
   return (
-    <div className="relative w-full aspect-[16/9] overflow-hidden rounded-[12px]">
+    <div className="relative w-full h-full overflow-hidden rounded-[16px] shadow-[0_8px_32px_rgba(16,24,40,0.12)]">
       <img
         src={card.image}
         alt={card.title}
@@ -329,14 +318,28 @@ function MobileFeaturedTile({ card }: { card: ProductCard }) {
         loading="lazy"
       />
       <div
-        className="absolute inset-x-0 bottom-0 flex items-end p-2"
+        className="absolute inset-x-0 bottom-0 flex items-end p-3"
         style={{
           background: `linear-gradient(to bottom, transparent 0%, ${card.gradientTo}80 47.77%, ${card.gradientTo} 100%)`,
         }}
       >
-        <h3 className="text-[12px] leading-[16px] font-semibold text-white truncate font-inter">
-          {card.title}
-        </h3>
+        <div className="flex-1 min-w-0 flex flex-col gap-1">
+          <h3 className="text-[14px] leading-[18px] font-semibold text-white truncate font-inter">
+            {card.title}
+          </h3>
+          <div className="flex items-center gap-1.5 whitespace-nowrap">
+            <span className="flex items-center gap-[2px] h-[18px] px-1.5 rounded-[10px] bg-white/25 shrink-0">
+              <Globe size={11} className="text-white" />
+              <span className="text-[10px] leading-[12px] font-medium text-white font-inter">
+                {card.pricing}
+              </span>
+            </span>
+            <span className="size-[3px] rounded-full bg-white/60 shrink-0" />
+            <span className="text-[11px] leading-[14px] text-[#EAECF0] font-inter">
+              {card.members}
+            </span>
+          </div>
+        </div>
       </div>
     </div>
   );

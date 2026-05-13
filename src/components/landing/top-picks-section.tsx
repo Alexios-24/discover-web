@@ -116,19 +116,19 @@ function TopPickCardRenderer(
   );
 }
 
-function useCardDims(): { w: number; h: number } {
-  const [dims, setDims] = useState({ w: 500, h: 281 });
+function useCardDims(): { w: number; h: number; isMobile: boolean } {
+  const [dims, setDims] = useState({ w: 500, h: 281, isMobile: false });
   useEffect(() => {
     const compute = () => {
       const vw = window.innerWidth;
       if (vw < 640) {
         // Mobile: fit comfortably in viewport (with side margin for stacked neighbours)
         const w = Math.min(280, vw - 80);
-        setDims({ w, h: Math.round(w * (281 / 500)) });
+        setDims({ w, h: Math.round(w * (281 / 500)), isMobile: true });
       } else if (vw < 1024) {
-        setDims({ w: 380, h: 214 });
+        setDims({ w: 380, h: 214, isMobile: false });
       } else {
-        setDims({ w: 500, h: 281 });
+        setDims({ w: 500, h: 281, isMobile: false });
       }
     };
     compute();
@@ -139,7 +139,7 @@ function useCardDims(): { w: number; h: number } {
 }
 
 export function TopPicksSection() {
-  const { w, h } = useCardDims();
+  const { w, h, isMobile } = useCardDims();
   return (
     <section className="w-full pt-24 pb-36 bg-white overflow-hidden max-md:pt-14 max-md:pb-20">
       <div className="flex flex-col items-center gap-6 w-full max-md:gap-4">
@@ -158,12 +158,16 @@ export function TopPicksSection() {
             loop
             cardWidth={w}
             cardHeight={h}
+            // Mobile stack is much shorter than desktop's 320-px cards, so
+            // shrink the container height proportionally to remove the big
+            // gap that the desktop-tuned 380-px minimum produced.
+            containerMinHeight={isMobile ? h + 60 : undefined}
             overlap={0.46}
             spreadDeg={24}
             perspectivePx={1100}
             depthPx={120}
             tiltXDeg={10}
-            activeLiftPx={33}
+            activeLiftPx={isMobile ? 18 : 33}
             activeScale={1.0}
             inactiveScale={0.94}
             springStiffness={160}

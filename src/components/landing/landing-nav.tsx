@@ -48,6 +48,20 @@ export function LandingNav() {
       }}
     >
       <div className="max-w-[1440px] mx-auto h-[60px] flex items-center gap-6 px-[54px] py-2 max-md:px-4 max-md:gap-3">
+        {/* Hamburger — visible below lg; placed to the left of the logo on mobile/tablet */}
+        <button
+          type="button"
+          aria-label={menuOpen ? "Close menu" : "Open menu"}
+          aria-expanded={menuOpen}
+          onClick={() => setMenuOpen((v) => !v)}
+          className="hidden max-lg:flex items-center justify-center w-9 h-9 -ml-1 rounded-md transition-colors order-first"
+          style={{
+            color: pastHero || menuOpen ? "#101828" : "#ffffff",
+          }}
+        >
+          {menuOpen ? <X size={22} /> : <Menu size={22} />}
+        </button>
+
         {/* Logo + Nav */}
         <div className="flex items-center gap-6 flex-1 min-w-0">
           <Link href="/" className="flex items-center shrink-0 h-8 relative" aria-label="Kollab home">
@@ -137,20 +151,6 @@ export function LandingNav() {
 
           <button className="bg-[#343DE5] border border-[#343DE5] rounded-md px-[14px] py-2 text-[14px] leading-5 font-semibold text-white shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] hover:bg-[#343DE5]/90 transition-colors max-md:px-3 max-md:py-1.5 max-md:text-[13px]">
             Get started
-          </button>
-
-          {/* Hamburger — visible below lg */}
-          <button
-            type="button"
-            aria-label={menuOpen ? "Close menu" : "Open menu"}
-            aria-expanded={menuOpen}
-            onClick={() => setMenuOpen((v) => !v)}
-            className="hidden max-lg:flex items-center justify-center w-9 h-9 rounded-md transition-colors"
-            style={{
-              color: pastHero || menuOpen ? "#101828" : "#ffffff",
-            }}
-          >
-            {menuOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
         </div>
       </div>

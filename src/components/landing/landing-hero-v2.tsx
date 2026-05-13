@@ -586,7 +586,7 @@ export function LandingHeroV2() {
                   value={searchValue}
                   onChange={(e) => setSearchValue(e.target.value)}
                   placeholder="Search for communities, courses, creators"
-                  className="flex-1 min-w-0 bg-transparent outline-none text-[16px] leading-6 text-white placeholder:text-gray-400 caret-white"
+                  className="flex-1 min-w-0 bg-transparent outline-none text-[16px] leading-6 text-white placeholder:text-gray-400 caret-white max-md:text-[13px] max-md:leading-5"
                   aria-label="Search"
                 />
                 {searchValue && (

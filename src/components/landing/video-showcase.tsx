@@ -55,7 +55,11 @@ export function VideoShowcase() {
       vid.style.height = `${h}px`;
       vid.style.borderRadius = `${r}px`;
 
-      const topStart = vh - PEEK_PX;
+      // Mobile keeps the video fully off-screen at the top of the page so
+      // it never crowds the hero (matches cosmos.so's clean mobile hero).
+      // Desktop still gets the classic 15-px peek above the fold.
+      const isMobile = window.innerWidth < 768;
+      const topStart = isMobile ? vh + 40 : vh - PEEK_PX;
       const topEnd = (vh - h) / 2;
       const vidTop = lerp(topStart, topEnd, t);
       vid.style.top = `${vidTop}px`;
@@ -63,7 +67,14 @@ export function VideoShowcase() {
       const label = labelRef.current;
       if (label) {
         label.style.top = `${vidTop - 48}px`;
-        label.style.opacity = `${1 - clamp01(t / 0.15)}`;
+        if (isMobile) {
+          // Fade label in only after the video has clearly started moving up.
+          const fadeIn = clamp01((t - 0.18) / 0.12);
+          const fadeOut = 1 - clamp01((t - 0.5) / 0.2);
+          label.style.opacity = `${fadeIn * fadeOut}`;
+        } else {
+          label.style.opacity = `${1 - clamp01(t / 0.15)}`;
+        }
       }
 
       dark.style.opacity = `${clamp01(t / 0.5)}`;

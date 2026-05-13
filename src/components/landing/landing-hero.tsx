@@ -30,6 +30,33 @@ const CYCLE_MS = 2500;
 const STEP_PX_DEFAULT = 94;
 const LINE_HEIGHT_DEFAULT = 80;
 const GAP_DEFAULT = 14;
+// Heading uses `letter-spacing: -1.8px` in *absolute* pixels at every
+// breakpoint, which means the tracking eats a constant amount of width
+// regardless of font size. When we scale the predefined desktop word
+// widths down for mobile, we need to compensate for that constant: at
+// scale<1 the rendered word is narrower than `word.width * scale`
+// because the absolute tracking is unchanged while the glyphs shrink.
+const HEADING_LETTER_SPACING_PX = -1.8;
+
+/**
+ * Returns the actual rendered width of `word` at the given `scale`.
+ *
+ * Derivation: rendered width = chars * glyph + (chars-1) * tracking.
+ *   glyph(s)    = glyph(1) * s
+ *   tracking(s) = tracking(1)   // ← constant pixel value, not scaled
+ *
+ *   width(s) = width(1) * s + (chars-1) * tracking * (1 - s)
+ *
+ * At s = 1 this collapses to word.width (the predefined desktop value),
+ * so desktop behaviour is unchanged.
+ */
+function renderedWordWidth(word: WordDef, scale: number): number {
+  const chars = word.text.length;
+  return (
+    word.width * scale +
+    (chars - 1) * HEADING_LETTER_SPACING_PX * (1 - scale)
+  );
+}
 
 function CyclingText({
   words,
@@ -77,12 +104,20 @@ function CyclingText({
   const word = words[index % words.length];
   const ease = "transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), width 0.6s cubic-bezier(0.4, 0, 0.2, 1)";
 
+  // Use the geometry-aware width helper so the container hugs the
+  // current word — on desktop (scale=1) this collapses to word.width
+  // (unchanged), on mobile (scale<1) it accounts for the constant-pixel
+  // letter-spacing so the box doesn't sit ~15px wider than the glyphs.
+  // Tiny +2px safety pad covers sub-pixel rounding (period descender,
+  // anti-aliasing) without re-introducing a visible gap before the word.
+  const containerWidth = renderedWordWidth(word, scale) + 2;
+
   return (
     <span
       className="inline-block overflow-hidden align-bottom"
       style={{
         height: lineHeight,
-        width: word.width * scale + 8,
+        width: containerWidth,
         transition: smooth ? ease : "none",
       }}
     >

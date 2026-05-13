@@ -42,10 +42,46 @@ const DISCOVER_WORDS: WordDef[] = [
   { text: "creators.", color: "#36BFFA", width: 305 },
 ];
 
-const WORD_STEP_PX = 94;
+const WORD_STEP_PX_DEFAULT = 94;
+const WORD_LINE_HEIGHT_DEFAULT = 80;
+const WORD_GAP_DEFAULT = 14;
 const WORD_CYCLE_MS = 2500;
+// Heading uses an absolute -1.8px letter-spacing at every breakpoint;
+// see V1 for the full derivation. We need the same correction here so
+// the cycling-word container hugs the glyphs on mobile.
+const HEADING_LETTER_SPACING_PX = -1.8;
+const MOBILE_BREAKPOINT_PX = 768;
+// Mobile heading is 34px (text-[34px]) vs desktop 72px → scale 34/72.
+const MOBILE_HEADING_SCALE = 34 / 72;
+
+function renderedWordWidth(word: WordDef, scale: number): number {
+  const chars = word.text.length;
+  return (
+    word.width * scale +
+    (chars - 1) * HEADING_LETTER_SPACING_PX * (1 - scale)
+  );
+}
+
+function useHeadingScale(): number {
+  const [scale, setScale] = useState(1);
+  useEffect(() => {
+    const compute = () =>
+      setScale(
+        window.innerWidth < MOBILE_BREAKPOINT_PX ? MOBILE_HEADING_SCALE : 1,
+      );
+    compute();
+    window.addEventListener("resize", compute);
+    return () => window.removeEventListener("resize", compute);
+  }, []);
+  return scale;
+}
 
 function CyclingText({ words }: { words: WordDef[] }) {
+  const scale = useHeadingScale();
+  const lineHeight = WORD_LINE_HEIGHT_DEFAULT * scale;
+  const gap = WORD_GAP_DEFAULT * scale;
+  const stepPx = lineHeight + gap;
+
   const [index, setIndex] = useState(0);
   const [smooth, setSmooth] = useState(true);
 
@@ -79,16 +115,25 @@ function CyclingText({ words }: { words: WordDef[] }) {
   const word = words[index % words.length];
   const ease =
     "transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), width 0.6s cubic-bezier(0.4, 0, 0.2, 1)";
+  // Geometry-aware width: at scale 1 collapses to word.width (desktop
+  // unchanged), at scale<1 accounts for the constant-pixel tracking so
+  // the box hugs the glyphs instead of leaving ~15px of empty space.
+  const containerWidth = renderedWordWidth(word, scale) + 2;
 
   return (
     <span
-      className="inline-block h-[80px] overflow-hidden align-bottom"
-      style={{ width: word.width, transition: smooth ? ease : "none" }}
+      className="inline-block overflow-hidden align-bottom"
+      style={{
+        width: containerWidth,
+        height: lineHeight,
+        transition: smooth ? ease : "none",
+      }}
     >
       <div
-        className="flex flex-col gap-[14px]"
+        className="flex flex-col"
         style={{
-          transform: `translateY(${-index * WORD_STEP_PX}px)`,
+          gap,
+          transform: `translateY(${-index * stepPx}px)`,
           transition: smooth
             ? "transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)"
             : "none",
@@ -98,7 +143,7 @@ function CyclingText({ words }: { words: WordDef[] }) {
           <span
             key={i}
             className="shrink-0 whitespace-nowrap"
-            style={{ color: w.color, lineHeight: "80px" }}
+            style={{ color: w.color, lineHeight: `${lineHeight}px` }}
           >
             {w.text}
           </span>

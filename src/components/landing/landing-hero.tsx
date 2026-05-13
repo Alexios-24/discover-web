@@ -670,7 +670,7 @@ export function LandingHero() {
                 transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] as const }}
                 className="flex gap-[8px] items-center justify-center w-full max-md:flex-wrap"
               >
-                <div className="flex items-center justify-center size-[18px]">
+                <div className="flex items-center justify-center size-[18px] max-[374px]:hidden">
                   <BadgeCheck size={18} className="text-[#6172F3]" />
                 </div>
                 <div className="flex gap-[16px] items-center max-md:gap-3 max-md:flex-wrap max-md:justify-center">

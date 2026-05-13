@@ -156,23 +156,6 @@ const OUTER_THUMBS = [
   "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=188&h=106&auto=format&fit=crop&q=60",
 ];
 
-// Mobile orbit — bounding boxes & per-card rotations transcribed exactly
-// from Figma "Frame 1597878518" (node 2322:57273). Coordinates live inside
-// an unrotated 441×485 frame; the parent wrapper applies a 90° rotation
-// so the constellation matches the design.
-const MOBILE_ORBIT_CARDS = [
-  { x: 17.89, y: 18.62, w: 54.93, h: 48.41, rotation: -32.4 },
-  { x: -70.19, y: 110.08, w: 52.94, h: 52.94, rotation: -45 },
-  { x: -105.59, y: 230.65, w: 27.85, h: 48.54, rotation: -91.18 },
-  { x: -69.4, y: 349.33, w: 52.94, h: 52.94, rotation: -135 },
-  { x: 30.52, y: 463.23, w: 54.63, h: 43.19, rotation: -157.51 },
-  { x: 331.15, y: 465.06, w: 54.31, h: 41.71, rotation: 159.93 },
-  { x: 458.69, y: 360.76, w: 44.77, h: 54.88, rotation: 115.24 },
-  { x: 510.65, y: 251.01, w: 26.87, h: 48, rotation: 90 },
-  { x: 474.1, y: 117.45, w: 48.14, h: 54.95, rotation: 58.17 },
-  { x: 366.52, y: 24, w: 55.01, h: 47.09, rotation: 29.63 },
-] as const;
-
 interface OrbitCardProps {
   src: string;
   angle: number;
@@ -180,9 +163,11 @@ interface OrbitCardProps {
   ry: number;
   w: number;
   h: number;
+  /** Border radius in px. Defaults to 10 to keep existing desktop usage unchanged. */
+  radius?: number;
 }
 
-function OrbitCard({ src, angle, rx, ry, w, h }: OrbitCardProps) {
+function OrbitCard({ src, angle, rx, ry, w, h, radius = 10 }: OrbitCardProps) {
   const rad = (angle * Math.PI) / 180;
   // Round to 2 decimals so server and client produce identical strings.
   // Without this Node.js and the browser can differ in the last fp digits,
@@ -203,8 +188,9 @@ function OrbitCard({ src, angle, rx, ry, w, h }: OrbitCardProps) {
       }}
     >
       <div
-        className="w-full h-full rounded-[10px] overflow-hidden shadow-lg"
+        className="w-full h-full overflow-hidden shadow-lg"
         style={{
+          borderRadius: radius,
           boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
         }}
       >
@@ -356,11 +342,13 @@ export function LandingHero() {
 
   return (
     <section id="landing-hero" className="relative h-screen overflow-hidden bg-black">
-      {/* Floating gradient orbs — desktop / tablet */}
-      <div className="absolute inset-0 z-[1] pointer-events-none overflow-hidden max-md:hidden">
+      {/* Floating gradient orbs — same animated orbs on every viewport,
+          mobile just gets a slightly smaller variant so the blobs sit
+          inside the screen instead of bleeding off it entirely. */}
+      <div className="absolute inset-0 z-[1] pointer-events-none overflow-hidden">
         {/* Blue/indigo orb */}
         <div
-          className="absolute animate-orb-blue"
+          className="absolute animate-orb-blue max-md:hidden"
           style={{
             width: "700px",
             height: "700px",
@@ -369,9 +357,19 @@ export function LandingHero() {
             filter: "blur(80px)",
           }}
         />
+        <div
+          className="absolute animate-orb-blue-mobile hidden max-md:block"
+          style={{
+            width: "460px",
+            height: "460px",
+            background:
+              "radial-gradient(circle at center, rgba(52,61,229,0.6) 0%, rgba(20,20,160,0.35) 35%, transparent 75%)",
+            filter: "blur(60px)",
+          }}
+        />
         {/* Pink/magenta orb */}
         <div
-          className="absolute animate-orb-pink"
+          className="absolute animate-orb-pink max-md:hidden"
           style={{
             width: "650px",
             height: "650px",
@@ -380,33 +378,13 @@ export function LandingHero() {
             filter: "blur(80px)",
           }}
         />
-      </div>
-
-      {/* Mobile-only gradient orbs — match Figma "Billing modal gradient":
-          a rose/magenta glow anchored top-right and a blue/violet glow
-          anchored bottom-left, each oozing off the viewport edges. */}
-      <div className="absolute inset-0 z-[1] pointer-events-none overflow-hidden hidden max-md:block">
         <div
-          className="absolute"
+          className="absolute animate-orb-pink-mobile hidden max-md:block"
           style={{
-            width: 460,
-            height: 460,
-            right: -110,
-            top: -180,
+            width: "460px",
+            height: "460px",
             background:
-              "radial-gradient(circle at 35% 65%, rgba(253,111,142,0.55) 0%, rgba(140,30,90,0.35) 35%, transparent 75%)",
-            filter: "blur(60px)",
-          }}
-        />
-        <div
-          className="absolute"
-          style={{
-            width: 460,
-            height: 460,
-            left: -130,
-            bottom: -180,
-            background:
-              "radial-gradient(circle at 65% 35%, rgba(52,61,229,0.6) 0%, rgba(20,20,160,0.35) 35%, transparent 75%)",
+              "radial-gradient(circle at center, rgba(253,111,142,0.55) 0%, rgba(140,30,90,0.35) 35%, transparent 75%)",
             filter: "blur(60px)",
           }}
         />
@@ -454,57 +432,30 @@ export function LandingHero() {
         </div>
       </div>
 
-      {/* Mobile-only orbit — replicates the Figma "Frame 1597878518" frame
-          (441×485, rotated 90°) where 10 small thumbnail cards are
-          scattered around the hero. The outer ref slowly rotates the
-          whole constellation so the cards drift in unison. */}
+      {/* Mobile-only orbit — a CIRCULAR ring large enough that cards only
+          ever appear at the top/bottom + far-edge corners of the
+          viewport, never crossing the centered heading or CTA stack.
+          Card size (48×27, 6.6px radius) is taken straight from the
+          Figma thumbnails. The outer ref slowly rotates the whole
+          ring so the cards drift in unison. */}
       <div className="absolute inset-0 z-[3] hidden max-md:flex items-center justify-center pointer-events-none overflow-hidden">
         <div
           ref={mobileOrbitRef}
-          className="relative will-change-transform"
-          style={{ width: 0, height: 0 }}
+          className="relative opacity-50 will-change-transform"
+          style={{ width: 600, height: 600 }}
         >
-          <div
-            className="absolute opacity-50"
-            style={{
-              width: 441,
-              height: 485,
-              left: -441 / 2,
-              top: -485 / 2,
-              transform: "rotate(90deg)",
-            }}
-          >
-            {MOBILE_ORBIT_CARDS.map((card, i) => (
-              <div
-                key={`mob-orbit-${i}`}
-                className="absolute flex items-center justify-center"
-                style={{
-                  left: card.x,
-                  top: card.y,
-                  width: card.w,
-                  height: card.h,
-                }}
-              >
-                <div
-                  className="overflow-hidden"
-                  style={{
-                    width: 48,
-                    height: 26.87,
-                    borderRadius: 6.624,
-                    transform: `rotate(${card.rotation}deg)`,
-                    boxShadow: "0 4px 16px rgba(0,0,0,0.35)",
-                  }}
-                >
-                  <img
-                    src={INNER_THUMBS[i % INNER_THUMBS.length]}
-                    alt=""
-                    className="w-full h-full object-cover"
-                    loading="eager"
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
+          {INNER_THUMBS.slice(0, 10).map((src, i) => (
+            <OrbitCard
+              key={`mob-${i}`}
+              src={src}
+              angle={(360 / 10) * i + 18}
+              rx={290}
+              ry={290}
+              w={48}
+              h={27}
+              radius={6.624}
+            />
+          ))}
         </div>
       </div>
 

@@ -144,6 +144,31 @@ html.lenis, html.lenis body {
   animation: orb-pink 25s ease-in-out infinite;
 }
 
+/* Mobile-specific keyframes — gentler drift so the smaller orbs stay
+   anchored near their respective corners instead of being thrown off
+   the side of the viewport (which would happen with the desktop
+   keyframes tuned for a 1440px-wide stage). */
+@keyframes orb-blue-mobile {
+  0%   { left: -130px; bottom: -180px; }
+  25%  { left: -40px;  bottom: -100px; }
+  50%  { left: 60px;   bottom: -40px; }
+  75%  { left: -90px;  bottom: -140px; }
+  100% { left: -130px; bottom: -180px; }
+}
+@keyframes orb-pink-mobile {
+  0%   { right: -110px; top: -180px; }
+  25%  { right: -30px;  top: -110px; }
+  50%  { right: -70px;  top: -40px; }
+  75%  { right: -150px; top: -150px; }
+  100% { right: -110px; top: -180px; }
+}
+.animate-orb-blue-mobile {
+  animation: orb-blue-mobile 22s ease-in-out infinite;
+}
+.animate-orb-pink-mobile {
+  animation: orb-pink-mobile 22s ease-in-out infinite;
+}
+
 /* Creators marquee */
 @keyframes marquee-creators {
   0% { transform: translateX(0); }

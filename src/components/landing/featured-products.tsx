@@ -134,8 +134,8 @@ function CardContent({
             background: `linear-gradient(to bottom, transparent 0%, ${card.gradientTo}80 47.77%, ${card.gradientTo} 100%)`,
           }}
         >
-          <div className="flex-1 min-w-0 flex flex-col gap-2 max-md:gap-[9.06px]">
-            <h3 className="text-[18px] leading-[28px] font-semibold text-white font-inter truncate max-md:text-[12px] max-md:leading-[16px]">
+          <div className="flex-1 min-w-0 flex flex-col gap-2 max-md:gap-[5px]">
+            <h3 className="text-[18px] leading-[28px] font-semibold text-white font-inter truncate max-md:text-[10.5px] max-md:leading-[14px]">
               {card.title}
             </h3>
             <div className="flex items-center gap-[6px] whitespace-nowrap max-md:gap-[8px]">

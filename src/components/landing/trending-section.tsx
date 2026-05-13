@@ -224,6 +224,13 @@ export function TrendingSection() {
   const isHovering = useRef(false);
   const isUserScrolling = useRef(false);
   const userScrollTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Last scrollLeft value WE wrote programmatically. Any drift from this on
+  // the next tick means the user (or browser inertia) scrolled the strip,
+  // and we should pause auto-scroll. This is more reliable than listening
+  // to touchstart/touchmove because vertical page swipes — which do NOT
+  // change scrollLeft — would otherwise pause auto-scroll forever on
+  // touch devices.
+  const lastSetScrollLeft = useRef(0);
 
   // Duplicate the list so we can loop seamlessly: when scrollLeft passes
   // halfWidth we wrap back by halfWidth, which is invisible because the
@@ -233,7 +240,7 @@ export function TrendingSection() {
   useEffect(() => {
     let rafId = 0;
     let lastTime = performance.now();
-    const SPEED_PX_PER_SEC = 50;
+    const SPEED_PX_PER_SEC = 60;
 
     const tick = (now: number) => {
       const dt = now - lastTime;
@@ -242,6 +249,17 @@ export function TrendingSection() {
       const el = scrollRef.current;
       if (el) {
         const halfWidth = el.scrollWidth / 2;
+
+        // Detect user-driven scroll: if the current scrollLeft differs
+        // from what we last wrote, the user (or inertia) moved it.
+        const drift = Math.abs(el.scrollLeft - lastSetScrollLeft.current);
+        if (drift > 2) {
+          isUserScrolling.current = true;
+          if (userScrollTimeout.current) clearTimeout(userScrollTimeout.current);
+          userScrollTimeout.current = setTimeout(() => {
+            isUserScrolling.current = false;
+          }, 1200);
+        }
 
         if (
           halfWidth > 0 &&
@@ -259,6 +277,8 @@ export function TrendingSection() {
             el.scrollLeft += halfWidth;
           }
         }
+
+        lastSetScrollLeft.current = el.scrollLeft;
       }
 
       rafId = requestAnimationFrame(tick);
@@ -278,17 +298,6 @@ export function TrendingSection() {
     isHovering.current = false;
   };
 
-  // Mark user-scroll on actual input (wheel/touch). We don't listen to the
-  // generic scroll event because that also fires for our programmatic writes,
-  // which would incorrectly pause auto-scroll.
-  const markUserScrolling = () => {
-    isUserScrolling.current = true;
-    if (userScrollTimeout.current) clearTimeout(userScrollTimeout.current);
-    userScrollTimeout.current = setTimeout(() => {
-      isUserScrolling.current = false;
-    }, 1500);
-  };
-
   return (
     <section className="w-full py-16 bg-white overflow-hidden max-md:py-10">
       <div className="max-w-[1440px] mx-auto px-[54px] mb-8 max-md:px-4 max-md:mb-5">
@@ -301,9 +310,6 @@ export function TrendingSection() {
         ref={scrollRef}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
-        onWheel={markUserScrolling}
-        onTouchStart={markUserScrolling}
-        onTouchMove={markUserScrolling}
         className="w-full overflow-x-auto overflow-y-hidden no-scrollbar"
         style={{ WebkitOverflowScrolling: "touch" }}
       >

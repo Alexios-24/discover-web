@@ -1,8 +1,8 @@
 "use client";
 
 import { Globe } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
-import { motion, useScroll, useTransform, type MotionValue } from "framer-motion";
+import { useEffect, useState } from "react";
+import { type MotionValue } from "framer-motion";
 import { ZoomParallax, type ParallaxCard } from "@/components/ui/zoom-parallax";
 import { CursorTooltip } from "@/components/ui/animated-tooltip";
 
@@ -109,24 +109,24 @@ function CardContent({
         className="absolute bottom-0 left-0"
       >
         <div
-          className="flex items-end p-4"
+          className="flex items-end p-4 max-md:p-2"
           style={{
             background: `linear-gradient(to bottom, transparent 0%, ${card.gradientTo}80 47.77%, ${card.gradientTo} 100%)`,
           }}
         >
-          <div className="flex-1 min-w-0 flex flex-col gap-2">
-            <h3 className="text-[18px] leading-[28px] font-semibold text-white font-inter truncate">
+          <div className="flex-1 min-w-0 flex flex-col gap-2 max-md:gap-1">
+            <h3 className="text-[18px] leading-[28px] font-semibold text-white font-inter truncate max-md:text-[11px] max-md:leading-[14px]">
               {card.title}
             </h3>
-            <div className="flex items-center gap-[6px] whitespace-nowrap">
-              <span className="flex items-center gap-[2px] h-6 px-2 rounded-[12px] bg-white/25 shrink-0">
-                {isGlobe && <Globe size={16} className="text-white" />}
-                <span className="text-[13px] leading-[18px] font-medium text-white font-inter">
+            <div className="flex items-center gap-[6px] whitespace-nowrap max-md:gap-1">
+              <span className="flex items-center gap-[2px] h-6 px-2 rounded-[12px] bg-white/25 shrink-0 max-md:h-[16px] max-md:px-1 max-md:rounded-[8px]">
+                {isGlobe && <Globe size={16} className="text-white max-md:size-[10px]" />}
+                <span className="text-[13px] leading-[18px] font-medium text-white font-inter max-md:text-[9px] max-md:leading-[12px]">
                   {card.pricing}
                 </span>
               </span>
-              <span className="size-[6px] rounded-full bg-white/60 shrink-0" />
-              <span className="text-[14px] leading-[18px] text-[#EAECF0] font-inter shrink-0">
+              <span className="size-[6px] rounded-full bg-white/60 shrink-0 max-md:size-[3px]" />
+              <span className="text-[14px] leading-[18px] text-[#EAECF0] font-inter shrink-0 max-md:text-[9px] max-md:leading-[12px]">
                 {card.members}
               </span>
             </div>
@@ -218,7 +218,7 @@ const PARALLAX_CARDS: ParallaxCard[] = [
 
 function FullscreenHeader() {
   return (
-    <div className="text-center font-montserrat font-bold text-[40px] leading-normal text-[#101828]">
+    <div className="text-center font-montserrat font-bold text-[40px] leading-normal text-[#101828] max-md:text-[22px] max-md:leading-[30px] max-md:px-4">
       The{" "}
       <span className="relative inline-block">
         <span className="text-[#343DE5]">official</span>
@@ -227,7 +227,7 @@ function FullscreenHeader() {
           aria-hidden
           src="/official-underline.svg"
           alt=""
-          className="absolute left-0 right-0 -bottom-[4px] w-full h-[14px] rotate-[4.56deg]"
+          className="absolute left-0 right-0 -bottom-[4px] w-full h-[14px] rotate-[4.56deg] max-md:-bottom-[2px] max-md:h-[10px]"
         />
       </span>{" "}
       community of Kollab
@@ -243,104 +243,10 @@ export function FeaturedProducts() {
           Featured products
         </h2>
       </div>
-      {/* Desktop / tablet: scroll-driven zoom parallax */}
-      <div className="max-md:hidden">
-        <ZoomParallax
-          cards={PARALLAX_CARDS}
-          overlay={<FullscreenHeader />}
-        />
-      </div>
-      {/* Mobile: simplified parallax — Kollabers card grows while the
-          "official community of Kollab" text fades in (same scroll feel as
-          desktop, just one card instead of a fan). */}
-      <div className="hidden max-md:block">
-        <MobileFeaturedParallax />
-      </div>
+      {/* Same scroll-driven parallax on every breakpoint — the ZoomParallax
+          component clamps its internal layoutScale on mobile so the cards
+          stay readable instead of bleeding fully off-screen. */}
+      <ZoomParallax cards={PARALLAX_CARDS} overlay={<FullscreenHeader />} />
     </section>
-  );
-}
-
-function MobileFeaturedParallax() {
-  const ref = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ["start start", "end end"],
-  });
-
-  // Kollabers card scales from a small thumbnail to roughly the full viewport
-  // width as the user scrolls through the section.
-  const scale = useTransform(scrollYProgress, [0, 1], [1, 2.6]);
-  const overlayOpacity = useTransform(scrollYProgress, [0.35, 0.65], [0, 1]);
-  const fadeOut = useTransform(scrollYProgress, [0.85, 1], [1, 0]);
-
-  return (
-    <div ref={ref} className="relative h-[220vh]">
-      <div className="sticky top-0 h-screen overflow-hidden">
-        {/* Centered Kollabers card */}
-        <motion.div
-          style={{ scale, opacity: fadeOut }}
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60vw] aspect-[16/9]"
-        >
-          <MobileKollabersCard card={CARDS[0]} />
-        </motion.div>
-
-        {/* "official community of Kollab" overlay text */}
-        <motion.div
-          style={{ opacity: overlayOpacity }}
-          className="absolute inset-x-0 top-[18%] flex justify-center px-4 pointer-events-none z-[5]"
-        >
-          <div className="text-center font-montserrat font-bold text-[22px] leading-[30px] text-[#101828]">
-            The{" "}
-            <span className="relative inline-block">
-              <span className="text-[#343DE5]">official</span>
-              <img
-                aria-hidden
-                src="/official-underline.svg"
-                alt=""
-                className="absolute left-0 right-0 -bottom-[2px] w-full h-[10px] rotate-[4.56deg]"
-              />
-            </span>{" "}
-            community of Kollab
-          </div>
-        </motion.div>
-      </div>
-    </div>
-  );
-}
-
-function MobileKollabersCard({ card }: { card: ProductCard }) {
-  return (
-    <div className="relative w-full h-full overflow-hidden rounded-[16px] shadow-[0_8px_32px_rgba(16,24,40,0.12)]">
-      <img
-        src={card.image}
-        alt={card.title}
-        className="absolute inset-0 w-full h-full object-cover"
-        loading="lazy"
-      />
-      <div
-        className="absolute inset-x-0 bottom-0 flex items-end p-3"
-        style={{
-          background: `linear-gradient(to bottom, transparent 0%, ${card.gradientTo}80 47.77%, ${card.gradientTo} 100%)`,
-        }}
-      >
-        <div className="flex-1 min-w-0 flex flex-col gap-1">
-          <h3 className="text-[14px] leading-[18px] font-semibold text-white truncate font-inter">
-            {card.title}
-          </h3>
-          <div className="flex items-center gap-1.5 whitespace-nowrap">
-            <span className="flex items-center gap-[2px] h-[18px] px-1.5 rounded-[10px] bg-white/25 shrink-0">
-              <Globe size={11} className="text-white" />
-              <span className="text-[10px] leading-[12px] font-medium text-white font-inter">
-                {card.pricing}
-              </span>
-            </span>
-            <span className="size-[3px] rounded-full bg-white/60 shrink-0" />
-            <span className="text-[11px] leading-[14px] text-[#EAECF0] font-inter">
-              {card.members}
-            </span>
-          </div>
-        </div>
-      </div>
-    </div>
   );
 }

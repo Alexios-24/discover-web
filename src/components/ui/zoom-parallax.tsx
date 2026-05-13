@@ -29,6 +29,11 @@ const KOLLABERS_HALF_H_VW = 0.050625;
 const HEADING_GAP_PX = 32; // F1 top → sticky top gap (matches mb-8 in sibling sections)
 const TEXT_GAP_PX = 24; // overlay text bottom → Kollabers card top gap
 const MIN_LAYOUT_SCALE = 0.45;
+// Cap layoutScale on narrow viewports so the constellation of cards stays
+// roughly inside the viewport on mobile (some bleed off the sides is OK,
+// but the desktop formula would push them entirely off-screen on portrait).
+const MOBILE_MAX_LAYOUT_SCALE = 1.4;
+const MOBILE_BREAKPOINT_PX = 768;
 
 export function ZoomParallax({ cards, overlay }: ZoomParallaxProps) {
   const container = useRef<HTMLDivElement>(null);
@@ -56,10 +61,16 @@ export function ZoomParallax({ cards, overlay }: ZoomParallaxProps) {
     function updateLayout() {
       const w = window.innerWidth;
       const h = window.innerHeight;
-      const s = Math.max(
+      let s = Math.max(
         MIN_LAYOUT_SCALE,
         (h * 0.5 - HEADING_GAP_PX) / (w * F1_EXTENT_VW),
       );
+      // On portrait/mobile the desktop formula explodes (tall viewport,
+      // narrow card extent) so cap it so the constellation stays inside
+      // the viewport instead of being pushed entirely off-screen.
+      if (w < MOBILE_BREAKPOINT_PX) {
+        s = Math.min(s, MOBILE_MAX_LAYOUT_SCALE);
+      }
       layoutScaleRef.current = s;
       setLayoutScale(s);
     }

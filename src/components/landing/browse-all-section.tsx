@@ -52,20 +52,20 @@ export function BrowseAllSection() {
   };
 
   return (
-    <section className="w-full py-16 bg-white overflow-hidden">
-      <div className="max-w-[1440px] mx-auto px-[54px] flex flex-col gap-8">
-        <h2 className="font-montserrat font-bold text-[40px] leading-normal text-[#101828] text-center">
+    <section className="w-full py-16 bg-white overflow-hidden max-md:py-10">
+      <div className="max-w-[1440px] mx-auto px-[54px] flex flex-col gap-8 max-md:px-4 max-md:gap-5">
+        <h2 className="font-montserrat font-bold text-[40px] leading-normal text-[#101828] text-center max-md:text-[24px] max-md:leading-[32px]">
           Browse all
         </h2>
 
-        {/* Filters Row */}
-        <div className="flex gap-3 items-center w-full">
-          {/* Product type switcher */}
-          <div className="bg-[#F2F4F7] flex items-center p-1 rounded-[12px] shrink-0">
+        {/* Filters Row — stacks below md so the tabs + tag carousel don't get cramped */}
+        <div className="flex gap-3 items-center w-full max-md:flex-col max-md:items-stretch max-md:gap-3">
+          {/* Product type switcher — full-width segmented control on mobile */}
+          <div className="bg-[#F2F4F7] flex items-center p-1 rounded-[12px] shrink-0 max-md:w-full max-md:overflow-x-auto max-md:no-scrollbar">
             {TABS.map((tab) => (
               <button
                 key={tab}
-                className={`px-6 py-1.5 rounded-[8px] text-[14px] leading-[20px] font-medium font-inter transition-colors whitespace-nowrap ${
+                className={`px-6 py-1.5 rounded-[8px] text-[14px] leading-[20px] font-medium font-inter transition-colors whitespace-nowrap max-md:flex-1 max-md:px-3 ${
                   tab === "All"
                     ? "bg-white text-[#101828] shadow-sm"
                     : "text-[#475467] hover:text-[#101828]"
@@ -76,8 +76,8 @@ export function BrowseAllSection() {
             ))}
           </div>
 
-          {/* Divider */}
-          <div className="w-px h-6 bg-[#EAECF0] shrink-0" />
+          {/* Divider — hidden on mobile (filters are stacked) */}
+          <div className="w-px h-6 bg-[#EAECF0] shrink-0 max-md:hidden" />
 
           {/* Tags Carousel */}
           <div className="flex-1 flex items-center gap-1 min-w-0 relative">
@@ -130,7 +130,7 @@ export function BrowseAllSection() {
             - Uses CSS grid with auto-fill and minmax for fully responsive cards
             - Cards stretch from 280px to 1fr, filling the container at any width
             - At very wide viewports, shows 4 columns; at narrow, 2 columns */}
-        <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-6 w-full">
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-6 w-full max-md:grid-cols-1 max-md:gap-4">
           {VISIBLE_CARDS.map((card, idx) => (
             <DiscoverCard key={`${card.title}-${idx}`} {...card} />
           ))}

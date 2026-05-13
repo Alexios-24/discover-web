@@ -1,6 +1,7 @@
 "use client";
 
 import { Globe } from "lucide-react";
+import { useEffect, useState } from "react";
 import { CardStack, type CardStackItem } from "@/components/ui/card-stack";
 
 interface TopPickCard extends CardStackItem {
@@ -89,7 +90,7 @@ function TopPickCardRenderer(
       >
         <div className="flex-1 min-w-0 flex flex-col gap-2">
           <h3
-            className={`font-semibold text-white font-inter truncate ${
+            className={`font-semibold text-white font-inter truncate max-md:!text-[15px] max-md:!leading-[20px] ${
               active
                 ? "text-[24px] leading-[32px]"
                 : "text-[18px] leading-[28px]"
@@ -97,15 +98,15 @@ function TopPickCardRenderer(
           >
             {card.title}
           </h3>
-          <div className="flex items-center gap-2">
-            <span className="flex items-center gap-[2px] h-6 px-2 rounded-[12px] bg-white/25 shrink-0">
-              {isGlobe && <Globe size={16} className="text-white" />}
-              <span className="text-[13px] leading-[18px] font-medium text-white font-inter">
+          <div className="flex items-center gap-2 max-md:gap-1.5">
+            <span className="flex items-center gap-[2px] h-6 px-2 rounded-[12px] bg-white/25 shrink-0 max-md:h-5 max-md:px-1.5 max-md:rounded-[10px]">
+              {isGlobe && <Globe size={16} className="text-white max-md:size-3" />}
+              <span className="text-[13px] leading-[18px] font-medium text-white font-inter max-md:text-[11px] max-md:leading-[14px]">
                 {card.pricing}
               </span>
             </span>
-            <span className="size-[6px] rounded-full bg-white/60 shrink-0" />
-            <span className="text-[16px] leading-6 text-[#EAECF0] font-inter shrink-0">
+            <span className="size-[6px] rounded-full bg-white/60 shrink-0 max-md:size-[4px]" />
+            <span className="text-[16px] leading-6 text-[#EAECF0] font-inter shrink-0 max-md:text-[12px] max-md:leading-4 max-md:truncate">
               {card.members}
             </span>
           </div>
@@ -115,11 +116,34 @@ function TopPickCardRenderer(
   );
 }
 
+function useCardDims(): { w: number; h: number } {
+  const [dims, setDims] = useState({ w: 500, h: 281 });
+  useEffect(() => {
+    const compute = () => {
+      const vw = window.innerWidth;
+      if (vw < 640) {
+        // Mobile: fit comfortably in viewport (with side margin for stacked neighbours)
+        const w = Math.min(280, vw - 80);
+        setDims({ w, h: Math.round(w * (281 / 500)) });
+      } else if (vw < 1024) {
+        setDims({ w: 380, h: 214 });
+      } else {
+        setDims({ w: 500, h: 281 });
+      }
+    };
+    compute();
+    window.addEventListener("resize", compute);
+    return () => window.removeEventListener("resize", compute);
+  }, []);
+  return dims;
+}
+
 export function TopPicksSection() {
+  const { w, h } = useCardDims();
   return (
-    <section className="w-full pt-24 pb-36 bg-white overflow-hidden">
-      <div className="flex flex-col items-center gap-6 w-full">
-        <h2 className="font-montserrat font-bold text-[40px] leading-normal text-[#101828] text-center w-full px-[54px]">
+    <section className="w-full pt-24 pb-36 bg-white overflow-hidden max-md:pt-14 max-md:pb-20">
+      <div className="flex flex-col items-center gap-6 w-full max-md:gap-4">
+        <h2 className="font-montserrat font-bold text-[40px] leading-normal text-[#101828] text-center w-full px-[54px] max-md:text-[24px] max-md:leading-[32px] max-md:px-4">
           Top picks for you
         </h2>
 
@@ -132,8 +156,8 @@ export function TopPicksSection() {
             pauseOnHover
             showDots
             loop
-            cardWidth={500}
-            cardHeight={281}
+            cardWidth={w}
+            cardHeight={h}
             overlap={0.46}
             spreadDeg={24}
             perspectivePx={1100}

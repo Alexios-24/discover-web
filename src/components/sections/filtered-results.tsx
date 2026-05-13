@@ -3,7 +3,7 @@ import { BROWSE_PRODUCTS } from "@/lib/data";
 
 export function FilteredResults() {
   return (
-    <div className="grid grid-cols-3 gap-6">
+    <div className="grid grid-cols-3 gap-6 max-lg:grid-cols-2 max-md:grid-cols-1 max-md:gap-4">
       {BROWSE_PRODUCTS.map((card, idx) => (
         <DiscoverCard key={idx} {...card} />
       ))}

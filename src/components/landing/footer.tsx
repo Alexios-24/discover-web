@@ -62,11 +62,11 @@ export function LandingFooter() {
         }}
       />
 
-      <div className="relative flex flex-col gap-[72px] py-[54px]">
+      <div className="relative flex flex-col gap-[72px] py-[54px] max-md:gap-12 max-md:py-10">
         {/* Product scroll section — outlined marquee — full width edge-to-edge */}
         <div className="w-full overflow-hidden">
           <div
-            className="flex items-center gap-[40px] whitespace-nowrap will-change-transform"
+            className="flex items-center gap-[40px] whitespace-nowrap will-change-transform max-md:gap-6"
             style={{ animation: "marquee-x 22s linear infinite" }}
           >
             {[...Array(4)].flatMap((_, copy) =>
@@ -85,11 +85,11 @@ export function LandingFooter() {
         </div>
 
         {/* Main content — aligned with top header (max-w-1440 + 54px horizontal padding) */}
-        <div className="max-w-[1440px] mx-auto px-[54px] w-full flex flex-col gap-[40px]">
+        <div className="max-w-[1440px] mx-auto px-[54px] w-full flex flex-col gap-[40px] max-md:px-4 max-md:gap-8">
           {/* Columns row */}
-          <div className="flex gap-[160px] items-start w-full">
+          <div className="flex gap-[160px] items-start w-full max-lg:gap-12 max-md:flex-col max-md:gap-8">
             {/* Left column — logo, tagline, CTA */}
-            <div className="flex flex-col gap-[32px] items-start w-[342px] shrink-0">
+            <div className="flex flex-col gap-[32px] items-start w-[342px] shrink-0 max-md:gap-6 max-md:w-full">
               <div className="flex flex-col gap-4 items-start w-full">
                 <KollabWordmark />
                 <p className="font-inter text-[14px] leading-[20px] font-normal text-[#98A2B3] w-full">
@@ -122,8 +122,8 @@ export function LandingFooter() {
               </Link>
             </div>
 
-            {/* Right columns */}
-            <div className="flex flex-1 gap-[24px] items-start min-w-0">
+            {/* Right columns — 2-col grid on mobile */}
+            <div className="flex flex-1 gap-[24px] items-start min-w-0 max-md:grid max-md:grid-cols-2 max-md:gap-y-8 max-md:w-full">
               {FOOTER_LINKS.map((col) => (
                 <div key={col.label} className="flex-1 flex flex-col gap-4 min-w-0">
                   <h4 className="font-inter font-semibold text-[14px] leading-[20px] text-white">
@@ -150,7 +150,7 @@ export function LandingFooter() {
           <div className="h-px w-full bg-gradient-to-r from-white/0 via-white/10 to-white/0" />
 
           {/* Bottom row */}
-          <div className="flex items-center justify-between w-full">
+          <div className="flex items-center justify-between w-full max-md:flex-col max-md:gap-4 max-md:items-start">
             <div className="flex items-center gap-2">
               <CopyrightIcon />
               <span className="font-inter text-[13px] leading-[18px] font-normal text-[#98A2B3]">
@@ -186,17 +186,27 @@ function OutlinedWord({ text, color }: { text: string; color: string }) {
   // bbox after mount to size the SVG width exactly to its content.
   const textRef = useRef<SVGTextElement>(null);
   const [width, setWidth] = useState(text.length * 50);
+  const [fontSize, setFontSize] = useState(72);
+
+  useLayoutEffect(() => {
+    const compute = () => {
+      setFontSize(window.innerWidth < 768 ? 44 : 72);
+    };
+    compute();
+    window.addEventListener("resize", compute);
+    return () => window.removeEventListener("resize", compute);
+  }, []);
 
   useLayoutEffect(() => {
     if (!textRef.current) return;
     const bbox = textRef.current.getBBox();
     setWidth(Math.ceil(bbox.width + 4));
-  }, [text]);
+  }, [text, fontSize]);
 
   return (
     <svg
       width={width}
-      height="80"
+      height={Math.ceil(fontSize * (80 / 72))}
       className="block shrink-0 overflow-visible"
       shapeRendering="geometricPrecision"
       aria-label={text}
@@ -204,7 +214,7 @@ function OutlinedWord({ text, color }: { text: string; color: string }) {
       <text
         ref={textRef}
         x="0"
-        y="64"
+        y={Math.ceil(fontSize * (64 / 72))}
         fill="none"
         stroke={color}
         strokeWidth="1.5"
@@ -213,7 +223,7 @@ function OutlinedWord({ text, color }: { text: string; color: string }) {
         strokeMiterlimit="2"
         fontFamily="var(--font-montserrat), Montserrat, sans-serif"
         fontWeight="700"
-        fontSize="72"
+        fontSize={fontSize}
         style={{ paintOrder: "stroke" }}
       >
         {text}

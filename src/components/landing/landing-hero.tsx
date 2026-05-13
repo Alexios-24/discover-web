@@ -24,10 +24,24 @@ const DISCOVER_WORDS: WordDef[] = [
   { text: "creators.", color: "#36BFFA", width: 305 },
 ];
 
-const STEP_PX = 94;
 const CYCLE_MS = 2500;
 
-function CyclingText({ words }: { words: WordDef[] }) {
+// Default desktop dimensions matching the Figma spec (72px font / 80px line-height).
+const STEP_PX_DEFAULT = 94;
+const LINE_HEIGHT_DEFAULT = 80;
+const GAP_DEFAULT = 14;
+
+function CyclingText({
+  words,
+  scale = 1,
+}: {
+  words: WordDef[];
+  /** Scale factor applied to widths, line-height and gap. 1 = desktop default. */
+  scale?: number;
+}) {
+  const lineHeight = LINE_HEIGHT_DEFAULT * scale;
+  const gap = GAP_DEFAULT * scale;
+  const stepPx = lineHeight + gap;
   const [index, setIndex] = useState(0);
   const [smooth, setSmooth] = useState(true);
 
@@ -65,13 +79,19 @@ function CyclingText({ words }: { words: WordDef[] }) {
 
   return (
     <span
-      className="inline-block h-[80px] overflow-hidden align-bottom"
-      style={{ width: word.width, transition: smooth ? ease : "none" }}
+      className="inline-block overflow-hidden align-bottom"
+      style={{
+        height: lineHeight,
+        // +4px buffer prevents the trailing period from being clipped at smaller scales.
+        width: word.width * scale + 4,
+        transition: smooth ? ease : "none",
+      }}
     >
       <div
-        className="flex flex-col gap-[14px]"
+        className="flex flex-col"
         style={{
-          transform: `translateY(${-index * STEP_PX}px)`,
+          gap,
+          transform: `translateY(${-index * stepPx}px)`,
           transition: smooth
             ? "transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)"
             : "none",
@@ -81,7 +101,7 @@ function CyclingText({ words }: { words: WordDef[] }) {
           <span
             key={i}
             className="shrink-0 whitespace-nowrap"
-            style={{ color: w.color, lineHeight: "80px" }}
+            style={{ color: w.color, lineHeight: `${lineHeight}px` }}
           >
             {w.text}
           </span>
@@ -89,6 +109,25 @@ function CyclingText({ words }: { words: WordDef[] }) {
       </div>
     </span>
   );
+}
+
+// useMediaQuery-style hook returning the current responsive size bucket.
+function useResponsiveSize(): "sm" | "md" | "lg" {
+  const [size, setSize] = useState<"sm" | "md" | "lg">("lg");
+
+  useEffect(() => {
+    const compute = () => {
+      const w = window.innerWidth;
+      if (w < 640) setSize("sm");
+      else if (w < 1024) setSize("md");
+      else setSize("lg");
+    };
+    compute();
+    window.addEventListener("resize", compute);
+    return () => window.removeEventListener("resize", compute);
+  }, []);
+
+  return size;
 }
 
 const INNER_THUMBS = [
@@ -128,8 +167,11 @@ interface OrbitCardProps {
 
 function OrbitCard({ src, angle, rx, ry, w, h }: OrbitCardProps) {
   const rad = (angle * Math.PI) / 180;
-  const x = rx * Math.cos(rad);
-  const y = ry * Math.sin(rad);
+  // Round to 2 decimals so server and client produce identical strings.
+  // Without this Node.js and the browser can differ in the last fp digits,
+  // causing a React hydration mismatch on these inline styles.
+  const x = Math.round(rx * Math.cos(rad) * 100) / 100;
+  const y = Math.round(ry * Math.sin(rad) * 100) / 100;
   const tangent = angle + 90;
 
   return (
@@ -227,8 +269,16 @@ export function LandingHero() {
   const [searchValue, setSearchValue] = useState("");
   const searchInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
+  const responsive = useResponsiveSize();
+  // Mobile: ~36px font, half-scale of cycling text. Tablet: ~56px font, ~0.72 scale.
+  const cyclingScale =
+    responsive === "sm" ? 0.5 : responsive === "md" ? 0.72 : 1;
   const innerRef = useRef<HTMLDivElement>(null);
   const outerRef = useRef<HTMLDivElement>(null);
+  // Separate ref for the mobile orbit — desktop refs point to display:none nodes
+  // when on mobile, which makes the transform invisible. With its own ref we
+  // can drive both versions simultaneously and let CSS decide which is shown.
+  const mobileOrbitRef = useRef<HTMLDivElement>(null);
   const angleRef = useRef(0);
   const speedRef = useRef(0.08);
   const targetSpeedRef = useRef(0.08);
@@ -256,6 +306,9 @@ export function LandingHero() {
     }
     if (outerRef.current) {
       outerRef.current.style.transform = `rotate(${-angleRef.current * 0.6 - 8.66}deg)`;
+    }
+    if (mobileOrbitRef.current) {
+      mobileOrbitRef.current.style.transform = `rotate(${angleRef.current}deg)`;
     }
 
     targetSpeedRef.current += (0.08 - targetSpeedRef.current) * 0.02;
@@ -311,8 +364,8 @@ export function LandingHero() {
         />
       </div>
 
-      {/* Outer orbit ring */}
-      <div className="absolute inset-0 z-[3] flex items-center justify-center pointer-events-none">
+      {/* Outer orbit ring — hidden on mobile (too cramped); reduced opacity on tablet */}
+      <div className="absolute inset-0 z-[3] flex items-center justify-center pointer-events-none max-md:hidden">
         <div
           ref={outerRef}
           className="relative opacity-50 will-change-transform"
@@ -332,8 +385,8 @@ export function LandingHero() {
         </div>
       </div>
 
-      {/* Inner orbit ring */}
-      <div className="absolute inset-0 z-[4] flex items-center justify-center pointer-events-none">
+      {/* Inner orbit ring — hidden on mobile */}
+      <div className="absolute inset-0 z-[4] flex items-center justify-center pointer-events-none max-md:hidden">
         <div
           ref={innerRef}
           className="relative opacity-50 will-change-transform"
@@ -353,9 +406,36 @@ export function LandingHero() {
         </div>
       </div>
 
+      {/* Mobile-only orbit — cards orbit on a tall, wide ellipse so that at
+          horizontal extremes they are pushed off the side of the viewport
+          (where the text lives) and only ever appear at the top and bottom
+          of the section — like cosmos.so's hero. */}
+      <div className="absolute inset-0 z-[4] hidden max-md:flex items-center justify-center pointer-events-none overflow-hidden">
+        <div
+          ref={mobileOrbitRef}
+          className="relative opacity-70 will-change-transform"
+          style={{ width: 720, height: 820 }}
+        >
+          {INNER_THUMBS.slice(0, 8).map((src, i) => (
+            <OrbitCard
+              key={`mob-${i}`}
+              src={src}
+              angle={(360 / 8) * i}
+              // rx is intentionally LARGER than half a mobile viewport so that
+              // when a card swings to 0° / 180° it sits entirely off-screen,
+              // never colliding with the centered heading / CTA stack.
+              rx={340}
+              ry={380}
+              w={92}
+              h={52}
+            />
+          ))}
+        </div>
+      </div>
+
       {/* Center content */}
-      <div className="relative z-10 flex items-center justify-center h-full">
-        <div className="flex flex-col items-center gap-8 w-[723px] text-center">
+      <div className="relative z-10 flex items-center justify-center h-full max-md:px-4">
+        <div className="flex flex-col items-center gap-8 w-[723px] text-center max-md:gap-5 max-md:w-full">
           {/* Tab switcher */}
           <motion.div {...fadeUp(0.1)}>
             <div className="inline-flex items-center justify-center w-[200px] h-[44px] bg-white/[0.25] rounded-full p-2 relative">
@@ -393,7 +473,7 @@ export function LandingHero() {
                 className="flex flex-col gap-2"
               >
                 <h1
-                  className="font-montserrat font-bold text-white"
+                  className="font-montserrat font-bold text-white max-lg:!text-[56px] max-lg:!leading-[64px] max-md:!text-[36px] max-md:!leading-[44px] max-md:!tracking-[-0.9px]"
                   style={{
                     fontSize: "72px",
                     lineHeight: "80px",
@@ -404,23 +484,23 @@ export function LandingHero() {
                     <>
                       Build your business
                       <br />
-                      <span className="inline-flex items-center gap-4">
+                      <span className="inline-flex items-center gap-4 max-md:gap-2">
                         <span>with</span>
-                        <CyclingText words={LAUNCH_WORDS} />
+                        <CyclingText words={LAUNCH_WORDS} scale={cyclingScale} />
                       </span>
                     </>
                   ) : (
                     <>
                       Ready to grow?
                       <br />
-                      <span className="inline-flex items-center gap-4">
+                      <span className="inline-flex items-center gap-4 max-md:gap-2">
                         <span>Discover</span>
-                        <CyclingText words={DISCOVER_WORDS} />
+                        <CyclingText words={DISCOVER_WORDS} scale={cyclingScale} />
                       </span>
                     </>
                   )}
                 </h1>
-                <p className="text-[18px] leading-7 text-gray-300">
+                <p className="text-[18px] leading-7 text-gray-300 max-md:text-[15px] max-md:leading-6 max-md:px-2">
                   {activeTab === "launch"
                     ? "The all-in-one platform to create, launch, and monetize your knowledge."
                     : "Explore thousands of courses & communities built by creators like you."}
@@ -433,7 +513,7 @@ export function LandingHero() {
           <motion.div {...fadeUp(0.35)}>
             <form
               onSubmit={handleSearchSubmit}
-              className="flex items-center gap-2 w-[400px] h-[44px] bg-white/[0.1] border border-white/[0.2] rounded-xl px-[13px] py-[9px] shadow-[0px_25px_50px_rgba(0,0,0,0.25)] focus-within:bg-white/[0.14] focus-within:border-white/[0.3] transition-colors"
+              className="flex items-center gap-2 w-[400px] h-[44px] bg-white/[0.1] border border-white/[0.2] rounded-xl px-[13px] py-[9px] shadow-[0px_25px_50px_rgba(0,0,0,0.25)] focus-within:bg-white/[0.14] focus-within:border-white/[0.3] transition-colors max-md:w-[min(360px,calc(100vw-32px))]"
             >
               <Search size={20} className="text-gray-400 shrink-0" />
               <input
@@ -494,12 +574,12 @@ export function LandingHero() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -6 }}
                 transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] as const }}
-                className="flex gap-[8px] items-center justify-center w-full"
+                className="flex gap-[8px] items-center justify-center w-full max-md:flex-wrap"
               >
                 <div className="flex items-center justify-center size-[18px]">
                   <BadgeCheck size={18} className="text-[#6172F3]" />
                 </div>
-                <div className="flex gap-[16px] items-center">
+                <div className="flex gap-[16px] items-center max-md:gap-3 max-md:flex-wrap max-md:justify-center">
                   {(activeTab === "launch" ? LAUNCH_STATS : DISCOVER_STATS).map(
                     (stat, i) => (
                       <div key={stat.label} className="flex items-center gap-[16px]">

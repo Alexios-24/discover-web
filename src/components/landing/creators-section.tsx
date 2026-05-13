@@ -121,7 +121,7 @@ function CreatorCard({ creator }: { creator: Creator }) {
   const extractedColor = useImageColor(creator.image, creator.gradientColor);
 
   return (
-    <div className="relative aspect-[3/4] h-[371px] w-[278px] shrink-0 overflow-hidden rounded-[16px] group cursor-pointer [transform:translateZ(0)]">
+    <div className="relative aspect-[3/4] h-[371px] w-[278px] shrink-0 overflow-hidden rounded-[16px] group cursor-pointer [transform:translateZ(0)] max-lg:h-[280px] max-lg:w-[210px] max-md:h-[200px] max-md:w-[150px] max-md:rounded-[12px]">
       <img
         src={creator.image}
         alt={creator.name.join(" ")}
@@ -138,15 +138,15 @@ function CreatorCard({ creator }: { creator: Creator }) {
         />
       )}
 
-      <div className="absolute bottom-0 left-0 right-0 flex flex-col items-center gap-[10px] px-3 py-6 z-10">
-        <div className="text-center font-semibold text-[24px] text-white leading-[26px] h-[52px] flex flex-col justify-center overflow-hidden w-full">
+      <div className="absolute bottom-0 left-0 right-0 flex flex-col items-center gap-[10px] px-3 py-6 z-10 max-md:gap-1 max-md:px-2 max-md:py-4">
+        <div className="text-center font-semibold text-[24px] text-white leading-[26px] h-[52px] flex flex-col justify-center overflow-hidden w-full max-md:text-[15px] max-md:leading-[18px] max-md:h-[36px]">
           {creator.name.map((line, i) => (
             <span key={i} className="block">
               {line}
             </span>
           ))}
         </div>
-        <p className="text-[13px] leading-[18px] text-white text-center w-full truncate">
+        <p className="text-[13px] leading-[18px] text-white text-center w-full truncate max-md:text-[11px] max-md:leading-[14px]">
           {creator.role}
         </p>
       </div>
@@ -158,16 +158,16 @@ export function CreatorsSection() {
   const doubled = [...CREATORS, ...CREATORS];
 
   return (
-    <section className="w-full py-16 bg-white overflow-hidden">
-      <div className="max-w-[1440px] mx-auto px-[54px] mb-8">
-        <h2 className="font-montserrat font-bold text-[40px] leading-normal text-[#101828] text-center w-full">
+    <section className="w-full py-16 bg-white overflow-hidden max-md:py-10">
+      <div className="max-w-[1440px] mx-auto px-[54px] mb-8 max-md:px-4 max-md:mb-5">
+        <h2 className="font-montserrat font-bold text-[40px] leading-normal text-[#101828] text-center w-full max-md:text-[24px] max-md:leading-[32px]">
           Top experts building on Kollab
         </h2>
       </div>
 
       {/* Marquee container */}
       <div className="relative w-full">
-        <div className="flex gap-6 animate-marquee-creators">
+        <div className="flex gap-6 animate-marquee-creators max-md:gap-3">
           {doubled.map((creator, i) => (
             <CreatorCard key={`${creator.name.join("-")}-${i}`} creator={creator} />
           ))}

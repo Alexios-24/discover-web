@@ -496,10 +496,10 @@ export function LandingHeroV2() {
         }}
       />
 
-      <div className="relative z-10 h-full max-w-[1440px] mx-auto px-[54px] pt-[60px] pb-[30px]">
-        <div className="h-full grid grid-cols-12 gap-10 items-center">
+      <div className="relative z-10 h-full max-w-[1440px] mx-auto px-[54px] pt-[60px] pb-[30px] max-md:px-4 max-md:pt-[80px]">
+        <div className="h-full grid grid-cols-12 gap-10 items-center max-md:gap-6">
           {/* Left — pixel-perfect match to Figma node 2269:22572 */}
-          <div className="col-span-12 lg:col-span-7 flex flex-col gap-[44px] items-start max-w-[723px]">
+          <div className="col-span-12 lg:col-span-7 flex flex-col gap-[44px] items-start max-w-[723px] max-md:gap-6 max-md:items-center max-md:text-center max-md:w-full">
             {/* Tab switcher — 200×44, pill style */}
             <motion.div {...fadeUp(0.1)}>
               <div className="inline-flex items-center justify-center w-[200px] h-[44px] bg-white/[0.25] rounded-full p-2 relative">
@@ -538,7 +538,7 @@ export function LandingHeroV2() {
                     className="flex flex-col gap-[8px] items-start w-full"
                   >
                     <h1
-                      className="font-montserrat font-bold text-white text-left"
+                      className="font-montserrat font-bold text-white text-left max-lg:!text-[56px] max-lg:!leading-[64px] max-md:!text-[36px] max-md:!leading-[44px] max-md:!tracking-[-0.9px] max-md:text-center"
                       style={{
                         fontSize: "72px",
                         lineHeight: "80px",
@@ -565,7 +565,7 @@ export function LandingHeroV2() {
                         </>
                       )}
                     </h1>
-                    <p className="text-[18px] leading-[28px] text-[#D0D5DD] text-left w-full">
+                    <p className="text-[18px] leading-[28px] text-[#D0D5DD] text-left w-full max-md:text-[15px] max-md:leading-6 max-md:text-center">
                       {activeTab === "launch"
                         ? "The all-in-one platform to create, launch, and monetize your knowledge."
                         : "Explore thousands of courses & communities built by creators like you."}
@@ -577,7 +577,7 @@ export function LandingHeroV2() {
               {/* Search bar — 400×44, from Figma */}
               <form
                 onSubmit={handleSearchSubmit}
-                className="flex items-center gap-2 w-[400px] h-[44px] bg-white/[0.1] border border-white/[0.2] rounded-xl px-[13px] py-[9px] shadow-[0px_25px_50px_rgba(0,0,0,0.25)] focus-within:bg-white/[0.14] focus-within:border-white/[0.3] transition-colors"
+                className="flex items-center gap-2 w-[400px] h-[44px] bg-white/[0.1] border border-white/[0.2] rounded-xl px-[13px] py-[9px] shadow-[0px_25px_50px_rgba(0,0,0,0.25)] focus-within:bg-white/[0.14] focus-within:border-white/[0.3] transition-colors max-md:w-[min(360px,calc(100vw-32px))]"
               >
                 <Search size={20} className="text-gray-400 shrink-0" />
                 <input

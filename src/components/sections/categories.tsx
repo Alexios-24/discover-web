@@ -36,8 +36,8 @@ export function CategorySwitcher() {
           : "none",
       }}
     >
-      <div className="max-w-[1440px] mx-auto flex items-center justify-between w-full px-[54px]">
-        <div className="bg-gray-100 flex items-center justify-center p-1 rounded-xl shrink-0">
+      <div className="max-w-[1440px] mx-auto flex items-center justify-between w-full px-[54px] max-md:px-4 max-md:flex-col max-md:items-stretch max-md:gap-3">
+        <div className="bg-gray-100 flex items-center justify-center p-1 rounded-xl shrink-0 max-md:w-full">
           {PRODUCT_TABS.map((tab) => (
             <button
               key={tab}

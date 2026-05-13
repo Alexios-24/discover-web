@@ -9,7 +9,7 @@ export function TrendingNow() {
           Trending now
         </h2>
 
-        <div className="grid grid-cols-3 gap-6">
+        <div className="grid grid-cols-3 gap-6 max-lg:grid-cols-2 max-md:grid-cols-1 max-md:gap-4">
           {TRENDING.map((card, idx) => (
             <DiscoverCard key={idx} {...card} />
           ))}

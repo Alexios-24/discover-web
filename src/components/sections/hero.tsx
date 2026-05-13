@@ -117,8 +117,8 @@ export function DiscoverHero() {
   // Search-results variant — replaces the welcome hero when ?q= is present
   if (query) {
     return (
-      <section className="w-full px-[54px] pt-8 pb-2 flex items-center justify-between gap-6">
-        <h1 className="font-inter text-[24px] leading-[32px] text-gray-900">
+      <section className="w-full px-[54px] pt-8 pb-2 flex items-center justify-between gap-6 max-md:px-4 max-md:pt-5 max-md:flex-col max-md:items-start max-md:gap-3">
+        <h1 className="font-inter text-[24px] leading-[32px] text-gray-900 max-md:text-[18px] max-md:leading-[24px]">
           Search results for{" "}
           <span className="font-semibold">&ldquo;{query}&rdquo;</span>
         </h1>
@@ -134,13 +134,13 @@ export function DiscoverHero() {
   }
 
   return (
-    <section className="w-full h-[187px] px-[54px] relative flex items-center justify-center">
-      {/* Floating card thumbnails — shuffle from center */}
+    <section className="w-full h-[187px] px-[54px] relative flex items-center justify-center max-md:h-auto max-md:px-4 max-md:py-8">
+      {/* Floating card thumbnails — shuffle from center (decorative, hidden on mobile) */}
       <AnimatePresence>
         {hoveredWord && (
           <div
             key={hoveredWord}
-            className="absolute inset-0 pointer-events-none z-0 overflow-visible"
+            className="absolute inset-0 pointer-events-none z-0 overflow-visible max-md:hidden"
           >
             <div className="relative w-full h-full max-w-[1440px] mx-auto">
               {FLOATING_CARDS[hoveredWord].map((card) => (
@@ -151,12 +151,12 @@ export function DiscoverHero() {
         )}
       </AnimatePresence>
 
-      <div className="flex flex-col items-center gap-4 relative z-10">
+      <div className="flex flex-col items-center gap-4 relative z-10 max-md:gap-3 w-full">
         <div className="flex flex-col gap-1 items-center text-center w-full">
-          <h1 className="font-montserrat font-semibold text-[40px] leading-[1.2] text-gray-900">
+          <h1 className="font-montserrat font-semibold text-[40px] leading-[1.2] text-gray-900 max-md:text-[28px]">
             Discover
           </h1>
-          <p className="text-[16px] leading-6 text-gray-900 max-w-[1200px]">
+          <p className="text-[16px] leading-6 text-gray-900 max-w-[1200px] max-md:text-[14px] max-md:leading-5">
             Find{" "}
             <span
               className={`cursor-pointer transition-colors duration-200 ${

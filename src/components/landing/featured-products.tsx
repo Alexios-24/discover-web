@@ -238,15 +238,106 @@ function FullscreenHeader() {
 export function FeaturedProducts() {
   return (
     <section className="w-full bg-white">
-      <div className="text-center pt-16 pb-0 px-[54px]">
-        <h2 className="font-montserrat font-bold text-[40px] leading-normal text-[#101828]">
+      <div className="text-center pt-16 pb-0 px-[54px] max-md:pt-12 max-md:px-4">
+        <h2 className="font-montserrat font-bold text-[40px] leading-normal text-[#101828] max-md:text-[24px] max-md:leading-[32px]">
           Featured products
         </h2>
       </div>
-      <ZoomParallax
-        cards={PARALLAX_CARDS}
-        overlay={<FullscreenHeader />}
-      />
+      {/* Desktop / tablet: scroll-driven zoom parallax */}
+      <div className="max-md:hidden">
+        <ZoomParallax
+          cards={PARALLAX_CARDS}
+          overlay={<FullscreenHeader />}
+        />
+      </div>
+      {/* Mobile: simple vertical grid (parallax effect is too cramped on phones) */}
+      <div className="hidden max-md:flex flex-col gap-6 px-4 pt-8 pb-16">
+        <MobileFeaturedHeader />
+        <MobileFeaturedKollabers card={CARDS[0]} />
+        <div className="grid grid-cols-2 gap-3">
+          {CARDS.slice(1).map((card) => (
+            <MobileFeaturedTile key={card.title} card={card} />
+          ))}
+        </div>
+      </div>
     </section>
+  );
+}
+
+function MobileFeaturedHeader() {
+  return (
+    <div className="text-center font-montserrat font-bold text-[18px] leading-[24px] text-[#101828] px-2">
+      The{" "}
+      <span className="relative inline-block">
+        <span className="text-[#343DE5]">official</span>
+        <img
+          aria-hidden
+          src="/official-underline.svg"
+          alt=""
+          className="absolute left-0 right-0 -bottom-[2px] w-full h-[8px] rotate-[4.56deg]"
+        />
+      </span>{" "}
+      community of Kollab
+    </div>
+  );
+}
+
+function MobileFeaturedKollabers({ card }: { card: ProductCard }) {
+  return (
+    <div className="relative w-full aspect-[16/9] overflow-hidden rounded-[16px]">
+      <img
+        src={card.image}
+        alt={card.title}
+        className="absolute inset-0 w-full h-full object-cover"
+        loading="lazy"
+      />
+      <div
+        className="absolute inset-x-0 bottom-0 flex items-end p-3 gap-2"
+        style={{
+          background: `linear-gradient(to bottom, transparent 0%, ${card.gradientTo}80 47.77%, ${card.gradientTo} 100%)`,
+        }}
+      >
+        <div className="flex-1 min-w-0 flex flex-col gap-1">
+          <h3 className="text-[16px] leading-[20px] font-semibold text-white truncate font-inter">
+            {card.title}
+          </h3>
+          <div className="flex items-center gap-1.5 whitespace-nowrap">
+            <span className="flex items-center gap-[2px] h-5 px-1.5 rounded-[10px] bg-white/25 shrink-0">
+              <Globe size={12} className="text-white" />
+              <span className="text-[11px] leading-[14px] font-medium text-white font-inter">
+                {card.pricing}
+              </span>
+            </span>
+            <span className="size-[4px] rounded-full bg-white/60 shrink-0" />
+            <span className="text-[12px] leading-4 text-[#EAECF0] font-inter">
+              {card.members}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MobileFeaturedTile({ card }: { card: ProductCard }) {
+  return (
+    <div className="relative w-full aspect-[16/9] overflow-hidden rounded-[12px]">
+      <img
+        src={card.image}
+        alt={card.title}
+        className="absolute inset-0 w-full h-full object-cover"
+        loading="lazy"
+      />
+      <div
+        className="absolute inset-x-0 bottom-0 flex items-end p-2"
+        style={{
+          background: `linear-gradient(to bottom, transparent 0%, ${card.gradientTo}80 47.77%, ${card.gradientTo} 100%)`,
+        }}
+      >
+        <h3 className="text-[12px] leading-[16px] font-semibold text-white truncate font-inter">
+          {card.title}
+        </h3>
+      </div>
+    </div>
   );
 }

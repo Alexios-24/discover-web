@@ -111,6 +111,13 @@ const GAP_RIGHT = 130;
 const LABEL_H = 28;
 const LABEL_GAP = 16;
 
+// Mobile single-column dimensions — used in the cosmos.so-style mobile frame.
+const M_CARD = 220;
+const M_GAP = 120;
+const M_FRAME_H = 340;
+const M_LABEL_H = 24;
+const M_LABEL_GAP = 14;
+
 const EASE = "cubic-bezier(0.4, 0, 0.2, 1)";
 
 function ProductCard({
@@ -178,7 +185,7 @@ function ProductCard({
 export function CategoryShowcase() {
   const [pos, setPos] = useState(0);
   const [animate, setAnimate] = useState(true);
-  const bgRef = useRef<HTMLDivElement>(null);
+  const [bgColor, setBgColor] = useState(SETS[0].bg);
   const sectionRef = useRef<HTMLDivElement>(null);
 
   const scrollIndexRef = useRef(0);
@@ -198,6 +205,8 @@ export function CategoryShowcase() {
 
     const handleWheel = (e: WheelEvent) => {
       if (finishedRef.current) return;
+      // On mobile/tablet the animated frame is hidden; never hijack scroll there.
+      if (window.innerWidth < 768) return;
 
       const rect = el.getBoundingClientRect();
       const inView = rect.top < window.innerHeight * 0.5 && rect.bottom > window.innerHeight * 0.5;
@@ -252,15 +261,14 @@ export function CategoryShowcase() {
 
   const dataIdx = pos % N;
   useEffect(() => {
-    if (bgRef.current) {
-      bgRef.current.style.transition = animate
-        ? `background-color 0.7s ${EASE}`
-        : "none";
-      bgRef.current.style.backgroundColor = SETS[dataIdx].bg;
-    }
-  }, [dataIdx, animate]);
+    setBgColor(SETS[dataIdx].bg);
+  }, [dataIdx]);
 
   const tx = animate ? `0.7s ${EASE}` : "none";
+  const bgStyle = {
+    backgroundColor: bgColor,
+    transition: animate ? `background-color 0.7s ${EASE}` : "none",
+  };
 
   const leftY = pos * (CARD_LEFT + GAP_LEFT);
   const centerY = pos * (CARD_CENTER + GAP_CENTER);
@@ -272,30 +280,29 @@ export function CategoryShowcase() {
   return (
     <section
       ref={sectionRef}
-      className="w-full px-[54px] py-20 bg-white"
+      className="w-full px-[54px] py-20 bg-white max-md:px-4 max-md:py-14"
     >
-      <div className="max-w-[1332px] mx-auto flex flex-col items-center gap-8">
+      <div className="max-w-[1332px] mx-auto flex flex-col items-center gap-8 max-md:gap-6">
         {/* Heading */}
         <div className="flex flex-col gap-2 items-center text-center w-full">
-          <h2 className="font-montserrat font-bold text-[40px] leading-normal text-[#101828]">
+          <h2 className="font-montserrat font-bold text-[40px] leading-normal text-[#101828] max-md:text-[28px] max-md:leading-[36px]">
             One platform, infinite ways to grow.
           </h2>
-          <p className="text-[20px] leading-[30px] text-[#475467]">
+          <p className="text-[20px] leading-[30px] text-[#475467] max-md:text-[15px] max-md:leading-[22px]">
             Your platform. Your category. Your growth.
           </p>
         </div>
 
-        {/* Animated frame */}
+        {/* Animated frame — desktop / tablet version */}
         <CursorTooltip label="See all products">
           <Link
             href="/discover"
             aria-label="See all products"
-            className="block w-full"
+            className="block w-full max-md:hidden"
           >
             <div
-              ref={bgRef}
               className="relative w-full h-[459px] overflow-hidden rounded-[16px]"
-              style={{ backgroundColor: SETS[0].bg }}
+              style={bgStyle}
             >
           {/* Left column — 393px */}
           <div className="absolute left-[32px] top-[33px] w-[393px] h-[393px] overflow-hidden rounded-[16px]">
@@ -374,6 +381,75 @@ export function CategoryShowcase() {
             </div>
           </Link>
         </CursorTooltip>
+
+        {/* Animated frame — mobile single-column (cosmos.so style) */}
+        <Link
+          href="/discover"
+          aria-label="See all products"
+          className="hidden max-md:block w-full"
+        >
+          <div
+            className="relative w-full overflow-hidden rounded-[16px]"
+            style={{ ...bgStyle, height: M_FRAME_H }}
+          >
+            {/* Single center column with vertical scroll */}
+            <div
+              className="absolute left-1/2 -translate-x-1/2 overflow-hidden rounded-[16px]"
+              style={{
+                width: M_CARD,
+                height: M_CARD,
+                top: (M_FRAME_H - M_CARD) / 2,
+              }}
+            >
+              <div
+                className="flex flex-col"
+                style={{
+                  gap: `${M_GAP}px`,
+                  transform: `translateY(-${pos * (M_CARD + M_GAP)}px)`,
+                  transition: animate ? `transform ${tx}` : "none",
+                }}
+              >
+                {LOOP.map((s, i) => (
+                  <ProductCard key={`m-c-${i}`} product={s.center} size="sm" />
+                ))}
+              </div>
+            </div>
+
+            {/* Search bar overlay */}
+            <div
+              className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2 backdrop-blur-[20px] bg-black/50 border border-white/20 rounded-[12px] px-3 py-2 z-10"
+              style={{
+                width: "calc(100% - 32px)",
+                top: "50%",
+                transform: "translate(-50%, -50%)",
+              }}
+            >
+              <Search size={18} className="text-gray-400 shrink-0" />
+              <div
+                className="overflow-hidden relative flex-1"
+                style={{ height: M_LABEL_H }}
+              >
+                <div
+                  className="flex flex-col"
+                  style={{
+                    gap: `${M_LABEL_GAP}px`,
+                    transform: `translateY(-${pos * (M_LABEL_H + M_LABEL_GAP)}px)`,
+                    transition: animate ? `transform 0.6s ${EASE} 0ms` : "none",
+                  }}
+                >
+                  {loopLabels.map((label, i) => (
+                    <span
+                      key={i}
+                      className="text-[15px] leading-[24px] font-semibold text-white shrink-0 whitespace-nowrap"
+                    >
+                      {label}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </Link>
       </div>
     </section>
   );

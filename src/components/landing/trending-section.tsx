@@ -170,7 +170,7 @@ function Card({ card }: { card: TrendingCard }) {
       onMouseMove={handleMove}
       onMouseLeave={handleLeave}
       style={{ perspective: "1200px" }}
-      className="relative w-[600px] h-[337.5px] shrink-0 cursor-pointer group"
+      className="relative w-[600px] h-[337.5px] shrink-0 cursor-pointer group max-lg:w-[420px] max-lg:h-[236px] max-md:w-[300px] max-md:h-[169px]"
     >
       <motion.div
         style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
@@ -184,31 +184,31 @@ function Card({ card }: { card: TrendingCard }) {
         />
 
         <div
-          className="absolute left-0 right-0 bottom-0 flex items-center gap-[7.697px] p-4"
+          className="absolute left-0 right-0 bottom-0 flex items-center gap-[7.697px] p-4 max-md:p-3 max-md:gap-2"
           style={{ background: gradient }}
         >
           <div
-            className="flex-1 min-w-0 flex flex-col gap-2 justify-center"
+            className="flex-1 min-w-0 flex flex-col gap-2 justify-center max-md:gap-1"
             style={{ transform: "translateZ(30px)" }}
           >
-            <h3 className="font-inter text-[24px] leading-[32px] font-semibold text-white">
+            <h3 className="font-inter text-[24px] leading-[32px] font-semibold text-white max-md:text-[16px] max-md:leading-[20px]">
               {card.title}
             </h3>
-            <div className="flex items-center gap-2 w-full">
-              <span className="flex items-center justify-center gap-[2px] h-6 max-h-6 min-h-6 px-2 rounded-[12px] bg-white/25 shrink-0">
-                <Globe size={16} className="text-white" />
-                <span className="font-inter text-[13px] leading-[18px] font-medium text-white whitespace-nowrap">
+            <div className="flex items-center gap-2 w-full max-md:gap-1.5">
+              <span className="flex items-center justify-center gap-[2px] h-6 max-h-6 min-h-6 px-2 rounded-[12px] bg-white/25 shrink-0 max-md:h-5 max-md:max-h-5 max-md:min-h-5 max-md:px-1.5 max-md:rounded-[10px]">
+                <Globe size={16} className="text-white max-md:size-3" />
+                <span className="font-inter text-[13px] leading-[18px] font-medium text-white whitespace-nowrap max-md:text-[11px] max-md:leading-[14px]">
                   {card.pricing}
                 </span>
               </span>
-              <span className="size-[6px] rounded-full bg-white/60 shrink-0" />
-              <span className="font-inter text-[16px] leading-6 text-[#EAECF0] truncate">
+              <span className="size-[6px] rounded-full bg-white/60 shrink-0 max-md:size-[4px]" />
+              <span className="font-inter text-[16px] leading-6 text-[#EAECF0] truncate max-md:text-[12px] max-md:leading-4">
                 {card.members}
               </span>
             </div>
           </div>
           <button
-            className="shrink-0 bg-white border border-[#D0D5DD] rounded-[8px] px-[14px] py-2 font-inter text-[14px] leading-5 font-semibold text-[#344054] shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] hover:bg-gray-50 transition-colors"
+            className="shrink-0 bg-white border border-[#D0D5DD] rounded-[8px] px-[14px] py-2 font-inter text-[14px] leading-5 font-semibold text-[#344054] shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] hover:bg-gray-50 transition-colors max-md:px-2.5 max-md:py-1.5 max-md:text-[12px] max-md:leading-4 max-md:rounded-[6px]"
             style={{ transform: "translateZ(30px)" }}
           >
             Join now
@@ -290,9 +290,9 @@ export function TrendingSection() {
   };
 
   return (
-    <section className="w-full py-16 bg-white overflow-hidden">
-      <div className="max-w-[1440px] mx-auto px-[54px] mb-8">
-        <h2 className="font-montserrat font-bold text-[40px] leading-normal text-[#101828] text-center w-full">
+    <section className="w-full py-16 bg-white overflow-hidden max-md:py-10">
+      <div className="max-w-[1440px] mx-auto px-[54px] mb-8 max-md:px-4 max-md:mb-5">
+        <h2 className="font-montserrat font-bold text-[40px] leading-normal text-[#101828] text-center w-full max-md:text-[24px] max-md:leading-[32px]">
           Trending now
         </h2>
       </div>
@@ -307,7 +307,7 @@ export function TrendingSection() {
         className="w-full overflow-x-auto overflow-y-hidden no-scrollbar"
         style={{ WebkitOverflowScrolling: "touch" }}
       >
-        <div className="flex gap-6 w-max">
+        <div className="flex gap-6 w-max max-md:gap-3 max-md:px-4">
           {doubled.map((card, i) => (
             <Card key={`${card.title}-${i}`} card={card} />
           ))}

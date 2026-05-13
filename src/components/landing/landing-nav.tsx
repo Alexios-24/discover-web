@@ -38,20 +38,27 @@ export function LandingNav() {
       <div className="max-w-[1440px] mx-auto h-[60px] flex items-center gap-6 px-[54px] py-2">
         {/* Logo + Nav */}
         <div className="flex items-center gap-6 flex-1 min-w-0">
-          <Link href="/" className="flex items-center shrink-0 h-8">
-            <span
-              className="font-montserrat font-bold text-[22px] leading-none tracking-tight whitespace-nowrap transition-colors duration-300"
-              style={{ color: pastHero ? "#101828" : "#ffffff" }}
-            >
-              K
-              <span
-                className="transition-colors duration-300"
-                style={{ color: pastHero ? "#343DE5" : "#818CF8" }}
-              >
-                o
-              </span>
-              llab
-            </span>
+          <Link href="/" className="flex items-center shrink-0 h-8 relative" aria-label="Kollab home">
+            {/* Crossfade between the two logo variants based on top-bar background */}
+            <img
+              src="/kollab-logo-dark.png"
+              alt="Kollab"
+              width={320}
+              height={128}
+              className="h-7 w-auto select-none transition-opacity duration-300"
+              style={{ opacity: pastHero ? 0 : 1 }}
+              draggable={false}
+            />
+            <img
+              src="/kollab-logo-light.png"
+              alt=""
+              aria-hidden="true"
+              width={320}
+              height={128}
+              className="absolute left-0 top-1/2 -translate-y-1/2 h-7 w-auto select-none transition-opacity duration-300"
+              style={{ opacity: pastHero ? 1 : 0 }}
+              draggable={false}
+            />
           </Link>
 
           <nav className="flex items-center gap-1">

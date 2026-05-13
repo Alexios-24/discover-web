@@ -82,7 +82,7 @@ export function CursorTooltip({ children, label, enabled = true }: CursorTooltip
 
   return (
     <div
-      className={`relative w-full h-full ${enabled ? "cursor-none" : ""}`}
+      className={`relative w-full h-full ${enabled ? "cursor-pointer" : ""}`}
       onMouseEnter={handleMouseEnter}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}

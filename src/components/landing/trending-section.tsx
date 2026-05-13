@@ -9,7 +9,7 @@ interface TrendingCard {
   members: string;
   pricing: string;
   image: string;
-  gradientTo: string;
+  fallback: [number, number, number];
 }
 
 const CARDS: TrendingCard[] = [
@@ -17,33 +17,81 @@ const CARDS: TrendingCard[] = [
     title: "Tourists forever",
     members: "27.4K members",
     pricing: "Free",
-    image:
-      "https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=1200&h=675&auto=format&fit=crop&q=80",
-    gradientTo: "#013985",
+    image: "/trending/trending-1.jpg",
+    fallback: [19, 65, 92],
   },
   {
     title: "PS5 officials",
     members: "27.4K members",
     pricing: "Free",
-    image:
-      "https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?w=1200&h=675&auto=format&fit=crop&q=80",
-    gradientTo: "#011016",
+    image: "/trending/trending-2.jpg",
+    fallback: [10, 19, 24],
+  },
+  {
+    title: "Tech enthusiasts",
+    members: "27.4K members",
+    pricing: "Free",
+    image: "/trending/trending-3.jpg",
+    fallback: [38, 24, 14],
+  },
+  {
+    title: "Wander together",
+    members: "27.4K members",
+    pricing: "Free",
+    image: "/trending/trending-4.jpg",
+    fallback: [42, 51, 34],
+  },
+  {
+    title: "F1 enthusiasts",
+    members: "27.4K members",
+    pricing: "Free",
+    image: "/trending/trending-5.jpg",
+    fallback: [22, 30, 18],
+  },
+  {
+    title: "Aviation collective",
+    members: "27.4K members",
+    pricing: "Free",
+    image: "/trending/trending-6.jpg",
+    fallback: [44, 26, 8],
+  },
+  {
+    title: "Track legends",
+    members: "27.4K members",
+    pricing: "Free",
+    image: "/trending/trending-7.jpg",
+    fallback: [26, 28, 22],
+  },
+  {
+    title: "Urban explorers",
+    members: "27.4K members",
+    pricing: "Free",
+    image: "/trending/trending-8.jpg",
+    fallback: [51, 35, 26],
+  },
+  {
+    title: "Red dead redemption",
+    members: "27.4K members",
+    pricing: "Free",
+    image: "/trending/trending-9.jpg",
+    fallback: [26, 14, 8],
+  },
+  {
+    title: "Wild Norway",
+    members: "27.4K members",
+    pricing: "Free",
+    image: "/trending/trending-10.jpg",
+    fallback: [14, 39, 53],
   },
 ];
 
-function useImageColor(imageUrl: string, fallbackHex: string): [number, number, number] {
-  const hexToRgb = (hex: string) => {
-    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    return result
-      ? ([
-          parseInt(result[1], 16),
-          parseInt(result[2], 16),
-          parseInt(result[3], 16),
-        ] as [number, number, number])
-      : ([0, 0, 0] as [number, number, number]);
-  };
-
-  const [rgb, setRgb] = useState<[number, number, number]>(hexToRgb(fallbackHex));
+// Sample the BOTTOM strip of the image (where the gradient sits) and darken
+// for a deep shade that blends seamlessly into solid color at the card edge.
+function useImageBottomColor(
+  imageUrl: string,
+  fallback: [number, number, number],
+): [number, number, number] {
+  const [rgb, setRgb] = useState<[number, number, number]>(fallback);
 
   useEffect(() => {
     let mounted = true;
@@ -57,8 +105,10 @@ function useImageColor(imageUrl: string, fallbackHex: string): [number, number, 
       canvas.height = 64;
       ctx.drawImage(img, 0, 0, 64, 64);
       try {
-        const data = ctx.getImageData(0, 0, 64, 64).data;
-        let r = 0, g = 0, b = 0;
+        const data = ctx.getImageData(0, 48, 64, 16).data;
+        let r = 0,
+          g = 0,
+          b = 0;
         let count = 0;
         for (let i = 0; i < data.length; i += 4) {
           r += data[i];
@@ -66,27 +116,20 @@ function useImageColor(imageUrl: string, fallbackHex: string): [number, number, 
           b += data[i + 2];
           count++;
         }
-        r = Math.floor(r / count);
-        g = Math.floor(g / count);
-        b = Math.floor(b / count);
+        r = Math.floor((r / count) * 0.55);
+        g = Math.floor((g / count) * 0.55);
+        b = Math.floor((b / count) * 0.55);
 
-        // Darken the color slightly for better text contrast
-        r = Math.floor(r * 0.5);
-        g = Math.floor(g * 0.5);
-        b = Math.floor(b * 0.5);
-
-        if (mounted) {
-          setRgb([r, g, b]);
-        }
+        if (mounted) setRgb([r, g, b]);
       } catch (e) {
-        console.warn("Could not extract image color due to CORS", e);
+        console.warn("Could not extract image color", e);
       }
     };
     img.src = imageUrl;
     return () => {
       mounted = false;
     };
-  }, [imageUrl, fallbackHex]);
+  }, [imageUrl]);
 
   return rgb;
 }
@@ -118,8 +161,8 @@ function Card({ card }: { card: TrendingCard }) {
     mouseY.set(0);
   };
 
-  const [r, g, b] = useImageColor(card.image, card.gradientTo);
-  const gradient = `linear-gradient(to bottom, transparent 0%, rgba(${r},${g},${b},0.5) 47.77%, rgba(${r},${g},${b},1) 100%)`;
+  const [r, g, b] = useImageBottomColor(card.image, card.fallback);
+  const gradient = `linear-gradient(to bottom, rgba(${r},${g},${b},0) 0%, rgba(${r},${g},${b},0.5) 47.769%, rgba(${r},${g},${b},1) 100%)`;
 
   return (
     <div
@@ -127,7 +170,7 @@ function Card({ card }: { card: TrendingCard }) {
       onMouseMove={handleMove}
       onMouseLeave={handleLeave}
       style={{ perspective: "1200px" }}
-      className="relative w-full aspect-[16/9] cursor-pointer group"
+      className="relative w-[600px] h-[337.5px] shrink-0 cursor-pointer group"
     >
       <motion.div
         style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
@@ -140,42 +183,36 @@ function Card({ card }: { card: TrendingCard }) {
           loading="lazy"
         />
 
-        {/* Gradient overlay */}
         <div
-          className="absolute inset-0 flex items-end p-4"
+          className="absolute left-0 right-0 bottom-0 flex items-center gap-[7.697px] p-4"
           style={{ background: gradient }}
         >
           <div
-            className="flex items-center gap-2 w-full"
+            className="flex-1 min-w-0 flex flex-col gap-2 justify-center"
             style={{ transform: "translateZ(30px)" }}
           >
-            {/* Text content */}
-            <div className="flex-1 min-w-0 flex flex-col gap-2">
-              <h3 className="text-[24px] leading-[32px] font-semibold text-white">
-                {card.title}
-              </h3>
-              <div className="flex items-center gap-2">
-                {/* Free tag */}
-                <span className="flex items-center gap-[2px] h-6 px-2 rounded-[12px] bg-white/25">
-                  <Globe size={16} className="text-white" />
-                  <span className="text-[13px] leading-[18px] font-medium text-white">
-                    {card.pricing}
-                  </span>
+            <h3 className="font-inter text-[24px] leading-[32px] font-semibold text-white">
+              {card.title}
+            </h3>
+            <div className="flex items-center gap-2 w-full">
+              <span className="flex items-center justify-center gap-[2px] h-6 max-h-6 min-h-6 px-2 rounded-[12px] bg-white/25 shrink-0">
+                <Globe size={16} className="text-white" />
+                <span className="font-inter text-[13px] leading-[18px] font-medium text-white whitespace-nowrap">
+                  {card.pricing}
                 </span>
-                {/* Dot */}
-                <span className="size-[6px] rounded-full bg-white/60" />
-                {/* Members */}
-                <span className="text-[16px] leading-6 text-[#EAECF0]">
-                  {card.members}
-                </span>
-              </div>
+              </span>
+              <span className="size-[6px] rounded-full bg-white/60 shrink-0" />
+              <span className="font-inter text-[16px] leading-6 text-[#EAECF0] truncate">
+                {card.members}
+              </span>
             </div>
-
-            {/* Join now button */}
-            <button className="shrink-0 bg-white border border-[#D0D5DD] rounded-[8px] px-[14px] py-2 text-[14px] leading-5 font-semibold text-[#344054] shadow-xs hover:bg-gray-50 transition-colors">
-              Join now
-            </button>
           </div>
+          <button
+            className="shrink-0 bg-white border border-[#D0D5DD] rounded-[8px] px-[14px] py-2 font-inter text-[14px] leading-5 font-semibold text-[#344054] shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] hover:bg-gray-50 transition-colors"
+            style={{ transform: "translateZ(30px)" }}
+          >
+            Join now
+          </button>
         </div>
       </motion.div>
     </div>
@@ -183,27 +220,96 @@ function Card({ card }: { card: TrendingCard }) {
 }
 
 export function TrendingSection() {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const isHovering = useRef(false);
+  const isUserScrolling = useRef(false);
+  const userScrollTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Duplicate the list so we can loop seamlessly: when scrollLeft passes
+  // halfWidth we wrap back by halfWidth, which is invisible because the
+  // second half of the list is identical to the first.
+  const doubled = [...CARDS, ...CARDS];
+
+  useEffect(() => {
+    let rafId = 0;
+    let lastTime = performance.now();
+    const SPEED_PX_PER_SEC = 50;
+
+    const tick = (now: number) => {
+      const dt = now - lastTime;
+      lastTime = now;
+
+      const el = scrollRef.current;
+      if (el) {
+        const halfWidth = el.scrollWidth / 2;
+
+        if (
+          halfWidth > 0 &&
+          !isHovering.current &&
+          !isUserScrolling.current
+        ) {
+          el.scrollLeft += (SPEED_PX_PER_SEC * dt) / 1000;
+        }
+
+        // Seamless wrap (applies to both auto-scroll and user scroll)
+        if (halfWidth > 0) {
+          if (el.scrollLeft >= halfWidth) {
+            el.scrollLeft -= halfWidth;
+          } else if (el.scrollLeft < 0) {
+            el.scrollLeft += halfWidth;
+          }
+        }
+      }
+
+      rafId = requestAnimationFrame(tick);
+    };
+
+    rafId = requestAnimationFrame(tick);
+    return () => {
+      cancelAnimationFrame(rafId);
+      if (userScrollTimeout.current) clearTimeout(userScrollTimeout.current);
+    };
+  }, []);
+
+  const handleMouseEnter = () => {
+    isHovering.current = true;
+  };
+  const handleMouseLeave = () => {
+    isHovering.current = false;
+  };
+
+  // Mark user-scroll on actual input (wheel/touch). We don't listen to the
+  // generic scroll event because that also fires for our programmatic writes,
+  // which would incorrectly pause auto-scroll.
+  const markUserScrolling = () => {
+    isUserScrolling.current = true;
+    if (userScrollTimeout.current) clearTimeout(userScrollTimeout.current);
+    userScrollTimeout.current = setTimeout(() => {
+      isUserScrolling.current = false;
+    }, 1500);
+  };
+
   return (
-    <section className="w-full px-[54px] py-16 bg-white">
-      <div className="max-w-[1332px] mx-auto flex flex-col items-start gap-8">
-        {/* Heading */}
+    <section className="w-full py-16 bg-white overflow-hidden">
+      <div className="max-w-[1440px] mx-auto px-[54px] mb-8">
         <h2 className="font-montserrat font-bold text-[40px] leading-normal text-[#101828] text-center w-full">
           Trending now
         </h2>
+      </div>
 
-        {/* Cards row */}
-        <div className="flex flex-wrap gap-6 w-full">
-          {CARDS.map((card, index) => (
-            <motion.div
-              key={card.title}
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.6, ease: "easeOut", delay: index * 0.15 }}
-              className="flex-1 min-w-[300px]"
-            >
-              <Card card={card} />
-            </motion.div>
+      <div
+        ref={scrollRef}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        onWheel={markUserScrolling}
+        onTouchStart={markUserScrolling}
+        onTouchMove={markUserScrolling}
+        className="w-full overflow-x-auto overflow-y-hidden no-scrollbar"
+        style={{ WebkitOverflowScrolling: "touch" }}
+      >
+        <div className="flex gap-6 w-max">
+          {doubled.map((card, i) => (
+            <Card key={`${card.title}-${i}`} card={card} />
           ))}
         </div>
       </div>

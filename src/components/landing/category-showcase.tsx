@@ -1,7 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Search, ArrowRight } from "lucide-react";
+import { Search } from "lucide-react";
+import { CursorTooltip } from "@/components/ui/animated-tooltip";
 
 interface Product {
   title: string;
@@ -46,7 +48,7 @@ const SETS: CategorySet[] = [
   },
   {
     label: "Productivity",
-    bg: "#125d56",
+    bg: "#0C2145",
     left: {
       title: "Photography for beginners",
       members: "11K members",
@@ -284,11 +286,17 @@ export function CategoryShowcase() {
         </div>
 
         {/* Animated frame */}
-        <div
-          ref={bgRef}
-          className="relative w-full h-[459px] overflow-hidden rounded-[16px]"
-          style={{ backgroundColor: SETS[0].bg }}
-        >
+        <CursorTooltip label="See all products">
+          <Link
+            href="/discover"
+            aria-label="See all products"
+            className="block w-full"
+          >
+            <div
+              ref={bgRef}
+              className="relative w-full h-[459px] overflow-hidden rounded-[16px]"
+              style={{ backgroundColor: SETS[0].bg }}
+            >
           {/* Left column — 393px */}
           <div className="absolute left-[32px] top-[33px] w-[393px] h-[393px] overflow-hidden rounded-[16px]">
             <div
@@ -363,13 +371,9 @@ export function CategoryShowcase() {
               </div>
             </div>
           </div>
-        </div>
-
-        {/* CTA */}
-        <button className="flex items-center gap-2 bg-[#F2F4F7] border border-[#F9FAFB] rounded-[8px] px-[14px] py-2 text-[14px] leading-5 font-semibold text-[#344054] hover:bg-[#E4E7EC] transition-colors">
-          See all products
-          <ArrowRight size={20} />
-        </button>
+            </div>
+          </Link>
+        </CursorTooltip>
       </div>
     </section>
   );

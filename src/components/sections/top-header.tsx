@@ -71,10 +71,15 @@ export function TopHeader() {
       <div className="max-w-[1440px] mx-auto h-[60px] flex items-center gap-6 px-[54px] py-2">
         {/* Logo + Nav */}
         <div className="flex items-center gap-6 flex-1 min-w-0">
-          <a href="/" className="flex items-center shrink-0 h-8">
-            <span className="font-montserrat font-bold text-[22px] leading-none tracking-tight text-gray-900 whitespace-nowrap">
-              K<span className="text-indigo-600">o</span>llab
-            </span>
+          <a href="/" className="flex items-center shrink-0 h-8" aria-label="Kollab home">
+            <img
+              src="/kollab-logo-light.png"
+              alt="Kollab"
+              width={320}
+              height={128}
+              className="h-7 w-auto select-none"
+              draggable={false}
+            />
           </a>
 
           <nav

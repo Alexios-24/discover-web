@@ -224,12 +224,15 @@ function OutlinedWord({ text, color }: { text: string; color: string }) {
 
 function KollabWordmark() {
   return (
-    <Link href="/" className="inline-flex items-center h-[41px]" aria-label="Kollab home">
-      <span className="font-montserrat font-bold text-[34px] leading-none tracking-tight text-white whitespace-nowrap">
-        K
-        <span className="text-[#818CF8]">o</span>
-        llab
-      </span>
+    <Link href="/" className="inline-flex items-center" aria-label="Kollab home">
+      <img
+        src="/kollab-logo-dark.png"
+        alt="Kollab"
+        width={320}
+        height={128}
+        className="h-[41px] w-auto select-none"
+        draggable={false}
+      />
     </Link>
   );
 }

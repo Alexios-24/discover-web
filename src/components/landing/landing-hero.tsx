@@ -82,8 +82,7 @@ function CyclingText({
       className="inline-block overflow-hidden align-bottom"
       style={{
         height: lineHeight,
-        // +4px buffer prevents the trailing period from being clipped at smaller scales.
-        width: word.width * scale + 4,
+        width: word.width * scale + 8,
         transition: smooth ? ease : "none",
       }}
     >
@@ -505,7 +504,7 @@ export function LandingHero() {
                   className="flex flex-col gap-2"
                 >
                   <h1
-                    className="font-montserrat font-bold text-white max-lg:!text-[56px] max-lg:!leading-[64px] max-md:!text-[34px] max-md:!leading-[normal] max-md:!tracking-[-1.8px]"
+                    className="font-montserrat font-bold text-white max-lg:!text-[56px] max-lg:!leading-[64px] max-md:!text-[34px] max-md:!leading-[normal] max-md:!tracking-[-1.8px] max-md:-mx-4"
                     style={{
                       fontSize: "72px",
                       lineHeight: "80px",
@@ -530,7 +529,7 @@ export function LandingHero() {
                       </>
                     )}
                   </h1>
-                  <p className="text-[18px] leading-7 text-gray-300 max-md:text-[16px] max-md:leading-6">
+                  <p className="text-[18px] leading-7 text-gray-300 max-md:text-[14px] max-md:leading-5">
                     {activeTab === "launch"
                       ? "The all-in-one platform to create, launch, and monetize your knowledge."
                       : "Explore thousands of courses & communities built by creators like you."}
@@ -543,7 +542,7 @@ export function LandingHero() {
             <motion.div {...fadeUp(0.35)} className="max-md:w-full">
               <form
                 onSubmit={handleSearchSubmit}
-                className="flex items-center gap-2 w-[400px] h-[44px] bg-white/[0.1] border border-white/[0.2] rounded-xl px-[13px] py-[9px] shadow-[0px_25px_50px_rgba(0,0,0,0.25)] focus-within:bg-white/[0.14] focus-within:border-white/[0.3] transition-colors max-md:w-full max-md:h-[40px]"
+                className="flex items-center gap-2 w-[400px] h-[44px] bg-white/[0.1] border border-white/[0.2] rounded-xl px-[13px] py-[9px] shadow-[0px_25px_50px_rgba(0,0,0,0.25)] focus-within:bg-white/[0.14] focus-within:border-white/[0.3] transition-colors max-md:w-[360px] max-md:h-[40px]"
               >
                 <Search size={20} className="text-gray-400 shrink-0" />
                 <input
@@ -552,7 +551,7 @@ export function LandingHero() {
                   value={searchValue}
                   onChange={(e) => setSearchValue(e.target.value)}
                   placeholder="Search for communities, courses, creators"
-                  className="flex-1 min-w-0 bg-transparent outline-none text-[16px] leading-6 text-white placeholder:text-gray-400 caret-white max-md:text-[14px] max-md:leading-5"
+                  className="flex-1 min-w-0 bg-transparent outline-none text-[16px] leading-6 text-white placeholder:text-gray-400 caret-white max-md:text-[14px] max-md:leading-[20px]"
                   aria-label="Search"
                 />
                 {searchValue && (

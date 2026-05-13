@@ -538,7 +538,7 @@ export function LandingHeroV2() {
                     className="flex flex-col gap-[8px] items-start w-full"
                   >
                     <h1
-                      className="font-montserrat font-bold text-white text-left max-lg:!text-[56px] max-lg:!leading-[64px] max-md:!text-[36px] max-md:!leading-[44px] max-md:!tracking-[-0.9px] max-md:text-center"
+                      className="font-montserrat font-bold text-white text-left max-lg:!text-[56px] max-lg:!leading-[64px] max-md:!text-[34px] max-md:!leading-[normal] max-md:!tracking-[-1.8px] max-md:text-center max-md:-mx-4"
                       style={{
                         fontSize: "72px",
                         lineHeight: "80px",
@@ -563,7 +563,7 @@ export function LandingHeroV2() {
                         </>
                       )}
                     </h1>
-                    <p className="text-[18px] leading-[28px] text-[#D0D5DD] text-left w-full max-md:text-[15px] max-md:leading-6 max-md:text-center">
+                    <p className="text-[18px] leading-[28px] text-[#D0D5DD] text-left w-full max-md:text-[14px] max-md:leading-5 max-md:text-center">
                       {activeTab === "launch"
                         ? "The all-in-one platform to create, launch, and monetize your knowledge."
                         : "Explore thousands of courses & communities built by creators like you."}

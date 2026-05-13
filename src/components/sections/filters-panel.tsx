@@ -181,7 +181,7 @@ interface FiltersPanelProps {
   onFiltersChange: (filters: FilterState) => void;
 }
 
-const STICKY_TOP = 84;
+const SIDEBAR_TOP_OFFSET = 84;
 
 export function FiltersPanel({ filters, onFiltersChange }: FiltersPanelProps) {
   const isActive = hasActiveFilters(filters);
@@ -207,8 +207,8 @@ export function FiltersPanel({ filters, onFiltersChange }: FiltersPanelProps) {
 
   return (
     <aside
-      className="flex flex-col gap-6 w-[200px] shrink-0 overflow-x-hidden overflow-y-auto sticky self-start pt-2"
-      style={{ top: STICKY_TOP, maxHeight: `calc(100vh - ${STICKY_TOP}px)` }}
+      className="flex flex-col gap-6 w-[200px] shrink-0 overflow-x-hidden overflow-y-auto pt-2"
+      style={{ maxHeight: `calc(100vh - ${SIDEBAR_TOP_OFFSET}px)` }}
     >
       <div className="flex items-center justify-between h-[22px] w-full">
         <span className="text-[14px] leading-5 font-semibold text-gray-900">

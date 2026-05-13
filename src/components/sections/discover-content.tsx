@@ -112,7 +112,7 @@ export function DiscoverContent() {
   return (
     <div className="flex gap-[54px] items-start pt-6 px-[54px] pb-9 max-lg:gap-6 max-md:px-4 max-md:pt-4 max-md:pb-6">
       {/* Desktop sidebar filters — hidden below lg (mobile users get them as a sheet via the discover header) */}
-      <div className="max-lg:hidden">
+      <div className="max-lg:hidden sticky top-[84px] self-start">
         <FiltersPanel filters={filters} onFiltersChange={setFilters} />
       </div>
       <div className="flex-1 min-w-0 flex flex-col gap-6 items-start max-md:gap-4">

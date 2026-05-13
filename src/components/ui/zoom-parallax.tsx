@@ -45,6 +45,14 @@ const MIN_LAYOUT_SCALE = 0.45;
 // scale is fixed to 1 instead of being computed from F1's extent.
 const MOBILE_FIXED_LAYOUT_SCALE = 1.0;
 const MOBILE_BREAKPOINT_PX = 768;
+// On mobile the constellation is naturally vertically centered inside the
+// h-screen sticky layer, which leaves a large empty band between the
+// "Featured products" heading and the top-most card (F1). Shifting the
+// whole cards layer upward by this amount closes that gap. The overlay
+// "official community of Kollab" position is offset by the same value
+// so it continues to track the Kollabers card during the zoom transition.
+// Desktop layout is unaffected (shift is only applied when isMobile=true).
+const MOBILE_VERTICAL_SHIFT_PX = 120;
 
 export function ZoomParallax({
   cards: desktopCards,
@@ -90,6 +98,8 @@ export function ZoomParallax({
 
   const [layoutScale, setLayoutScale] = useState(1);
   const layoutScaleRef = useRef(1);
+  const [verticalShiftPx, setVerticalShiftPx] = useState(0);
+  const verticalShiftRef = useRef(0);
   const [overlayStyle, setOverlayStyle] = useState({ opacity: 0, topPx: 0 });
 
   useEffect(() => {
@@ -99,18 +109,25 @@ export function ZoomParallax({
       const isMobileNow = w < MOBILE_BREAKPOINT_PX;
 
       let s: number;
+      let shift: number;
       if (isMobileNow && mobileCards) {
         // Mobile layout: positions/sizes are already in their target vw
         // values, so no extra scaling is required.
         s = MOBILE_FIXED_LAYOUT_SCALE;
+        // Pull the constellation upward so the cards sit closer to the
+        // "Featured products" heading instead of being centered in h-screen.
+        shift = MOBILE_VERTICAL_SHIFT_PX;
       } else {
         s = Math.max(
           MIN_LAYOUT_SCALE,
           (h * 0.5 - HEADING_GAP_PX) / (w * F1_EXTENT_VW),
         );
+        shift = 0;
       }
       layoutScaleRef.current = s;
+      verticalShiftRef.current = shift;
       setLayoutScale(s);
+      setVerticalShiftPx(shift);
     }
 
     function update() {
@@ -130,9 +147,12 @@ export function ZoomParallax({
       const w = window.innerWidth;
       const h = window.innerHeight;
       const L = layoutScaleRef.current;
+      const shift = verticalShiftRef.current;
       const scrollScale = 1 + (centerMaxScale - 1) * p;
       const cardHalfH = centerHalfHVwFraction * w * scrollScale * L;
-      const cardTop = h / 2 - cardHalfH;
+      // Mirror the mobile cards-layer translateY(-shift) so the overlay
+      // text stays anchored above Kollabers as the user scrolls.
+      const cardTop = h / 2 - cardHalfH - shift;
 
       // Overlay bottom sits TEXT_GAP_PX above card top.
       // translateY(-100%) in the JSX makes `topPx` act as the bottom edge.
@@ -159,7 +179,7 @@ export function ZoomParallax({
           <div
             className="absolute inset-0"
             style={{
-              transform: `scale(${layoutScale})`,
+              transform: `translateY(${-verticalShiftPx}px) scale(${layoutScale})`,
               transformOrigin: "center center",
             }}
           >

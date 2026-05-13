@@ -288,7 +288,7 @@ const MOBILE_PARALLAX_CARDS: ParallaxCard[] = [
     content: (s) => <CardContent card={CARDS[4]} parentScale={s} />,
     positionClass:
       "[&>div]:!-left-[52.43vw] [&>div]:!top-[22.40vw] [&>div]:!w-[51.7vw]",
-    scale: 5,
+    scale: 7,
   },
   // 5 — Red dead redemption (BOTTOM-CENTRE-LEFT: 150×84,
   //     Δ = (-20.5, 110.3) ≈ (-4.98, 26.77)vw)
@@ -296,7 +296,7 @@ const MOBILE_PARALLAX_CARDS: ParallaxCard[] = [
     content: (s) => <CardContent card={CARDS[5]} parentScale={s} />,
     positionClass:
       "[&>div]:!-left-[4.98vw] [&>div]:!top-[26.77vw] [&>div]:!w-[36.41vw]",
-    scale: 6,
+    scale: 9,
   },
   // 6 — PS5 officials (BOTTOM-CENTRE-RIGHT: 149.3×84,
   //     Δ = (142.2, 110.3) ≈ (34.51, 26.77)vw)
@@ -304,7 +304,7 @@ const MOBILE_PARALLAX_CARDS: ParallaxCard[] = [
     content: (s) => <CardContent card={CARDS[6]} parentScale={s} />,
     positionClass:
       "[&>div]:!left-[34.51vw] [&>div]:!top-[26.77vw] [&>div]:!w-[36.25vw]",
-    scale: 6,
+    scale: 9,
   },
 ];
 

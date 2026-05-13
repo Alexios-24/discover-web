@@ -100,6 +100,11 @@ export function ZoomParallax({
   const layoutScaleRef = useRef(1);
   const [verticalShiftPx, setVerticalShiftPx] = useState(0);
   const verticalShiftRef = useRef(0);
+  const cardsLayerY = useTransform(
+    scrollYProgress,
+    [0, 1],
+    [-verticalShiftPx, 0],
+  );
   const [overlayStyle, setOverlayStyle] = useState({ opacity: 0, topPx: 0 });
 
   useEffect(() => {
@@ -150,9 +155,10 @@ export function ZoomParallax({
       const shift = verticalShiftRef.current;
       const scrollScale = 1 + (centerMaxScale - 1) * p;
       const cardHalfH = centerHalfHVwFraction * w * scrollScale * L;
-      // Mirror the mobile cards-layer translateY(-shift) so the overlay
-      // text stays anchored above Kollabers as the user scrolls.
-      const cardTop = h / 2 - cardHalfH - shift;
+      // Mobile starts shifted upward to preserve the tight header gap, then
+      // eases back to true centre so Kollabers finishes centered in viewport.
+      const activeShift = shift * (1 - p);
+      const cardTop = h / 2 - cardHalfH - activeShift;
 
       // Overlay bottom sits TEXT_GAP_PX above card top.
       // translateY(-100%) in the JSX makes `topPx` act as the bottom edge.
@@ -172,14 +178,15 @@ export function ZoomParallax({
   }, [centerMaxScale, mobileCards, centerHalfHVwFraction]);
 
   return (
-    <div ref={container} className="relative h-[300vh]">
+    <div ref={container} className="relative h-[220vh] md:h-[300vh]">
       <div className="sticky top-0 h-screen">
         {/* Cards layer — uniformly scaled so F1's top is always HEADING_GAP_PX below sticky-top */}
         <div className="absolute inset-0 overflow-hidden">
-          <div
+          <motion.div
             className="absolute inset-0"
             style={{
-              transform: `translateY(${-verticalShiftPx}px) scale(${layoutScale})`,
+              y: cardsLayerY,
+              scale: layoutScale,
               transformOrigin: "center center",
             }}
           >
@@ -197,7 +204,7 @@ export function ZoomParallax({
                 </motion.div>
               );
             })}
-          </div>
+          </motion.div>
         </div>
 
         {/* Overlay: bottom-anchored TEXT_GAP_PX above Kollabers' actual top edge at every scroll frame */}

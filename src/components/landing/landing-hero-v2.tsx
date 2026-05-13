@@ -526,7 +526,7 @@ export function LandingHeroV2() {
   return (
     <section
       id="landing-hero"
-      className="relative h-screen overflow-hidden bg-[#030305]"
+      className="relative h-screen overflow-hidden bg-[#030305] max-md:h-[100svh]"
     >
       <div className="absolute inset-0 z-0">
         <ParticleCanvas className="absolute inset-0" />

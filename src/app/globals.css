@@ -169,18 +169,6 @@ html.lenis, html.lenis body {
   animation: orb-pink-mobile 22s ease-in-out infinite;
 }
 
-/* Creators marquee */
-@keyframes marquee-creators {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
-}
-.animate-marquee-creators {
-  animation: marquee-creators 30s linear infinite;
-}
-.animate-marquee-creators:hover {
-  animation-play-state: paused;
-}
-
 /* Footer glow pulse */
 @keyframes glow-pulse {
   0%, 100% { opacity: 1; }

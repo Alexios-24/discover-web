@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 
 interface Creator {
   name: [string] | [string, string];
@@ -155,7 +155,38 @@ function CreatorCard({ creator }: { creator: Creator }) {
 }
 
 export function CreatorsSection() {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const isHovering = useRef(false);
   const doubled = [...CREATORS, ...CREATORS];
+
+  useEffect(() => {
+    let rafId = 0;
+    let lastTime = performance.now();
+    const SPEED_PX_PER_SEC = 60;
+
+    const tick = (now: number) => {
+      const dt = now - lastTime;
+      lastTime = now;
+
+      const el = scrollRef.current;
+      if (el) {
+        const halfWidth = el.scrollWidth / 2;
+
+        if (halfWidth > 0 && !isHovering.current) {
+          el.scrollLeft += (SPEED_PX_PER_SEC * dt) / 1000;
+        }
+
+        if (halfWidth > 0 && el.scrollLeft >= halfWidth) {
+          el.scrollLeft -= halfWidth;
+        }
+      }
+
+      rafId = requestAnimationFrame(tick);
+    };
+
+    rafId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafId);
+  }, []);
 
   return (
     <section className="w-full py-16 bg-white overflow-hidden max-md:py-10">
@@ -165,9 +196,18 @@ export function CreatorsSection() {
         </h2>
       </div>
 
-      {/* Marquee container */}
-      <div className="relative w-full">
-        <div className="flex gap-6 animate-marquee-creators max-md:gap-3">
+      <div
+        ref={scrollRef}
+        onMouseEnter={() => {
+          isHovering.current = true;
+        }}
+        onMouseLeave={() => {
+          isHovering.current = false;
+        }}
+        className="w-full overflow-x-auto overflow-y-hidden no-scrollbar"
+        style={{ WebkitOverflowScrolling: "touch" }}
+      >
+        <div className="flex gap-6 w-max max-md:gap-3">
           {doubled.map((creator, i) => (
             <CreatorCard key={`${creator.name.join("-")}-${i}`} creator={creator} />
           ))}

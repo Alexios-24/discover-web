@@ -156,18 +156,60 @@ function CreatorCard({ creator }: { creator: Creator }) {
 
 export function CreatorsSection() {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const firstGroupRef = useRef<HTMLDivElement>(null);
+  const secondGroupRef = useRef<HTMLDivElement>(null);
   const isHovering = useRef(false);
   const isUserScrolling = useRef(false);
   const userScrollTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const lastSetScrollLeft = useRef(0);
+  const lastKnownScrollLeft = useRef(0);
+  const loopWidth = useRef(0);
+  const position = useRef(0);
   const isOnScreen = useRef(true);
-  const doubled = [...CREATORS, ...CREATORS];
+  const copies = [0, 1, 2];
 
   useEffect(() => {
     let rafId = 0;
     let lastTime = performance.now();
     const SPEED_PX_PER_SEC = 60;
     const el = scrollRef.current;
+
+    const applyTransform = () => {
+      if (!trackRef.current) return;
+      trackRef.current.style.transform = `translate3d(${-position.current}px, 0, 0)`;
+    };
+
+    const measureLoopWidth = () => {
+      const first = firstGroupRef.current;
+      const second = secondGroupRef.current;
+      if (!first || !second) return;
+
+      const measuredWidth =
+        second.getBoundingClientRect().left - first.getBoundingClientRect().left;
+      if (measuredWidth <= 0) return;
+
+      loopWidth.current = measuredWidth;
+      position.current %= measuredWidth;
+      applyTransform();
+    };
+
+    const pauseForManualScroll = () => {
+      if (!isOnScreen.current) return;
+      isUserScrolling.current = true;
+      if (userScrollTimeout.current) clearTimeout(userScrollTimeout.current);
+      userScrollTimeout.current = setTimeout(() => {
+        isUserScrolling.current = false;
+      }, 1200);
+    };
+
+    const handleScroll = () => {
+      const node = scrollRef.current;
+      if (!node) return;
+
+      const drift = Math.abs(node.scrollLeft - lastKnownScrollLeft.current);
+      lastKnownScrollLeft.current = node.scrollLeft;
+      if (drift > 2) pauseForManualScroll();
+    };
 
     let io: IntersectionObserver | null = null;
     if (el && typeof IntersectionObserver !== "undefined") {
@@ -184,10 +226,22 @@ export function CreatorsSection() {
       if (!document.hidden) {
         lastTime = performance.now();
         const node = scrollRef.current;
-        if (node) lastSetScrollLeft.current = node.scrollLeft;
+        if (node) lastKnownScrollLeft.current = node.scrollLeft;
       }
     };
     document.addEventListener("visibilitychange", handleVisibility);
+    el?.addEventListener("scroll", handleScroll, { passive: true });
+
+    let resizeObserver: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== "undefined") {
+      resizeObserver = new ResizeObserver(measureLoopWidth);
+      if (el) resizeObserver.observe(el);
+      if (firstGroupRef.current) resizeObserver.observe(firstGroupRef.current);
+      if (secondGroupRef.current) resizeObserver.observe(secondGroupRef.current);
+    } else {
+      window.addEventListener("resize", measureLoopWidth);
+    }
+    measureLoopWidth();
 
     const tick = (now: number) => {
       const dt = Math.min(now - lastTime, 100);
@@ -195,32 +249,18 @@ export function CreatorsSection() {
 
       const node = scrollRef.current;
       if (node) {
-        const halfWidth = node.scrollWidth / 2;
-
-        const drift = Math.abs(node.scrollLeft - lastSetScrollLeft.current);
-        if (drift > 2 && isOnScreen.current && dt < 100) {
-          isUserScrolling.current = true;
-          if (userScrollTimeout.current) clearTimeout(userScrollTimeout.current);
-          userScrollTimeout.current = setTimeout(() => {
-            isUserScrolling.current = false;
-          }, 1200);
-        }
-
         if (
-          halfWidth > 0 &&
+          loopWidth.current > 0 &&
           isOnScreen.current &&
           !isHovering.current &&
           !isUserScrolling.current
         ) {
-          node.scrollLeft += (SPEED_PX_PER_SEC * dt) / 1000;
+          position.current += (SPEED_PX_PER_SEC * dt) / 1000;
+          while (position.current >= loopWidth.current) position.current -= loopWidth.current;
+          applyTransform();
         }
 
-        if (halfWidth > 0) {
-          while (node.scrollLeft >= halfWidth) node.scrollLeft -= halfWidth;
-          while (node.scrollLeft < 0) node.scrollLeft += halfWidth;
-        }
-
-        lastSetScrollLeft.current = node.scrollLeft;
+        lastKnownScrollLeft.current = node.scrollLeft;
       }
 
       rafId = requestAnimationFrame(tick);
@@ -232,6 +272,9 @@ export function CreatorsSection() {
       if (userScrollTimeout.current) clearTimeout(userScrollTimeout.current);
       io?.disconnect();
       document.removeEventListener("visibilitychange", handleVisibility);
+      el?.removeEventListener("scroll", handleScroll);
+      resizeObserver?.disconnect();
+      window.removeEventListener("resize", measureLoopWidth);
     };
   }, []);
 
@@ -254,9 +297,17 @@ export function CreatorsSection() {
         className="w-full overflow-x-auto overflow-y-hidden no-scrollbar"
         style={{ WebkitOverflowScrolling: "touch" }}
       >
-        <div className="flex gap-6 w-max max-md:gap-3">
-          {doubled.map((creator, i) => (
-            <CreatorCard key={`${creator.name.join("-")}-${i}`} creator={creator} />
+        <div ref={trackRef} className="flex gap-6 w-max max-md:gap-3 will-change-transform">
+          {copies.map((copy) => (
+            <div
+              key={copy}
+              ref={copy === 0 ? firstGroupRef : copy === 1 ? secondGroupRef : undefined}
+              className="flex gap-6 shrink-0 max-md:gap-3"
+            >
+              {CREATORS.map((creator) => (
+                <CreatorCard key={`${creator.name.join("-")}-${copy}`} creator={creator} />
+              ))}
+            </div>
           ))}
         </div>
       </div>

@@ -221,21 +221,19 @@ function Card({ card }: { card: TrendingCard }) {
 
 export function TrendingSection() {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const firstGroupRef = useRef<HTMLDivElement>(null);
+  const secondGroupRef = useRef<HTMLDivElement>(null);
   const isHovering = useRef(false);
   const isUserScrolling = useRef(false);
   const userScrollTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
-  // Last scrollLeft value WE wrote programmatically. Any drift from this on
-  // the next tick means the user (or browser inertia) scrolled the strip,
-  // and we should pause auto-scroll. This is more reliable than listening
-  // to touchstart/touchmove because vertical page swipes — which do NOT
-  // change scrollLeft — would otherwise pause auto-scroll forever on
-  // touch devices.
-  const lastSetScrollLeft = useRef(0);
+  const lastKnownScrollLeft = useRef(0);
+  const loopWidth = useRef(0);
+  const position = useRef(0);
 
-  // Duplicate the list so we can loop seamlessly: when scrollLeft passes
-  // halfWidth we wrap back by halfWidth, which is invisible because the
-  // second half of the list is identical to the first.
-  const doubled = [...CARDS, ...CARDS];
+  // Render enough copies for wide viewports; the first two groups define the
+  // exact loop distance, including the gap between copies.
+  const copies = [0, 1, 2];
 
   const isOnScreen = useRef(true);
 
@@ -244,6 +242,43 @@ export function TrendingSection() {
     let lastTime = performance.now();
     const SPEED_PX_PER_SEC = 60;
     const el = scrollRef.current;
+
+    const applyTransform = () => {
+      if (!trackRef.current) return;
+      trackRef.current.style.transform = `translate3d(${-position.current}px, 0, 0)`;
+    };
+
+    const measureLoopWidth = () => {
+      const first = firstGroupRef.current;
+      const second = secondGroupRef.current;
+      if (!first || !second) return;
+
+      const measuredWidth =
+        second.getBoundingClientRect().left - first.getBoundingClientRect().left;
+      if (measuredWidth <= 0) return;
+
+      loopWidth.current = measuredWidth;
+      position.current %= measuredWidth;
+      applyTransform();
+    };
+
+    const pauseForManualScroll = () => {
+      if (!isOnScreen.current) return;
+      isUserScrolling.current = true;
+      if (userScrollTimeout.current) clearTimeout(userScrollTimeout.current);
+      userScrollTimeout.current = setTimeout(() => {
+        isUserScrolling.current = false;
+      }, 1200);
+    };
+
+    const handleScroll = () => {
+      const node = scrollRef.current;
+      if (!node) return;
+
+      const drift = Math.abs(node.scrollLeft - lastKnownScrollLeft.current);
+      lastKnownScrollLeft.current = node.scrollLeft;
+      if (drift > 2) pauseForManualScroll();
+    };
 
     let io: IntersectionObserver | null = null;
     if (el && typeof IntersectionObserver !== "undefined") {
@@ -260,10 +295,22 @@ export function TrendingSection() {
       if (!document.hidden) {
         lastTime = performance.now();
         const node = scrollRef.current;
-        if (node) lastSetScrollLeft.current = node.scrollLeft;
+        if (node) lastKnownScrollLeft.current = node.scrollLeft;
       }
     };
     document.addEventListener("visibilitychange", handleVisibility);
+    el?.addEventListener("scroll", handleScroll, { passive: true });
+
+    let resizeObserver: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== "undefined") {
+      resizeObserver = new ResizeObserver(measureLoopWidth);
+      if (el) resizeObserver.observe(el);
+      if (firstGroupRef.current) resizeObserver.observe(firstGroupRef.current);
+      if (secondGroupRef.current) resizeObserver.observe(secondGroupRef.current);
+    } else {
+      window.addEventListener("resize", measureLoopWidth);
+    }
+    measureLoopWidth();
 
     const tick = (now: number) => {
       const dt = Math.min(now - lastTime, 100);
@@ -271,36 +318,18 @@ export function TrendingSection() {
 
       const node = scrollRef.current;
       if (node) {
-        const halfWidth = node.scrollWidth / 2;
-
-        // Drift from our last write means the user (or inertia) moved it.
-        // Only treat as a real user scroll when the section is on-screen
-        // and we're not on a tick where dt was capped — otherwise a tab
-        // return or long pause would falsely pause auto-scroll.
-        const drift = Math.abs(node.scrollLeft - lastSetScrollLeft.current);
-        if (drift > 2 && isOnScreen.current && dt < 100) {
-          isUserScrolling.current = true;
-          if (userScrollTimeout.current) clearTimeout(userScrollTimeout.current);
-          userScrollTimeout.current = setTimeout(() => {
-            isUserScrolling.current = false;
-          }, 1200);
-        }
-
         if (
-          halfWidth > 0 &&
+          loopWidth.current > 0 &&
           isOnScreen.current &&
           !isHovering.current &&
           !isUserScrolling.current
         ) {
-          node.scrollLeft += (SPEED_PX_PER_SEC * dt) / 1000;
+          position.current += (SPEED_PX_PER_SEC * dt) / 1000;
+          while (position.current >= loopWidth.current) position.current -= loopWidth.current;
+          applyTransform();
         }
 
-        if (halfWidth > 0) {
-          while (node.scrollLeft >= halfWidth) node.scrollLeft -= halfWidth;
-          while (node.scrollLeft < 0) node.scrollLeft += halfWidth;
-        }
-
-        lastSetScrollLeft.current = node.scrollLeft;
+        lastKnownScrollLeft.current = node.scrollLeft;
       }
 
       rafId = requestAnimationFrame(tick);
@@ -312,6 +341,9 @@ export function TrendingSection() {
       if (userScrollTimeout.current) clearTimeout(userScrollTimeout.current);
       io?.disconnect();
       document.removeEventListener("visibilitychange", handleVisibility);
+      el?.removeEventListener("scroll", handleScroll);
+      resizeObserver?.disconnect();
+      window.removeEventListener("resize", measureLoopWidth);
     };
   }, []);
 
@@ -337,9 +369,20 @@ export function TrendingSection() {
         className="w-full overflow-x-auto overflow-y-hidden no-scrollbar"
         style={{ WebkitOverflowScrolling: "touch" }}
       >
-        <div className="flex gap-6 w-max max-md:gap-3 max-md:px-4">
-          {doubled.map((card, i) => (
-            <Card key={`${card.title}-${i}`} card={card} />
+        <div
+          ref={trackRef}
+          className="flex gap-6 w-max max-md:gap-3 max-md:px-4 will-change-transform"
+        >
+          {copies.map((copy) => (
+            <div
+              key={copy}
+              ref={copy === 0 ? firstGroupRef : copy === 1 ? secondGroupRef : undefined}
+              className="flex gap-6 shrink-0 max-md:gap-3"
+            >
+              {CARDS.map((card) => (
+                <Card key={`${card.title}-${copy}`} card={card} />
+              ))}
+            </div>
           ))}
         </div>
       </div>

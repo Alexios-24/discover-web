@@ -146,13 +146,14 @@ function CyclingText({
 }
 
 // useMediaQuery-style hook returning the current responsive size bucket.
+// Breakpoints match the CSS on the h1: max-md (<768) and max-lg (<1024).
 function useResponsiveSize(): "sm" | "md" | "lg" {
   const [size, setSize] = useState<"sm" | "md" | "lg">("lg");
 
   useEffect(() => {
     const compute = () => {
       const w = window.innerWidth;
-      if (w < 640) setSize("sm");
+      if (w < 768) setSize("sm");
       else if (w < 1024) setSize("md");
       else setSize("lg");
     };
@@ -307,10 +308,10 @@ export function LandingHero() {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const responsive = useResponsiveSize();
-  // Mobile: 34px Figma heading → 34/72 ≈ 0.47 cycling scale.
-  // Tablet: ~56px heading → 0.72. Desktop default 1.
+  // Scale matches CSS font-size at each breakpoint:
+  // <768: 34px → 34/72, 768–1023: 56px → 56/72, ≥1024: 72px → 1.
   const cyclingScale =
-    responsive === "sm" ? 0.47 : responsive === "md" ? 0.72 : 1;
+    responsive === "sm" ? 34 / 72 : responsive === "md" ? 56 / 72 : 1;
   const innerRef = useRef<HTMLDivElement>(null);
   const outerRef = useRef<HTMLDivElement>(null);
   // Separate ref for the mobile orbit — desktop refs point to display:none nodes

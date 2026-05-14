@@ -51,8 +51,11 @@ const WORD_CYCLE_MS = 2500;
 // the cycling-word container hugs the glyphs on mobile.
 const HEADING_LETTER_SPACING_PX = -1.8;
 const MOBILE_BREAKPOINT_PX = 768;
+const TABLET_BREAKPOINT_PX = 1024;
 // Mobile heading is 34px (text-[34px]) vs desktop 72px → scale 34/72.
 const MOBILE_HEADING_SCALE = 34 / 72;
+// Tablet heading is 56px (max-lg:!text-[56px]) vs desktop 72px → scale 56/72.
+const TABLET_HEADING_SCALE = 56 / 72;
 
 function renderedWordWidth(word: WordDef, scale: number): number {
   const chars = word.text.length;
@@ -65,10 +68,12 @@ function renderedWordWidth(word: WordDef, scale: number): number {
 function useHeadingScale(): number {
   const [scale, setScale] = useState(1);
   useEffect(() => {
-    const compute = () =>
-      setScale(
-        window.innerWidth < MOBILE_BREAKPOINT_PX ? MOBILE_HEADING_SCALE : 1,
-      );
+    const compute = () => {
+      const w = window.innerWidth;
+      if (w < MOBILE_BREAKPOINT_PX) setScale(MOBILE_HEADING_SCALE);
+      else if (w < TABLET_BREAKPOINT_PX) setScale(TABLET_HEADING_SCALE);
+      else setScale(1);
+    };
     compute();
     window.addEventListener("resize", compute);
     return () => window.removeEventListener("resize", compute);

@@ -122,7 +122,7 @@ export function DiscoverContent() {
         {/* Product type switcher + Sort */}
         <div className="flex items-center justify-between w-full sticky top-[60px] z-40 bg-white py-3 relative max-md:flex-col max-md:items-stretch max-md:gap-4 max-md:py-2">
           <div className="absolute inset-y-0 -right-[54px] w-[54px] bg-white max-md:hidden" />
-          <div className="bg-gray-100 flex items-center justify-center overflow-hidden p-1 rounded-xl w-[406px] max-md:w-full">
+          <div className="bg-gray-100 flex items-center justify-center overflow-hidden p-1 rounded-xl w-[406px] max-md:w-fit max-md:self-start">
             {PRODUCT_TABS.map((tab) => {
               const isTabActive = activeTab === tab;
               return (
@@ -130,21 +130,14 @@ export function DiscoverContent() {
                   key={tab}
                   onClick={() => setActiveTab(tab)}
                   className={cn(
-                    "flex items-center justify-center py-1.5 rounded-[20px] text-[14px] leading-5 font-medium text-gray-900 whitespace-nowrap transition-colors",
+                    "flex items-center justify-center py-1.5 text-[14px] leading-5 font-medium text-gray-900 whitespace-nowrap transition-colors rounded-[20px] max-md:rounded-lg",
                     tab === "All"
-                      ? "px-6 max-md:flex-1 max-md:px-1"
-                      : "flex-1 min-w-0 px-3 max-md:px-1",
-                    isTabActive && "md:bg-white md:shadow-xs md:rounded-lg",
+                      ? "px-6"
+                      : "md:flex-1 md:min-w-0 px-3",
+                    isTabActive && "bg-white shadow-xs md:rounded-lg",
                   )}
                 >
-                  <span
-                    className={cn(
-                      "inline-flex items-center justify-center max-md:px-3 max-md:py-1 max-md:rounded-lg max-md:transition-colors",
-                      isTabActive && "max-md:bg-white max-md:shadow-xs",
-                    )}
-                  >
-                    {tab}
-                  </span>
+                  {tab}
                 </button>
               );
             })}

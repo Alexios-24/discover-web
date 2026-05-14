@@ -98,7 +98,7 @@ export function LandingFooter() {
               </div>
 
               {/* CTA Button with animated gradient border */}
-              <Link href="/discover" className="group inline-block">
+              <button type="button" className="group inline-block cursor-pointer">
                 <div
                   className="relative rounded-xl p-[2px] overflow-hidden"
                   style={{
@@ -119,7 +119,7 @@ export function LandingFooter() {
                     <ArrowRight size={20} className="text-white" />
                   </div>
                 </div>
-              </Link>
+              </button>
             </div>
 
             {/* Right columns — 2-col grid on mobile */}

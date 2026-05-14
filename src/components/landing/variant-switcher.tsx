@@ -25,7 +25,7 @@ export function VariantSwitcher() {
   const { variant, setVariant } = useVariant();
 
   return (
-    <div className="fixed bottom-5 right-5 z-[100] flex items-center bg-white/[0.08] backdrop-blur-xl border border-white/[0.1] rounded-full p-1 gap-0.5 shadow-lg">
+    <div className="fixed bottom-5 right-5 z-[100] hidden md:flex items-center bg-white/[0.08] backdrop-blur-xl border border-white/[0.1] rounded-full p-1 gap-0.5 shadow-lg">
       <button
         onClick={() => setVariant("v1")}
         className={`px-3 py-1 rounded-full text-[11px] font-medium tracking-wide transition-all ${

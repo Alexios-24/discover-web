@@ -1,13 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, Languages, Menu, Search, X } from "lucide-react";
 
 const NAV_ITEMS = [
-  { label: "Communities", href: "/discover" },
-  { label: "Courses", href: "/discover" },
+  { label: "Discover", href: "/discover" },
   { label: "Features", href: "/" },
   { label: "Pricing", href: "/" },
 ];
@@ -109,13 +109,13 @@ export function TopHeader() {
             }}
           >
             {NAV_ITEMS.map((item) => (
-              <a
+              <Link
                 key={item.label}
                 href={item.href}
                 className="px-[14px] py-2 rounded-md text-[15px] leading-5 font-medium text-gray-700 hover:bg-gray-50 transition-colors"
               >
                 {item.label}
-              </a>
+              </Link>
             ))}
           </nav>
         </div>
@@ -136,7 +136,7 @@ export function TopHeader() {
             Log in
           </button>
 
-          <button className="bg-indigo-600 border border-indigo-600 rounded-md px-[14px] py-2 text-[14px] leading-5 font-semibold text-white shadow-xs hover:bg-indigo-600/90 transition-colors max-md:px-3 max-md:py-1.5 max-md:text-[13px]">
+          <button type="button" className="bg-indigo-600 border border-indigo-600 rounded-md px-[14px] py-2 text-[14px] leading-5 font-semibold text-white shadow-xs hover:bg-indigo-600/90 transition-colors cursor-pointer max-md:px-3 max-md:py-1.5 max-md:text-[13px]">
             Get started
           </button>
         </div>
@@ -150,14 +150,14 @@ export function TopHeader() {
       >
         <nav className="flex flex-col py-2">
           {NAV_ITEMS.map((item) => (
-            <a
+            <Link
               key={item.label}
               href={item.href}
               onClick={() => setMenuOpen(false)}
               className="px-6 py-3 text-[16px] leading-6 font-medium text-[#101828] hover:bg-gray-50 transition-colors"
             >
               {item.label}
-            </a>
+            </Link>
           ))}
           <div className="h-px bg-[#EAECF0] mx-6 my-2" />
           <button className="text-left px-6 py-3 flex items-center gap-3 text-[16px] leading-6 font-medium text-[#344054] hover:bg-gray-50 transition-colors">

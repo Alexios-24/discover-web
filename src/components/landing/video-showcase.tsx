@@ -62,7 +62,7 @@ export function VideoShowcase() {
       vid.style.borderRadius = `${r}px`;
 
       if (isMobile) {
-        const vidTop = Math.max(72, (480 - h) / 2);
+        const vidTop = Math.max(72, (560 - h) / 2);
         vid.style.top = `${vidTop}px`;
         const label = labelRef.current;
         if (label) {
@@ -137,7 +137,7 @@ export function VideoShowcase() {
   return (
     <section
       ref={sectionRef}
-      className="relative z-[15] pointer-events-none h-[200vh] -mt-[100vh] max-md:h-[480px] max-md:mt-0 max-md:bg-black"
+      className="relative z-[15] pointer-events-none h-[200vh] -mt-[100vh] max-md:h-[560px] max-md:mt-0 max-md:bg-black"
     >
       <div
         ref={darkRef}
@@ -150,7 +150,7 @@ export function VideoShowcase() {
         style={{ opacity: 0 }}
       />
 
-      <div className="sticky top-0 h-screen max-md:relative max-md:h-[480px]">
+      <div className="sticky top-0 h-screen max-md:relative max-md:h-[560px]">
         <div
           ref={labelRef}
           className="absolute left-1/2 -translate-x-1/2 flex items-center gap-1 whitespace-nowrap"
@@ -194,10 +194,10 @@ export function VideoShowcase() {
                 className="absolute inset-0 flex items-center justify-center"
                 style={{ opacity: 0 }}
               >
-                <div className="w-[120px] h-[120px] rounded-full bg-black/50 backdrop-blur-[12px] flex items-center justify-center">
+                <div className="w-[120px] h-[120px] rounded-full bg-black/50 backdrop-blur-[12px] flex items-center justify-center max-md:w-[64px] max-md:h-[64px]">
                   <Play
                     size={48}
-                    className="text-white fill-white ml-1.5"
+                    className="text-white fill-white ml-1.5 max-md:size-6 max-md:ml-1"
                   />
                 </div>
               </div>

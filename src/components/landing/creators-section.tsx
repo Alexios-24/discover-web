@@ -157,35 +157,82 @@ function CreatorCard({ creator }: { creator: Creator }) {
 export function CreatorsSection() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const isHovering = useRef(false);
+  const isUserScrolling = useRef(false);
+  const userScrollTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastSetScrollLeft = useRef(0);
+  const isOnScreen = useRef(true);
   const doubled = [...CREATORS, ...CREATORS];
 
   useEffect(() => {
     let rafId = 0;
     let lastTime = performance.now();
     const SPEED_PX_PER_SEC = 60;
+    const el = scrollRef.current;
+
+    let io: IntersectionObserver | null = null;
+    if (el && typeof IntersectionObserver !== "undefined") {
+      io = new IntersectionObserver(
+        (entries) => {
+          isOnScreen.current = entries[0]?.isIntersecting ?? true;
+        },
+        { rootMargin: "200px" },
+      );
+      io.observe(el);
+    }
+
+    const handleVisibility = () => {
+      if (!document.hidden) {
+        lastTime = performance.now();
+        const node = scrollRef.current;
+        if (node) lastSetScrollLeft.current = node.scrollLeft;
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
 
     const tick = (now: number) => {
-      const dt = now - lastTime;
+      const dt = Math.min(now - lastTime, 100);
       lastTime = now;
 
-      const el = scrollRef.current;
-      if (el) {
-        const halfWidth = el.scrollWidth / 2;
+      const node = scrollRef.current;
+      if (node) {
+        const halfWidth = node.scrollWidth / 2;
 
-        if (halfWidth > 0 && !isHovering.current) {
-          el.scrollLeft += (SPEED_PX_PER_SEC * dt) / 1000;
+        const drift = Math.abs(node.scrollLeft - lastSetScrollLeft.current);
+        if (drift > 2 && isOnScreen.current && dt < 100) {
+          isUserScrolling.current = true;
+          if (userScrollTimeout.current) clearTimeout(userScrollTimeout.current);
+          userScrollTimeout.current = setTimeout(() => {
+            isUserScrolling.current = false;
+          }, 1200);
         }
 
-        if (halfWidth > 0 && el.scrollLeft >= halfWidth) {
-          el.scrollLeft -= halfWidth;
+        if (
+          halfWidth > 0 &&
+          isOnScreen.current &&
+          !isHovering.current &&
+          !isUserScrolling.current
+        ) {
+          node.scrollLeft += (SPEED_PX_PER_SEC * dt) / 1000;
         }
+
+        if (halfWidth > 0) {
+          while (node.scrollLeft >= halfWidth) node.scrollLeft -= halfWidth;
+          while (node.scrollLeft < 0) node.scrollLeft += halfWidth;
+        }
+
+        lastSetScrollLeft.current = node.scrollLeft;
       }
 
       rafId = requestAnimationFrame(tick);
     };
 
     rafId = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(rafId);
+    return () => {
+      cancelAnimationFrame(rafId);
+      if (userScrollTimeout.current) clearTimeout(userScrollTimeout.current);
+      io?.disconnect();
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
   }, []);
 
   return (

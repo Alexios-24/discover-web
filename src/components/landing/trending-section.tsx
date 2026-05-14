@@ -237,23 +237,48 @@ export function TrendingSection() {
   // second half of the list is identical to the first.
   const doubled = [...CARDS, ...CARDS];
 
+  const isOnScreen = useRef(true);
+
   useEffect(() => {
     let rafId = 0;
     let lastTime = performance.now();
     const SPEED_PX_PER_SEC = 60;
+    const el = scrollRef.current;
+
+    let io: IntersectionObserver | null = null;
+    if (el && typeof IntersectionObserver !== "undefined") {
+      io = new IntersectionObserver(
+        (entries) => {
+          isOnScreen.current = entries[0]?.isIntersecting ?? true;
+        },
+        { rootMargin: "200px" },
+      );
+      io.observe(el);
+    }
+
+    const handleVisibility = () => {
+      if (!document.hidden) {
+        lastTime = performance.now();
+        const node = scrollRef.current;
+        if (node) lastSetScrollLeft.current = node.scrollLeft;
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
 
     const tick = (now: number) => {
-      const dt = now - lastTime;
+      const dt = Math.min(now - lastTime, 100);
       lastTime = now;
 
-      const el = scrollRef.current;
-      if (el) {
-        const halfWidth = el.scrollWidth / 2;
+      const node = scrollRef.current;
+      if (node) {
+        const halfWidth = node.scrollWidth / 2;
 
-        // Detect user-driven scroll: if the current scrollLeft differs
-        // from what we last wrote, the user (or inertia) moved it.
-        const drift = Math.abs(el.scrollLeft - lastSetScrollLeft.current);
-        if (drift > 2) {
+        // Drift from our last write means the user (or inertia) moved it.
+        // Only treat as a real user scroll when the section is on-screen
+        // and we're not on a tick where dt was capped — otherwise a tab
+        // return or long pause would falsely pause auto-scroll.
+        const drift = Math.abs(node.scrollLeft - lastSetScrollLeft.current);
+        if (drift > 2 && isOnScreen.current && dt < 100) {
           isUserScrolling.current = true;
           if (userScrollTimeout.current) clearTimeout(userScrollTimeout.current);
           userScrollTimeout.current = setTimeout(() => {
@@ -263,22 +288,19 @@ export function TrendingSection() {
 
         if (
           halfWidth > 0 &&
+          isOnScreen.current &&
           !isHovering.current &&
           !isUserScrolling.current
         ) {
-          el.scrollLeft += (SPEED_PX_PER_SEC * dt) / 1000;
+          node.scrollLeft += (SPEED_PX_PER_SEC * dt) / 1000;
         }
 
-        // Seamless wrap (applies to both auto-scroll and user scroll)
         if (halfWidth > 0) {
-          if (el.scrollLeft >= halfWidth) {
-            el.scrollLeft -= halfWidth;
-          } else if (el.scrollLeft < 0) {
-            el.scrollLeft += halfWidth;
-          }
+          while (node.scrollLeft >= halfWidth) node.scrollLeft -= halfWidth;
+          while (node.scrollLeft < 0) node.scrollLeft += halfWidth;
         }
 
-        lastSetScrollLeft.current = el.scrollLeft;
+        lastSetScrollLeft.current = node.scrollLeft;
       }
 
       rafId = requestAnimationFrame(tick);
@@ -288,6 +310,8 @@ export function TrendingSection() {
     return () => {
       cancelAnimationFrame(rafId);
       if (userScrollTimeout.current) clearTimeout(userScrollTimeout.current);
+      io?.disconnect();
+      document.removeEventListener("visibilitychange", handleVisibility);
     };
   }, []);
 

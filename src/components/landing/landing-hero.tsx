@@ -404,7 +404,7 @@ export function LandingHero() {
   }, []);
 
   return (
-    <section id="landing-hero" className="relative h-screen overflow-hidden bg-black max-md:h-[100svh]">
+    <section id="landing-hero" className="relative h-screen overflow-hidden bg-black max-md:h-[100dvh]">
       {/* Floating gradient orbs — same animated orbs on every viewport,
           mobile just gets a slightly smaller variant so the blobs sit
           inside the screen instead of bleeding off it entirely. */}

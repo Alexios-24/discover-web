@@ -41,10 +41,16 @@ export function VideoShowcase() {
     if (!section || !vid || !dark || !light) return;
 
     let raf = 0;
+    // Cached largest viewport height. Only updates on actual resize /
+    // orientation change — NOT on iOS Safari URL-bar retract — so the
+    // animation stays smooth and never jumps mid-scroll.
+    let lvh = Math.max(
+      window.innerHeight,
+      document.documentElement.clientHeight,
+    );
 
     const tick = () => {
-      const vh = window.innerHeight;
-      const t = clamp01(window.scrollY / vh);
+      const t = clamp01(window.scrollY / lvh);
 
       const maxW = window.innerWidth - 40;
       const w = Math.min(lerp(SM_W, LG_W, t), maxW);
@@ -56,15 +62,14 @@ export function VideoShowcase() {
       vid.style.borderRadius = `${r}px`;
 
       // Mobile keeps the video fully off-screen at the top of the page so
-      // it never crowds the hero. iOS Safari's URL bar retracts on scroll
-      // (without firing a scroll event for the resize) and its bottom
-      // toolbar is translucent, so we use the LARGEST possible viewport
-      // height (layout viewport) plus a generous buffer to make sure the
-      // video stays well below any chrome overlay zone at scroll=0.
+      // it never crowds the hero. We use the LARGEST possible viewport
+      // height (layout viewport) plus a generous buffer to clear iOS
+      // Safari's translucent bottom toolbar even when the URL bar
+      // retracts. All animation values use the same lvh so chrome state
+      // changes never cause jumps.
       const isMobile = window.innerWidth < 768;
-      const lvh = Math.max(vh, document.documentElement.clientHeight);
-      const topStart = isMobile ? lvh + 160 : vh - PEEK_PX;
-      const topEnd = (vh - h) / 2;
+      const topStart = isMobile ? lvh + 160 : lvh - PEEK_PX;
+      const topEnd = (lvh - h) / 2;
       const vidTop = lerp(topStart, topEnd, t);
       vid.style.top = `${vidTop}px`;
 
@@ -98,17 +103,23 @@ export function VideoShowcase() {
       raf = requestAnimationFrame(tick);
     };
 
+    const onResize = () => {
+      lvh = Math.max(
+        window.innerHeight,
+        document.documentElement.clientHeight,
+      );
+      onScroll();
+    };
+
     window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
-    window.visualViewport?.addEventListener("resize", onScroll);
-    window.visualViewport?.addEventListener("scroll", onScroll);
+    window.addEventListener("resize", onResize);
+    window.addEventListener("orientationchange", onResize);
     onScroll();
 
     return () => {
       window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
-      window.visualViewport?.removeEventListener("resize", onScroll);
-      window.visualViewport?.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onResize);
+      window.removeEventListener("orientationchange", onResize);
       cancelAnimationFrame(raf);
     };
   }, [playing]);

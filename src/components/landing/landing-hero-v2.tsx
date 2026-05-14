@@ -159,7 +159,7 @@ function CyclingText({ words }: { words: WordDef[] }) {
 
   return (
     <span
-      className="inline-block overflow-hidden align-bottom"
+      className="inline-block overflow-hidden align-bottom shrink-0"
       style={{
         width: containerWidth,
         height: lineHeight,

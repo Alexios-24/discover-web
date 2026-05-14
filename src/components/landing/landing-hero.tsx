@@ -142,7 +142,7 @@ function CyclingText({
 
   return (
     <span
-      className="inline-block overflow-hidden align-bottom"
+      className="inline-block overflow-hidden align-bottom shrink-0"
       style={{
         height: lineHeight,
         width: containerWidth,

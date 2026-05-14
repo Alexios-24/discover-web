@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
-  X,
   ArrowDownUp,
   ChevronDown,
   ListFilter,
@@ -36,118 +35,66 @@ const SORT_OPTIONS: { value: SortOption; label: string }[] = [
 ];
 
 const DEFAULT_SORT: SortOption = "relevant";
+const DEFAULT_PRICE_MIN = 0;
+const DEFAULT_PRICE_MAX = 5000;
 
 function sortLabel(value: SortOption): string {
   return SORT_OPTIONS.find((o) => o.value === value)?.label ?? "Most relevant";
 }
 
-interface FilterTagProps {
-  label: string;
-  onRemove: () => void;
-}
-
-function FilterTag({ label, onRemove }: FilterTagProps) {
+function getActiveFilterCount(filters: FilterState): number {
+  const priceRangeChanged =
+    filters.priceMin !== DEFAULT_PRICE_MIN ||
+    filters.priceMax !== DEFAULT_PRICE_MAX;
   return (
-    <div className="flex items-center justify-center gap-0.5 h-6 px-3 bg-white border border-gray-300 rounded-xl shrink-0">
-      <span className="text-[13px] leading-[18px] font-medium text-gray-600 whitespace-nowrap">
-        {label}
-      </span>
-      <button
-        onClick={onRemove}
-        className="flex items-center justify-center w-[11px] h-[11px] opacity-50 cursor-pointer hover:opacity-100 transition-opacity"
-      >
-        <X size={9} className="text-gray-600" />
-      </button>
-    </div>
+    filters.categories.length +
+    filters.collection.length +
+    filters.access.length +
+    filters.price.length +
+    (priceRangeChanged ? 1 : 0)
   );
-}
-
-function getFilterTags(
-  filters: FilterState,
-  setFilters: (f: FilterState) => void,
-) {
-  const tags: { label: string; onRemove: () => void }[] = [];
-
-  for (const v of filters.categories) {
-    tags.push({
-      label: v,
-      onRemove: () =>
-        setFilters({
-          ...filters,
-          categories: filters.categories.filter((x) => x !== v),
-        }),
-    });
-  }
-  for (const v of filters.collection) {
-    tags.push({
-      label: v,
-      onRemove: () =>
-        setFilters({
-          ...filters,
-          collection: filters.collection.filter((x) => x !== v),
-        }),
-    });
-  }
-  for (const v of filters.access) {
-    tags.push({
-      label: v,
-      onRemove: () =>
-        setFilters({
-          ...filters,
-          access: filters.access.filter((x) => x !== v),
-        }),
-    });
-  }
-  for (const v of filters.price) {
-    tags.push({
-      label: v,
-      onRemove: () =>
-        setFilters({
-          ...filters,
-          price: filters.price.filter((x) => x !== v),
-        }),
-    });
-  }
-  if (filters.priceMin > 0 || filters.priceMax < 5000) {
-    tags.push({
-      label: `$${filters.priceMin.toLocaleString()} - $${filters.priceMax.toLocaleString()}`,
-      onRemove: () =>
-        setFilters({ ...filters, priceMin: 0, priceMax: 5000 }),
-    });
-  }
-
-  return tags;
 }
 
 interface MobileChipProps {
   icon: React.ReactNode;
   label: string;
-  active: boolean;
+  filled: boolean;
+  count?: number;
   onClick: () => void;
 }
 
-function MobileChip({ icon, label, active, onClick }: MobileChipProps) {
+function MobileChip({ icon, label, filled, count, onClick }: MobileChipProps) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        "flex items-center justify-center gap-0.5 h-7 px-2 rounded-[14px] border shrink-0 transition-colors",
-        active
-          ? "bg-indigo-50 border-indigo-300 text-indigo-600"
-          : "bg-white border-gray-300 text-gray-600 hover:bg-gray-50",
+    <div className="relative shrink-0">
+      <button
+        type="button"
+        onClick={onClick}
+        className={cn(
+          "flex items-center justify-center gap-0.5 h-7 px-2 rounded-[14px] transition-colors",
+          filled
+            ? "bg-indigo-50 text-indigo-600 border border-transparent"
+            : "bg-white border border-gray-300 text-gray-600 hover:bg-gray-50",
+        )}
+      >
+        <span className="flex items-center justify-center w-[18px] h-[18px] shrink-0">
+          {icon}
+        </span>
+        <span className="text-[14px] leading-5 font-medium text-center whitespace-nowrap">
+          {label}
+        </span>
+        <span className="flex items-center justify-center w-[18px] h-[18px] shrink-0">
+          <ChevronDown size={14} strokeWidth={2} />
+        </span>
+      </button>
+      {filled && count !== undefined && count > 0 && (
+        <span
+          aria-hidden
+          className="absolute -top-1 -right-1 flex items-center justify-center min-w-[14px] h-[14px] px-[3px] rounded-full bg-indigo-600 text-white text-[10px] leading-none font-semibold tracking-normal pointer-events-none"
+        >
+          {count}
+        </span>
       )}
-    >
-      <span className="flex items-center justify-center w-[18px] h-[18px] shrink-0">
-        {icon}
-      </span>
-      <span className="text-[14px] leading-5 font-medium text-center whitespace-nowrap">
-        {label}
-      </span>
-      <span className="flex items-center justify-center w-[18px] h-[18px] shrink-0">
-        <ChevronDown size={14} strokeWidth={2} />
-      </span>
-    </button>
+    </div>
   );
 }
 
@@ -163,8 +110,7 @@ export function DiscoverContent() {
   const hasQuery = query.length > 0;
 
   const isActive = hasActiveFilters(filters);
-  const isSortActive = sort !== DEFAULT_SORT;
-  const tags = isActive ? getFilterTags(filters, setFilters) : [];
+  const activeFilterCount = getActiveFilterCount(filters);
 
   return (
     <div className="flex gap-[54px] items-start pt-6 px-[54px] pb-9 max-lg:gap-6 max-md:px-4 max-md:pt-6 max-md:pb-6">
@@ -177,19 +123,31 @@ export function DiscoverContent() {
         <div className="flex items-center justify-between w-full sticky top-[60px] z-40 bg-white py-3 relative max-md:flex-col max-md:items-stretch max-md:gap-4 max-md:py-2">
           <div className="absolute inset-y-0 -right-[54px] w-[54px] bg-white max-md:hidden" />
           <div className="bg-gray-100 flex items-center justify-center overflow-hidden p-1 rounded-xl w-[406px] max-md:w-full">
-            {PRODUCT_TABS.map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={cn(
-                  "flex items-center justify-center py-1.5 rounded-[20px] text-[14px] leading-5 font-medium text-gray-900 transition-colors whitespace-nowrap",
-                  tab === "All" ? "px-6 max-md:flex-1 max-md:px-3" : "flex-1 min-w-0 px-3",
-                  activeTab === tab && "bg-white shadow-xs rounded-lg",
-                )}
-              >
-                {tab}
-              </button>
-            ))}
+            {PRODUCT_TABS.map((tab) => {
+              const isTabActive = activeTab === tab;
+              return (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={cn(
+                    "flex items-center justify-center py-1.5 rounded-[20px] text-[14px] leading-5 font-medium text-gray-900 whitespace-nowrap transition-colors",
+                    tab === "All"
+                      ? "px-6 max-md:flex-1 max-md:px-1"
+                      : "flex-1 min-w-0 px-3 max-md:px-1",
+                    isTabActive && "md:bg-white md:shadow-xs md:rounded-lg",
+                  )}
+                >
+                  <span
+                    className={cn(
+                      "inline-flex items-center justify-center max-md:px-3 max-md:py-1 max-md:rounded-lg max-md:transition-colors",
+                      isTabActive && "max-md:bg-white max-md:shadow-xs",
+                    )}
+                  >
+                    {tab}
+                  </span>
+                </button>
+              );
+            })}
           </div>
 
           {/* Desktop sort dropdown — hidden on mobile */}
@@ -210,13 +168,14 @@ export function DiscoverContent() {
             <MobileChip
               icon={<ListFilter size={18} strokeWidth={2} />}
               label="Filters"
-              active={isActive}
+              filled={activeFilterCount > 0}
+              count={activeFilterCount}
               onClick={() => setFiltersDrawerOpen(true)}
             />
             <MobileChip
               icon={<ArrowDownUp size={18} strokeWidth={2} />}
               label={sortLabel(sort)}
-              active={isSortActive}
+              filled={false}
               onClick={() => setSortDrawerOpen(true)}
             />
           </div>
@@ -225,30 +184,10 @@ export function DiscoverContent() {
         {/* Content sections */}
         <div className="flex flex-col gap-[54px] w-full max-md:gap-10">
           {hasQuery ? (
-            <>
-              {tags.length > 0 && (
-                <div className="flex items-center gap-2 flex-wrap">
-                  {tags.map((tag, i) => (
-                    <FilterTag
-                      key={i}
-                      label={tag.label}
-                      onRemove={tag.onRemove}
-                    />
-                  ))}
-                </div>
-              )}
-              <BrowseProducts />
-            </>
+            <BrowseProducts />
           ) : isActive ? (
             <>
-              <div className="flex flex-col gap-6 w-full">
-                <div className="flex items-center gap-2 flex-wrap">
-                  {tags.map((tag, i) => (
-                    <FilterTag key={i} label={tag.label} onRemove={tag.onRemove} />
-                  ))}
-                </div>
-                <FilteredResults />
-              </div>
+              <FilteredResults />
               <CreatorsYouMightLike />
             </>
           ) : (

@@ -75,7 +75,7 @@ export function BottomDrawer({
               }
             }}
             className={cn(
-              "absolute left-0 right-0 bottom-0 bg-white rounded-t-[8px] shadow-[0px_20px_24px_-4px_rgba(16,24,40,0.08),0px_8px_8px_-4px_rgba(16,24,40,0.03)] border border-gray-100 flex flex-col max-h-[90vh]",
+              "absolute left-0 right-0 bottom-0 bg-white rounded-t-[8px] shadow-[0px_20px_24px_-4px_rgba(16,24,40,0.08),0px_8px_8px_-4px_rgba(16,24,40,0.03)] border border-gray-100 flex flex-col max-h-[90vh] max-h-[85svh]",
               className,
             )}
             initial={{ y: "100%" }}
@@ -105,7 +105,7 @@ export function BottomDrawer({
               </div>
             </div>
             {!hideHeaderDivider && <div className="h-px bg-gray-200 shrink-0" />}
-            <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4">
+            <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 py-4">
               {children}
             </div>
             {footer && (

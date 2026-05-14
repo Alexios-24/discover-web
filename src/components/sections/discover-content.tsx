@@ -122,7 +122,7 @@ export function DiscoverContent() {
         {/* Product type switcher + Sort */}
         <div className="flex items-center justify-between w-full sticky top-[60px] z-40 bg-white py-3 relative max-md:flex-col max-md:items-stretch max-md:gap-4 max-md:py-2">
           <div className="absolute inset-y-0 -right-[54px] w-[54px] bg-white max-md:hidden" />
-          <div className="bg-gray-100 flex items-center justify-center overflow-hidden p-1 rounded-xl w-[406px] max-md:w-fit max-md:self-start">
+          <div className="bg-gray-100 flex items-center justify-center max-md:justify-between overflow-hidden p-1 rounded-xl w-[406px] max-md:w-full">
             {PRODUCT_TABS.map((tab) => {
               const isTabActive = activeTab === tab;
               return (

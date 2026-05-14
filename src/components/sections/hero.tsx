@@ -209,7 +209,7 @@ export function DiscoverHero() {
             />
             <button className="relative w-full flex items-center gap-1 h-11 bg-white rounded-[7px] px-[14px] cursor-pointer">
               <Search size={20} className="text-gray-500 shrink-0" />
-              <span className="text-[16px] leading-6 text-gray-500 truncate">
+              <span className="text-[16px] leading-6 text-gray-500 truncate max-md:text-[13px] max-md:leading-5">
                 Search for communities, courses, creators
               </span>
             </button>

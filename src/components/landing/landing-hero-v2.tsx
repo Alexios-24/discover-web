@@ -89,7 +89,7 @@ function CyclingText({ words }: { words: WordDef[] }) {
 
   const [index, setIndex] = useState(0);
   const [smooth, setSmooth] = useState(true);
-  const wordElsRef = useRef<(HTMLSpanElement | null)[]>([]);
+  const sampleRef = useRef<HTMLSpanElement>(null);
   const [measuredWidths, setMeasuredWidths] = useState<number[]>([]);
 
   useEffect(() => {
@@ -121,10 +121,24 @@ function CyclingText({ words }: { words: WordDef[] }) {
 
   useEffect(() => {
     const measure = () => {
-      const widths = words.map((_, i) => {
-        const el = wordElsRef.current[i];
-        return el ? el.getBoundingClientRect().width : 0;
+      const el = sampleRef.current;
+      if (!el) return;
+      const cs = getComputedStyle(el);
+      const temp = document.createElement("span");
+      temp.style.position = "absolute";
+      temp.style.visibility = "hidden";
+      temp.style.whiteSpace = "nowrap";
+      temp.style.fontFamily = cs.fontFamily;
+      temp.style.fontSize = cs.fontSize;
+      temp.style.fontWeight = cs.fontWeight;
+      temp.style.fontStyle = cs.fontStyle;
+      temp.style.letterSpacing = cs.letterSpacing;
+      document.body.appendChild(temp);
+      const widths = words.map((w) => {
+        temp.textContent = w.text;
+        return temp.getBoundingClientRect().width;
       });
+      document.body.removeChild(temp);
       if (widths.some((w) => w > 0)) setMeasuredWidths(widths);
     };
     requestAnimationFrame(measure);
@@ -153,7 +167,7 @@ function CyclingText({ words }: { words: WordDef[] }) {
       }}
     >
       <div
-        className="flex flex-col items-start"
+        className="flex flex-col"
         style={{
           gap,
           transform: `translateY(${-index * stepPx}px)`,
@@ -165,11 +179,7 @@ function CyclingText({ words }: { words: WordDef[] }) {
         {[...words, ...words].map((w, i) => (
           <span
             key={i}
-            ref={
-              i < words.length
-                ? (el) => { wordElsRef.current[i] = el; }
-                : undefined
-            }
+            ref={i === 0 ? sampleRef : undefined}
             className="shrink-0 whitespace-nowrap"
             style={{ color: w.color, lineHeight: `${lineHeight}px` }}
           >

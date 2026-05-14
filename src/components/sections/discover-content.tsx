@@ -113,15 +113,15 @@ export function DiscoverContent() {
   const activeFilterCount = getActiveFilterCount(filters);
 
   return (
-    <div className="flex gap-[54px] items-start pt-6 px-[54px] pb-9 max-lg:gap-6 max-md:px-4 max-md:pt-6 max-md:pb-6">
-      {/* Desktop sidebar filters — hidden below lg */}
-      <div className="max-lg:hidden sticky top-[84px] self-start">
+    <div className="flex gap-[54px] items-start pt-6 px-[54px] pb-9 max-lg:gap-6 max-lg:px-6 max-md:px-4 max-md:pt-6 max-md:pb-6">
+      {/* Sidebar filters — hidden only on mobile (below md) */}
+      <div className="max-md:hidden sticky top-[84px] self-start">
         <FiltersPanel filters={filters} onFiltersChange={setFilters} />
       </div>
       <div className="flex-1 min-w-0 flex flex-col gap-6 items-start max-md:gap-4">
         {/* Product type switcher + Sort */}
-        <div className="flex items-center justify-between w-full sticky top-[60px] z-40 bg-white py-3 relative max-md:flex-col max-md:items-stretch max-md:gap-4 max-md:py-2">
-          <div className="absolute inset-y-0 -right-[54px] w-[54px] bg-white max-md:hidden" />
+        <div className="flex items-center justify-between w-full sticky top-[60px] z-40 bg-white py-3 relative max-lg:flex-wrap max-lg:justify-start max-lg:gap-x-4 max-lg:gap-y-3 max-md:flex-col max-md:items-stretch max-md:gap-4 max-md:py-2">
+          <div className="absolute inset-y-0 -right-[54px] w-[54px] bg-white max-lg:hidden" />
           <div className="bg-gray-100 flex items-center justify-center max-md:justify-between overflow-hidden p-1 rounded-xl w-[406px] max-md:w-full">
             {PRODUCT_TABS.map((tab) => {
               const isTabActive = activeTab === tab;
@@ -144,7 +144,7 @@ export function DiscoverContent() {
           </div>
 
           {/* Desktop sort dropdown — hidden on mobile */}
-          <button className="flex flex-col items-start w-[165px] shrink-0 cursor-pointer max-md:hidden">
+          <button className="flex flex-col items-start w-[165px] shrink-0 cursor-pointer max-lg:ml-auto max-md:hidden">
             <div className="bg-white border border-gray-200 flex gap-2 h-9 items-center overflow-hidden px-3 py-2 rounded-lg shadow-xs w-full">
               <div className="flex flex-1 gap-2 items-center min-w-0">
                 <ArrowDownUp size={20} className="text-gray-900 shrink-0" />

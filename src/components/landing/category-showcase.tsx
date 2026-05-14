@@ -448,12 +448,12 @@ export function CategoryShowcase() {
               </div>
             </div>
 
-            {/* Search bar overlay */}
+            {/* Search bar overlay — sits overlapping the top edge of the card */}
             <div
               className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2 backdrop-blur-[20px] bg-black/50 border border-white/20 rounded-[12px] px-3 py-2 z-10"
               style={{
                 width: "calc(100% - 32px)",
-                top: 28,
+                top: 64,
                 transform: "translateX(-50%)",
               }}
             >

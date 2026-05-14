@@ -112,13 +112,17 @@ const LABEL_H = 28;
 const LABEL_GAP = 16;
 
 // Mobile single-column dimensions — used in the cosmos.so-style mobile frame.
-const M_CARD = 220;
+const M_CARD = 280;
 const M_GAP = 120;
-const M_FRAME_H = 340;
+const M_FRAME_H = 420;
 const M_LABEL_H = 24;
 const M_LABEL_GAP = 14;
 
 const EASE = "cubic-bezier(0.4, 0, 0.2, 1)";
+
+// Desktop responsive scaling — the 3-card layout is designed for ~1200px width.
+// Below this width, the stage is scaled down proportionally to prevent overlap.
+const STAGE_REF_W = 1200;
 
 function ProductCard({
   product,
@@ -187,6 +191,8 @@ export function CategoryShowcase() {
   const [animate, setAnimate] = useState(true);
   const [bgColor, setBgColor] = useState(SETS[0].bg);
   const sectionRef = useRef<HTMLDivElement>(null);
+  const frameRef = useRef<HTMLDivElement>(null);
+  const [containerWidth, setContainerWidth] = useState(STAGE_REF_W);
 
   const scrollIndexRef = useRef(0);
   const cooldownRef = useRef(false);
@@ -264,6 +270,22 @@ export function CategoryShowcase() {
     setBgColor(SETS[dataIdx].bg);
   }, [dataIdx]);
 
+  useEffect(() => {
+    const measure = () => {
+      if (frameRef.current) {
+        const w = frameRef.current.offsetWidth;
+        if (w > 0) setContainerWidth(w);
+      }
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, []);
+
+  const stageW = Math.max(containerWidth, STAGE_REF_W);
+  const stageScale = containerWidth / stageW;
+  const scaledFrameH = Math.round(459 * stageScale);
+
   const tx = animate ? `0.7s ${EASE}` : "none";
   const bgStyle = {
     backgroundColor: bgColor,
@@ -301,9 +323,19 @@ export function CategoryShowcase() {
             className="block w-full max-md:hidden"
           >
             <div
-              className="relative w-full h-[459px] overflow-hidden rounded-[16px]"
-              style={bgStyle}
+              ref={frameRef}
+              className="relative w-full overflow-hidden rounded-[16px]"
+              style={{ ...bgStyle, height: scaledFrameH }}
             >
+              <div style={{
+                position: "absolute",
+                width: stageW,
+                height: 459,
+                left: "50%",
+                top: 0,
+                transform: `translateX(-50%) scale(${stageScale})`,
+                transformOrigin: "top center",
+              }}>
           {/* Left column — 393px */}
           <div className="absolute left-[32px] top-[33px] w-[393px] h-[393px] overflow-hidden rounded-[16px]">
             <div
@@ -378,6 +410,7 @@ export function CategoryShowcase() {
               </div>
             </div>
           </div>
+              </div>
             </div>
           </Link>
         </CursorTooltip>
@@ -398,7 +431,7 @@ export function CategoryShowcase() {
               style={{
                 width: M_CARD,
                 height: M_CARD,
-                top: (M_FRAME_H - M_CARD) / 2,
+                top: 84,
               }}
             >
               <div
@@ -420,8 +453,8 @@ export function CategoryShowcase() {
               className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2 backdrop-blur-[20px] bg-black/50 border border-white/20 rounded-[12px] px-3 py-2 z-10"
               style={{
                 width: "calc(100% - 32px)",
-                top: "50%",
-                transform: "translate(-50%, -50%)",
+                top: 28,
+                transform: "translateX(-50%)",
               }}
             >
               <Search size={18} className="text-gray-400 shrink-0" />

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useDragControls } from "framer-motion";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -12,6 +12,8 @@ interface BottomDrawerProps {
   children: React.ReactNode;
   footer?: React.ReactNode;
   className?: string;
+  hideCloseButton?: boolean;
+  hideHeaderDivider?: boolean;
 }
 
 export function BottomDrawer({
@@ -21,6 +23,8 @@ export function BottomDrawer({
   children,
   footer,
   className,
+  hideCloseButton,
+  hideHeaderDivider,
 }: BottomDrawerProps) {
   useEffect(() => {
     if (!open) return;
@@ -40,6 +44,8 @@ export function BottomDrawer({
     return () => window.removeEventListener("keydown", handler);
   }, [open, onClose]);
 
+  const dragControls = useDragControls();
+
   return (
     <AnimatePresence>
       {open && (
@@ -58,8 +64,18 @@ export function BottomDrawer({
             role="dialog"
             aria-modal="true"
             aria-label={title}
+            drag="y"
+            dragListener={false}
+            dragControls={dragControls}
+            dragConstraints={{ top: 0, bottom: 0 }}
+            dragElastic={{ top: 0, bottom: 0.6 }}
+            onDragEnd={(_, info) => {
+              if (info.offset.y > 120 || info.velocity.y > 500) {
+                onClose();
+              }
+            }}
             className={cn(
-              "absolute left-0 right-0 bottom-0 bg-white rounded-t-2xl shadow-lg flex flex-col max-h-[90vh]",
+              "absolute left-0 right-0 bottom-0 bg-white rounded-t-[8px] shadow-[0px_20px_24px_-4px_rgba(16,24,40,0.08),0px_8px_8px_-4px_rgba(16,24,40,0.03)] border border-gray-100 flex flex-col max-h-[90vh]",
               className,
             )}
             initial={{ y: "100%" }}
@@ -67,22 +83,28 @@ export function BottomDrawer({
             exit={{ y: "100%" }}
             transition={{ duration: 0.32, ease: [0.22, 0.68, 0.35, 1] as const }}
           >
-            <div className="pt-3 pb-2 flex items-center justify-center shrink-0">
-              <div className="h-1 w-10 bg-gray-200 rounded-full" />
+            <div
+              className="pt-3 px-4 flex flex-col gap-2 shrink-0 touch-none cursor-grab active:cursor-grabbing"
+              onPointerDown={(e) => dragControls.start(e)}
+            >
+              <div className="h-2 w-[69px] bg-gray-200 rounded-full self-center" />
+              <div className="flex items-center justify-between">
+                <h3 className="text-[16px] leading-6 font-semibold text-gray-900 tracking-normal">
+                  {title}
+                </h3>
+                {!hideCloseButton && (
+                  <button
+                    onClick={onClose}
+                    onPointerDown={(e) => e.stopPropagation()}
+                    aria-label="Close"
+                    className="flex items-center justify-center w-8 h-8 -mr-1 rounded-md text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition-colors cursor-pointer"
+                  >
+                    <X size={20} />
+                  </button>
+                )}
+              </div>
             </div>
-            <div className="px-4 pb-3 flex items-center justify-between shrink-0">
-              <h3 className="text-[16px] leading-6 font-semibold text-gray-900">
-                {title}
-              </h3>
-              <button
-                onClick={onClose}
-                aria-label="Close"
-                className="flex items-center justify-center w-8 h-8 -mr-1 rounded-md text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition-colors"
-              >
-                <X size={20} />
-              </button>
-            </div>
-            <div className="h-px bg-gray-200 shrink-0" />
+            {!hideHeaderDivider && <div className="h-px bg-gray-200 shrink-0" />}
             <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4">
               {children}
             </div>
@@ -90,8 +112,8 @@ export function BottomDrawer({
               <>
                 <div className="h-px bg-gray-200 shrink-0" />
                 <div
-                  className="p-4 shrink-0"
-                  style={{ paddingBottom: "max(16px, env(safe-area-inset-bottom))" }}
+                  className="px-4 pt-3 shrink-0"
+                  style={{ paddingBottom: "max(12px, env(safe-area-inset-bottom))" }}
                 >
                   {footer}
                 </div>

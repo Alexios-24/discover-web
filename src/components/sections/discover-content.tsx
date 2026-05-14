@@ -12,7 +12,7 @@ import {
 import { cn } from "@/lib/utils";
 import {
   FiltersPanel,
-  FiltersPanelBody,
+  FiltersDrawerBody,
   clearFilters,
   hasActiveFilters,
   type FilterState,
@@ -267,29 +267,29 @@ export function DiscoverContent() {
         open={filtersDrawerOpen}
         onClose={() => setFiltersDrawerOpen(false)}
         title="Filters"
+        hideCloseButton
+        hideHeaderDivider
         footer={
-          <div className="flex items-center gap-3">
+          <div className="flex items-center justify-end gap-3 w-full">
             <button
               type="button"
               onClick={() => setFilters(clearFilters())}
               disabled={!isActive}
-              className="flex-1 h-11 rounded-md border border-gray-300 bg-white text-[14px] leading-5 font-semibold text-gray-700 shadow-xs hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 inline-flex items-center justify-center gap-2 px-[18px] py-2.5 rounded-md border border-gray-300 bg-white text-[16px] leading-6 font-semibold text-gray-700 shadow-xs hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Clear all
             </button>
             <button
               type="button"
               onClick={() => setFiltersDrawerOpen(false)}
-              className="flex-1 h-11 rounded-md bg-indigo-600 border border-indigo-600 text-[14px] leading-5 font-semibold text-white shadow-xs hover:bg-indigo-600/90 transition-colors"
+              className="flex-1 inline-flex items-center justify-center gap-2 px-[18px] py-2.5 rounded-md bg-indigo-600 border border-indigo-600 text-[16px] leading-6 font-semibold text-white shadow-xs hover:bg-indigo-600/90 transition-colors"
             >
               Show results
             </button>
           </div>
         }
       >
-        <div className="flex flex-col gap-6">
-          <FiltersPanelBody filters={filters} onFiltersChange={setFilters} />
-        </div>
+        <FiltersDrawerBody filters={filters} onFiltersChange={setFilters} />
       </BottomDrawer>
 
       {/* Mobile sort drawer */}

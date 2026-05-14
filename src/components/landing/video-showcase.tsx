@@ -50,25 +50,35 @@ export function VideoShowcase() {
     );
 
     const tick = () => {
-      const t = clamp01(window.scrollY / lvh);
-
+      const isMobile = window.innerWidth < 768;
       const maxW = window.innerWidth - 40;
-      const w = Math.min(lerp(SM_W, LG_W, t), maxW);
+      const t = clamp01(window.scrollY / lvh);
+      const w = isMobile ? Math.min(SM_W, maxW) : Math.min(lerp(SM_W, LG_W, t), maxW);
       const h = w * (LG_H / LG_W);
-      const r = lerp(SM_R, LG_R, t);
+      const r = isMobile ? SM_R : lerp(SM_R, LG_R, t);
 
       vid.style.width = `${w}px`;
       vid.style.height = `${h}px`;
       vid.style.borderRadius = `${r}px`;
 
-      // Mobile keeps the video fully off-screen at the top of the page so
-      // it never crowds the hero. We use the LARGEST possible viewport
-      // height (layout viewport) plus a generous buffer to clear iOS
-      // Safari's translucent bottom toolbar even when the URL bar
-      // retracts. All animation values use the same lvh so chrome state
-      // changes never cause jumps.
-      const isMobile = window.innerWidth < 768;
-      const topStart = isMobile ? lvh + 160 : lvh - PEEK_PX;
+      if (isMobile) {
+        const vidTop = Math.max(72, (360 - h) / 2);
+        vid.style.top = `${vidTop}px`;
+        const label = labelRef.current;
+        if (label) {
+          label.style.top = `${vidTop - 44}px`;
+          label.style.opacity = "1";
+        }
+        dark.style.opacity = "0";
+        light.style.opacity = "0";
+        if (btn) {
+          btn.style.opacity = "1";
+          btn.style.transform = "scale(1)";
+        }
+        return;
+      }
+
+      const topStart = lvh - PEEK_PX;
       const topEnd = (lvh - h) / 2;
       const vidTop = lerp(topStart, topEnd, t);
       vid.style.top = `${vidTop}px`;
@@ -127,8 +137,7 @@ export function VideoShowcase() {
   return (
     <section
       ref={sectionRef}
-      className="relative z-[15] pointer-events-none"
-      style={{ height: "200vh", marginTop: "-100vh" }}
+      className="relative z-[15] pointer-events-none h-[200vh] -mt-[100vh] max-md:h-[360px] max-md:mt-0 max-md:bg-black"
     >
       <div
         ref={darkRef}
@@ -141,7 +150,7 @@ export function VideoShowcase() {
         style={{ opacity: 0 }}
       />
 
-      <div className="sticky top-0 h-screen">
+      <div className="sticky top-0 h-screen max-md:relative max-md:h-[360px]">
         <div
           ref={labelRef}
           className="absolute left-1/2 -translate-x-1/2 flex items-center gap-1 whitespace-nowrap"
@@ -159,7 +168,7 @@ export function VideoShowcase() {
             width: SM_W,
             height: SM_H,
             borderRadius: SM_R,
-            top: "calc(100lvh + 160px)",
+            top: 72,
             boxShadow:
               "0 8px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.08)",
           }}

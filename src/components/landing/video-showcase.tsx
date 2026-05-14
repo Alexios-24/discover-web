@@ -56,10 +56,14 @@ export function VideoShowcase() {
       vid.style.borderRadius = `${r}px`;
 
       // Mobile keeps the video fully off-screen at the top of the page so
-      // it never crowds the hero (matches cosmos.so's clean mobile hero).
-      // Desktop still gets the classic 15-px peek above the fold.
+      // it never crowds the hero. iOS Safari's URL bar retracts on scroll
+      // (without firing a scroll event for the resize) and its bottom
+      // toolbar is translucent, so we use the LARGEST possible viewport
+      // height (layout viewport) plus a generous buffer to make sure the
+      // video stays well below any chrome overlay zone at scroll=0.
       const isMobile = window.innerWidth < 768;
-      const topStart = isMobile ? vh + 40 : vh - PEEK_PX;
+      const lvh = Math.max(vh, document.documentElement.clientHeight);
+      const topStart = isMobile ? lvh + 160 : vh - PEEK_PX;
       const topEnd = (vh - h) / 2;
       const vidTop = lerp(topStart, topEnd, t);
       vid.style.top = `${vidTop}px`;
@@ -95,10 +99,16 @@ export function VideoShowcase() {
     };
 
     window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    window.visualViewport?.addEventListener("resize", onScroll);
+    window.visualViewport?.addEventListener("scroll", onScroll);
     onScroll();
 
     return () => {
       window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      window.visualViewport?.removeEventListener("resize", onScroll);
+      window.visualViewport?.removeEventListener("scroll", onScroll);
       cancelAnimationFrame(raf);
     };
   }, [playing]);
@@ -138,6 +148,7 @@ export function VideoShowcase() {
             width: SM_W,
             height: SM_H,
             borderRadius: SM_R,
+            top: "calc(100lvh + 160px)",
             boxShadow:
               "0 8px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.08)",
           }}

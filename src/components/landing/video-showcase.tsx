@@ -32,6 +32,25 @@ export function VideoShowcase() {
   const labelRef = useRef<HTMLDivElement>(null);
   const [playing, setPlaying] = useState(false);
 
+  // Mobile: autoplay when the video section scrolls into view
+  useEffect(() => {
+    if (playing) return;
+    const el = sectionRef.current;
+    if (!el || window.innerWidth >= 768) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setPlaying(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.5 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [playing]);
+
   useEffect(() => {
     const section = sectionRef.current;
     const vid = vidRef.current;
@@ -182,7 +201,12 @@ export function VideoShowcase() {
               style={{ border: "none" }}
             />
           ) : (
-            <>
+            <button
+              type="button"
+              className="absolute inset-0 w-full h-full cursor-pointer"
+              onClick={() => setPlaying(true)}
+              aria-label="Play video"
+            >
               <img
                 src={THUMB_URL}
                 alt="Video thumbnail"
@@ -201,7 +225,7 @@ export function VideoShowcase() {
                   />
                 </div>
               </div>
-            </>
+            </button>
           )}
         </div>
       </div>

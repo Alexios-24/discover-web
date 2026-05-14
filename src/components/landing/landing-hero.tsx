@@ -71,6 +71,8 @@ function CyclingText({
   const stepPx = lineHeight + gap;
   const [index, setIndex] = useState(0);
   const [smooth, setSmooth] = useState(true);
+  const wordElsRef = useRef<(HTMLSpanElement | null)[]>([]);
+  const [measuredWidths, setMeasuredWidths] = useState<number[]>([]);
 
   useEffect(() => {
     setSmooth(false);
@@ -101,16 +103,28 @@ function CyclingText({
     return () => clearTimeout(timeout);
   }, [index, words.length]);
 
+  useEffect(() => {
+    const measure = () => {
+      const widths = words.map((_, i) => {
+        const el = wordElsRef.current[i];
+        return el ? el.getBoundingClientRect().width : 0;
+      });
+      if (widths.some((w) => w > 0)) setMeasuredWidths(widths);
+    };
+    requestAnimationFrame(measure);
+    document.fonts?.ready.then(measure);
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [words]);
+
   const word = words[index % words.length];
+  const wordIdx = index % words.length;
   const ease = "transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), width 0.6s cubic-bezier(0.4, 0, 0.2, 1)";
 
-  // Use the geometry-aware width helper so the container hugs the
-  // current word — on desktop (scale=1) this collapses to word.width
-  // (unchanged), on mobile (scale<1) it accounts for the constant-pixel
-  // letter-spacing so the box doesn't sit ~15px wider than the glyphs.
-  // Tiny +2px safety pad covers sub-pixel rounding (period descender,
-  // anti-aliasing) without re-introducing a visible gap before the word.
-  const containerWidth = renderedWordWidth(word, scale) + 2;
+  const containerWidth =
+    measuredWidths[wordIdx] > 0
+      ? Math.ceil(measuredWidths[wordIdx]) + 4
+      : renderedWordWidth(word, scale) + 2;
 
   return (
     <span
@@ -122,7 +136,7 @@ function CyclingText({
       }}
     >
       <div
-        className="flex flex-col"
+        className="flex flex-col items-start"
         style={{
           gap,
           transform: `translateY(${-index * stepPx}px)`,
@@ -134,6 +148,11 @@ function CyclingText({
         {[...words, ...words].map((w, i) => (
           <span
             key={i}
+            ref={
+              i < words.length
+                ? (el) => { wordElsRef.current[i] = el; }
+                : undefined
+            }
             className="shrink-0 whitespace-nowrap"
             style={{ color: w.color, lineHeight: `${lineHeight}px` }}
           >

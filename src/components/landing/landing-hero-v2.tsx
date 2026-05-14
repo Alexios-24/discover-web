@@ -89,6 +89,8 @@ function CyclingText({ words }: { words: WordDef[] }) {
 
   const [index, setIndex] = useState(0);
   const [smooth, setSmooth] = useState(true);
+  const wordElsRef = useRef<(HTMLSpanElement | null)[]>([]);
+  const [measuredWidths, setMeasuredWidths] = useState<number[]>([]);
 
   useEffect(() => {
     setSmooth(false);
@@ -117,13 +119,29 @@ function CyclingText({ words }: { words: WordDef[] }) {
     return () => clearTimeout(timeout);
   }, [index, words.length]);
 
+  useEffect(() => {
+    const measure = () => {
+      const widths = words.map((_, i) => {
+        const el = wordElsRef.current[i];
+        return el ? el.getBoundingClientRect().width : 0;
+      });
+      if (widths.some((w) => w > 0)) setMeasuredWidths(widths);
+    };
+    requestAnimationFrame(measure);
+    document.fonts?.ready.then(measure);
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [words, scale]);
+
   const word = words[index % words.length];
+  const wordIdx = index % words.length;
   const ease =
     "transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), width 0.6s cubic-bezier(0.4, 0, 0.2, 1)";
-  // Geometry-aware width: at scale 1 collapses to word.width (desktop
-  // unchanged), at scale<1 accounts for the constant-pixel tracking so
-  // the box hugs the glyphs instead of leaving ~15px of empty space.
-  const containerWidth = renderedWordWidth(word, scale) + 2;
+
+  const containerWidth =
+    measuredWidths[wordIdx] > 0
+      ? Math.ceil(measuredWidths[wordIdx]) + 4
+      : renderedWordWidth(word, scale) + 2;
 
   return (
     <span
@@ -135,7 +153,7 @@ function CyclingText({ words }: { words: WordDef[] }) {
       }}
     >
       <div
-        className="flex flex-col"
+        className="flex flex-col items-start"
         style={{
           gap,
           transform: `translateY(${-index * stepPx}px)`,
@@ -147,6 +165,11 @@ function CyclingText({ words }: { words: WordDef[] }) {
         {[...words, ...words].map((w, i) => (
           <span
             key={i}
+            ref={
+              i < words.length
+                ? (el) => { wordElsRef.current[i] = el; }
+                : undefined
+            }
             className="shrink-0 whitespace-nowrap"
             style={{ color: w.color, lineHeight: `${lineHeight}px` }}
           >

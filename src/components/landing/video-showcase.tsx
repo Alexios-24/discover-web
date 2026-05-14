@@ -53,7 +53,7 @@ export function VideoShowcase() {
       const isMobile = window.innerWidth < 768;
       const maxW = window.innerWidth - 40;
       const t = clamp01(window.scrollY / lvh);
-      const w = isMobile ? Math.min(SM_W, maxW) : Math.min(lerp(SM_W, LG_W, t), maxW);
+      const w = isMobile ? maxW : Math.min(lerp(SM_W, LG_W, t), maxW);
       const h = w * (LG_H / LG_W);
       const r = isMobile ? SM_R : lerp(SM_R, LG_R, t);
 
@@ -62,7 +62,7 @@ export function VideoShowcase() {
       vid.style.borderRadius = `${r}px`;
 
       if (isMobile) {
-        const vidTop = Math.max(72, (360 - h) / 2);
+        const vidTop = Math.max(72, (480 - h) / 2);
         vid.style.top = `${vidTop}px`;
         const label = labelRef.current;
         if (label) {
@@ -137,7 +137,7 @@ export function VideoShowcase() {
   return (
     <section
       ref={sectionRef}
-      className="relative z-[15] pointer-events-none h-[200vh] -mt-[100vh] max-md:h-[360px] max-md:mt-0 max-md:bg-black"
+      className="relative z-[15] pointer-events-none h-[200vh] -mt-[100vh] max-md:h-[480px] max-md:mt-0 max-md:bg-black"
     >
       <div
         ref={darkRef}
@@ -150,7 +150,7 @@ export function VideoShowcase() {
         style={{ opacity: 0 }}
       />
 
-      <div className="sticky top-0 h-screen max-md:relative max-md:h-[360px]">
+      <div className="sticky top-0 h-screen max-md:relative max-md:h-[480px]">
         <div
           ref={labelRef}
           className="absolute left-1/2 -translate-x-1/2 flex items-center gap-1 whitespace-nowrap"

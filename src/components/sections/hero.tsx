@@ -153,7 +153,7 @@ export function DiscoverHero() {
 
       <div className="flex flex-col items-center gap-4 relative z-10 max-md:gap-3 w-full">
         <div className="flex flex-col gap-1 items-center text-center w-full">
-          <h1 className="font-montserrat font-semibold text-[40px] leading-[1.2] text-gray-900 max-md:text-[28px]">
+          <h1 className="font-montserrat font-semibold text-[40px] leading-[1.2] text-gray-900 max-md:text-[34px]">
             Discover
           </h1>
           <p className="text-[16px] leading-6 text-gray-900 max-w-[1200px] max-md:text-[14px] max-md:leading-5">

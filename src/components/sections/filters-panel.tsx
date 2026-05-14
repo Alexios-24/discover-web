@@ -181,12 +181,22 @@ interface FiltersPanelProps {
   onFiltersChange: (filters: FilterState) => void;
 }
 
-const SIDEBAR_TOP_OFFSET = 84;
+export function clearFilters(): FilterState {
+  return {
+    categories: [],
+    collection: [],
+    access: [],
+    price: [],
+    priceMin: 0,
+    priceMax: 5000,
+  };
+}
 
-export function FiltersPanel({ filters, onFiltersChange }: FiltersPanelProps) {
-  const isActive = hasActiveFilters(filters);
-
-  const toggleFilter = (key: "categories" | "collection" | "access" | "price", value: string) => {
+export function FiltersPanelBody({ filters, onFiltersChange }: FiltersPanelProps) {
+  const toggleFilter = (
+    key: "categories" | "collection" | "access" | "price",
+    value: string,
+  ) => {
     const current = filters[key];
     const updated = current.includes(value)
       ? current.filter((v) => v !== value)
@@ -194,36 +204,8 @@ export function FiltersPanel({ filters, onFiltersChange }: FiltersPanelProps) {
     onFiltersChange({ ...filters, [key]: updated });
   };
 
-  const clearAll = () => {
-    onFiltersChange({
-      categories: [],
-      collection: [],
-      access: [],
-      price: [],
-      priceMin: 0,
-      priceMax: 5000,
-    });
-  };
-
   return (
-    <aside
-      className="flex flex-col gap-6 w-[200px] shrink-0 overflow-x-hidden overflow-y-auto pt-2"
-      style={{ maxHeight: `calc(100vh - ${SIDEBAR_TOP_OFFSET}px)` }}
-    >
-      <div className="flex items-center justify-between h-[22px] w-full">
-        <span className="text-[14px] leading-5 font-semibold text-gray-900">
-          Filters
-        </span>
-        {isActive && (
-          <button
-            onClick={clearAll}
-            className="text-[13px] leading-[18px] font-semibold text-gray-700 cursor-pointer hover:text-gray-900 transition-colors"
-          >
-            Clear all
-          </button>
-        )}
-      </div>
-
+    <>
       <FilterSection
         label="Browse categories"
         options={["Finance", "Travel", "Technology", "Productivity", "Creative", "Cooking", "Gaming", "Wellness", "Leadership"]}
@@ -254,6 +236,35 @@ export function FiltersPanel({ filters, onFiltersChange }: FiltersPanelProps) {
         onMinChange={(v) => onFiltersChange({ ...filters, priceMin: v })}
         onMaxChange={(v) => onFiltersChange({ ...filters, priceMax: v })}
       />
+    </>
+  );
+}
+
+const SIDEBAR_TOP_OFFSET = 84;
+
+export function FiltersPanel({ filters, onFiltersChange }: FiltersPanelProps) {
+  const isActive = hasActiveFilters(filters);
+
+  return (
+    <aside
+      className="flex flex-col gap-6 w-[200px] shrink-0 overflow-x-hidden overflow-y-auto pt-2"
+      style={{ maxHeight: `calc(100vh - ${SIDEBAR_TOP_OFFSET}px)` }}
+    >
+      <div className="flex items-center justify-between h-[22px] w-full">
+        <span className="text-[14px] leading-5 font-semibold text-gray-900">
+          Filters
+        </span>
+        {isActive && (
+          <button
+            onClick={() => onFiltersChange(clearFilters())}
+            className="text-[13px] leading-[18px] font-semibold text-gray-700 cursor-pointer hover:text-gray-900 transition-colors"
+          >
+            Clear all
+          </button>
+        )}
+      </div>
+
+      <FiltersPanelBody filters={filters} onFiltersChange={onFiltersChange} />
     </aside>
   );
 }

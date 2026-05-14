@@ -9,9 +9,9 @@ export function TopPicks() {
           Top picks for you
         </h2>
 
-        <div className="flex flex-wrap gap-6">
+        <div className="grid grid-cols-3 gap-6 max-lg:grid-cols-2 max-md:grid-cols-1 max-md:gap-4">
           {TOP_PICKS.map((card, idx) => (
-            <DiscoverCard key={idx} {...card} className="flex-1 min-w-0" />
+            <DiscoverCard key={idx} {...card} className="min-w-0" />
           ))}
         </div>
       </div>

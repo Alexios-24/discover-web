@@ -129,24 +129,24 @@ function CardContent({
         className="absolute bottom-0 left-0"
       >
         <div
-          className="flex items-end p-4 max-md:p-[9.089px]"
+          className="flex items-end p-4 min-[768px]:max-[1199px]:p-3 max-md:p-[9.089px]"
           style={{
             background: `linear-gradient(to bottom, transparent 0%, ${card.gradientTo}80 47.77%, ${card.gradientTo} 100%)`,
           }}
         >
-          <div className="flex-1 min-w-0 flex flex-col gap-2 max-md:gap-[5px]">
-            <h3 className="text-[18px] leading-[28px] font-semibold text-white font-inter truncate max-md:text-[10.5px] max-md:leading-[14px]">
+          <div className="flex-1 min-w-0 flex flex-col gap-2 min-[768px]:max-[1199px]:gap-1.5 max-md:gap-[5px]">
+            <h3 className="text-[18px] leading-[28px] font-semibold text-white font-inter truncate min-[768px]:max-[1199px]:text-[15px] min-[768px]:max-[1199px]:leading-[22px] max-md:text-[10.5px] max-md:leading-[14px]">
               {card.title}
             </h3>
-            <div className="flex items-center gap-[6px] whitespace-nowrap max-md:gap-[8px]">
-              <span className="flex items-center gap-[2px] h-6 px-2 rounded-[12px] bg-white/25 shrink-0 max-md:h-[13.6px] max-md:px-[4.5px] max-md:rounded-[12px]">
-                {isGlobe && <Globe size={16} className="text-white max-md:size-[9px]" />}
-                <span className="text-[13px] leading-[18px] font-medium text-white font-inter max-md:text-[7.4px] max-md:leading-[10.2px]">
+            <div className="flex items-center gap-[6px] whitespace-nowrap min-[768px]:max-[1199px]:gap-[5px] max-md:gap-[8px]">
+              <span className="flex items-center gap-[2px] h-6 px-2 rounded-[12px] bg-white/25 shrink-0 min-[768px]:max-[1199px]:h-5 min-[768px]:max-[1199px]:px-[7px] max-md:h-[13.6px] max-md:px-[4.5px] max-md:rounded-[12px]">
+                {isGlobe && <Globe size={16} className="text-white min-[768px]:max-[1199px]:size-[13px] max-md:size-[9px]" />}
+                <span className="text-[13px] leading-[18px] font-medium text-white font-inter min-[768px]:max-[1199px]:text-[11px] min-[768px]:max-[1199px]:leading-[16px] max-md:text-[7.4px] max-md:leading-[10.2px]">
                   {card.pricing}
                 </span>
               </span>
-              <span className="size-[6px] rounded-full bg-white/60 shrink-0 max-md:size-[3.4px]" />
-              <span className="text-[14px] leading-[18px] text-[#EAECF0] font-inter shrink-0 max-md:text-[9px] max-md:leading-[13.6px]">
+              <span className="size-[6px] rounded-full bg-white/60 shrink-0 min-[768px]:max-[1199px]:size-[5px] max-md:size-[3.4px]" />
+              <span className="text-[14px] leading-[18px] text-[#EAECF0] font-inter shrink-0 min-[768px]:max-[1199px]:text-[12px] min-[768px]:max-[1199px]:leading-[16px] max-md:text-[9px] max-md:leading-[13.6px]">
                 {card.members}
               </span>
             </div>

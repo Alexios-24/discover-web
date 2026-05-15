@@ -7,6 +7,7 @@ import {
   ChevronDown,
   ListFilter,
   Check,
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -53,6 +54,93 @@ function getActiveFilterCount(filters: FilterState): number {
     filters.price.length +
     (priceRangeChanged ? 1 : 0)
   );
+}
+
+interface FilterTagProps {
+  label: string;
+  onRemove: () => void;
+}
+
+function FilterTag({ label, onRemove }: FilterTagProps) {
+  return (
+    <div className="flex items-center justify-center gap-0.5 h-6 px-3 bg-white border border-gray-300 rounded-xl shrink-0">
+      <span className="text-[13px] leading-[18px] font-medium text-gray-600 whitespace-nowrap">
+        {label}
+      </span>
+      <button
+        type="button"
+        onClick={onRemove}
+        aria-label={`Remove ${label} filter`}
+        className="flex items-center justify-center w-[11px] h-[11px] opacity-50 cursor-pointer hover:opacity-100 transition-opacity"
+      >
+        <X size={9} className="text-gray-600" />
+      </button>
+    </div>
+  );
+}
+
+function getFilterTags(
+  filters: FilterState,
+  setFilters: (f: FilterState) => void,
+) {
+  const tags: { label: string; onRemove: () => void }[] = [];
+
+  for (const v of filters.categories) {
+    tags.push({
+      label: v,
+      onRemove: () =>
+        setFilters({
+          ...filters,
+          categories: filters.categories.filter((x) => x !== v),
+        }),
+    });
+  }
+  for (const v of filters.collection) {
+    tags.push({
+      label: v,
+      onRemove: () =>
+        setFilters({
+          ...filters,
+          collection: filters.collection.filter((x) => x !== v),
+        }),
+    });
+  }
+  for (const v of filters.access) {
+    tags.push({
+      label: v,
+      onRemove: () =>
+        setFilters({
+          ...filters,
+          access: filters.access.filter((x) => x !== v),
+        }),
+    });
+  }
+  for (const v of filters.price) {
+    tags.push({
+      label: v,
+      onRemove: () =>
+        setFilters({
+          ...filters,
+          price: filters.price.filter((x) => x !== v),
+        }),
+    });
+  }
+  if (
+    filters.priceMin !== DEFAULT_PRICE_MIN ||
+    filters.priceMax !== DEFAULT_PRICE_MAX
+  ) {
+    tags.push({
+      label: `$${filters.priceMin.toLocaleString()} - $${filters.priceMax.toLocaleString()}`,
+      onRemove: () =>
+        setFilters({
+          ...filters,
+          priceMin: DEFAULT_PRICE_MIN,
+          priceMax: DEFAULT_PRICE_MAX,
+        }),
+    });
+  }
+
+  return tags;
 }
 
 interface MobileChipProps {
@@ -111,6 +199,7 @@ export function DiscoverContent() {
 
   const isActive = hasActiveFilters(filters);
   const activeFilterCount = getActiveFilterCount(filters);
+  const tags = isActive ? getFilterTags(filters, setFilters) : [];
 
   return (
     <div className="flex gap-[54px] items-start pt-6 px-[54px] pb-9 max-lg:gap-6 max-lg:px-6 max-md:px-4 max-md:pt-6 max-md:pb-6">
@@ -176,6 +265,17 @@ export function DiscoverContent() {
 
         {/* Content sections */}
         <div className="flex flex-col gap-[54px] w-full max-md:gap-10">
+          {tags.length > 0 && (
+            <div className="hidden md:flex items-center gap-2 flex-wrap">
+              {tags.map((tag, i) => (
+                <FilterTag
+                  key={`${tag.label}-${i}`}
+                  label={tag.label}
+                  onRemove={tag.onRemove}
+                />
+              ))}
+            </div>
+          )}
           {hasQuery ? (
             <BrowseProducts />
           ) : isActive ? (

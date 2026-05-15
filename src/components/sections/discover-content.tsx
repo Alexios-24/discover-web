@@ -265,22 +265,37 @@ export function DiscoverContent() {
 
         {/* Content sections */}
         <div className="flex flex-col gap-[54px] w-full max-md:gap-10">
-          {tags.length > 0 && (
-            <div className="hidden md:flex items-center gap-2 flex-wrap">
-              {tags.map((tag, i) => (
-                <FilterTag
-                  key={`${tag.label}-${i}`}
-                  label={tag.label}
-                  onRemove={tag.onRemove}
-                />
-              ))}
-            </div>
-          )}
           {hasQuery ? (
-            <BrowseProducts />
+            <div className="flex flex-col gap-4 w-full">
+              {tags.length > 0 && (
+                <div className="hidden md:flex items-center gap-3 flex-wrap">
+                  {tags.map((tag, i) => (
+                    <FilterTag
+                      key={`${tag.label}-${i}`}
+                      label={tag.label}
+                      onRemove={tag.onRemove}
+                    />
+                  ))}
+                </div>
+              )}
+              <BrowseProducts />
+            </div>
           ) : isActive ? (
             <>
-              <FilteredResults />
+              <div className="flex flex-col gap-4 w-full">
+                {tags.length > 0 && (
+                  <div className="hidden md:flex items-center gap-3 flex-wrap">
+                    {tags.map((tag, i) => (
+                      <FilterTag
+                        key={`${tag.label}-${i}`}
+                        label={tag.label}
+                        onRemove={tag.onRemove}
+                      />
+                    ))}
+                  </div>
+                )}
+                <FilteredResults />
+              </div>
               <CreatorsYouMightLike />
             </>
           ) : (

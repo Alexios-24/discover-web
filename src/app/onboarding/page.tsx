@@ -195,13 +195,6 @@ const stepMotion = {
   transition: { duration: 0.32, ease: [0.22, 0.85, 0.25, 1] as const },
 };
 
-const rowMotion = {
-  initial: { opacity: 0, y: 8 },
-  animate: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: -6 },
-  transition: { duration: 0.3, ease: [0.22, 0.85, 0.25, 1] as const },
-};
-
 export default function OnboardingPage() {
   const [step, setStep] = useState(0);
   const [intent, setIntent] = useState<Intent | null>(null);
@@ -398,8 +391,7 @@ export default function OnboardingPage() {
           buildChoice={buildChoice}
           learnChoice={learnChoice}
           domain={selectedDomain?.label}
-          name={name}
-          email={email}
+          domainIcon={selectedDomain?.icon}
           complete={complete}
         />
       </div>
@@ -740,25 +732,42 @@ function ExperiencePanel({
   buildChoice,
   learnChoice,
   domain,
-  name,
-  email,
+  domainIcon,
   complete,
 }: {
   intent: Intent | null;
   buildChoice: BuildChoice | null;
   learnChoice: LearnChoice | null;
   domain?: string;
-  name: string;
-  email: string;
+  domainIcon?: GhlIconName;
   complete: boolean;
 }) {
   const isLearner = intent === "learn";
   const modeLabel = isLearner ? "Discovery feed" : "Creator workspace";
   const focusLabel = getFocusLabel(intent, buildChoice, learnChoice);
   const hasFocus = isLearner ? learnChoice !== null : buildChoice !== null;
-  const trimmedName = name.trim();
-  const displayName = trimmedName.length > 0 ? trimmedName : null;
-  const initial = displayName ? displayName.charAt(0).toUpperCase() : "K";
+
+  const accent = !intent ? "#8E93FF" : isLearner ? "#4CC5FF" : "#F472C8";
+  const focusIcon = getFocusIcon(intent, buildChoice, learnChoice);
+  const eyebrow = intent ? modeLabel : "Kollab";
+
+  let headline: string;
+  if (complete) {
+    headline = "Everything's ready.";
+  } else if (!intent) {
+    headline = "Composing your space.";
+  } else if (!hasFocus) {
+    headline = isLearner
+      ? "Tuning your discovery feed."
+      : "Building your creator workspace.";
+  } else if (!domain) {
+    headline = isLearner ? `${focusLabel} in focus.` : `${focusLabel} in motion.`;
+  } else {
+    headline = `${domain}, locked in.`;
+  }
+
+  const ringMask =
+    "radial-gradient(closest-side, transparent 73%, #000 75%, #000 100%)";
 
   return (
     <aside className="relative hidden min-w-0 overflow-hidden lg:flex lg:min-h-screen lg:items-center lg:justify-center lg:px-12 lg:py-16">
@@ -767,95 +776,147 @@ function ExperiencePanel({
         className="absolute inset-0"
         style={{
           background:
-            "linear-gradient(160deg, #4148E8 0%, #2A2F9E 52%, #1C1F62 100%)",
+            "linear-gradient(165deg, #2B2F8C 0%, #1B1E63 55%, #14163F 100%)",
         }}
       />
-      <div
+      <motion.div
         aria-hidden
         className="absolute inset-0"
-        style={{
-          background:
-            "radial-gradient(circle at 24% 16%, rgba(255,255,255,0.14), transparent 46%), radial-gradient(circle at 88% 88%, rgba(124,131,255,0.22), transparent 42%)",
+        animate={{
+          background: `radial-gradient(circle at 50% 38%, ${accent}33, transparent 55%)`,
         }}
+        transition={{ duration: 1.1, ease: "easeOut" }}
       />
 
-      <motion.div
-        layout
-        initial={{ opacity: 0, y: 18 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: [0.22, 0.85, 0.25, 1] }}
-        className="relative z-10 w-full max-w-[400px] overflow-hidden rounded-[28px] bg-white shadow-[0_40px_90px_-32px_rgba(15,18,80,0.55)]"
-      >
-        <div className="p-8 sm:p-9">
-          <div className="flex items-center justify-between gap-4">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-gray-400">
-              Kollab preview
-            </p>
-            <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#343DE5]">
-              <span className="size-1.5 rounded-full bg-[#343DE5]" />
-              {complete ? "Ready" : "Live"}
-            </span>
+      <div className="relative z-10 flex flex-col items-center text-center">
+        {/* Kollab aura — one breathing orb that reflects the user's choices */}
+        <motion.div
+          className="relative flex size-[260px] items-center justify-center"
+          animate={{ y: [0, -10, 0] }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <motion.div
+            aria-hidden
+            className="absolute inset-0 rounded-full"
+            style={{
+              WebkitMaskImage: ringMask,
+              maskImage: ringMask,
+            }}
+            animate={{
+              rotate: 360,
+              background: `conic-gradient(from 0deg, transparent 0%, ${accent}00 12%, ${accent} 30%, #ffffff 50%, ${accent} 70%, ${accent}00 88%, transparent 100%)`,
+            }}
+            transition={{
+              rotate: { duration: 26, repeat: Infinity, ease: "linear" },
+              background: { duration: 1.1, ease: "easeOut" },
+            }}
+          />
+
+          <motion.div
+            aria-hidden
+            className="absolute size-[150px] rounded-full blur-[42px]"
+            animate={{
+              backgroundColor: accent,
+              scale: [1, 1.12, 1],
+              opacity: [0.5, 0.78, 0.5],
+            }}
+            transition={{
+              backgroundColor: { duration: 1.1, ease: "easeOut" },
+              scale: { duration: 6, repeat: Infinity, ease: "easeInOut" },
+              opacity: { duration: 6, repeat: Infinity, ease: "easeInOut" },
+            }}
+          />
+
+          <div className="relative flex size-[116px] items-center justify-center rounded-full border border-white/15 bg-white/[0.06] text-white shadow-[inset_0_1px_1px_rgba(255,255,255,0.28)] backdrop-blur-md">
+            <AnimatePresence mode="wait">
+              <motion.span
+                key={focusIcon}
+                initial={{ opacity: 0, scale: 0.7 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.7 }}
+                transition={{ duration: 0.32, ease: [0.22, 0.85, 0.25, 1] }}
+              >
+                <GhlIcon name={focusIcon} size={34} />
+              </motion.span>
+            </AnimatePresence>
           </div>
+        </motion.div>
 
-          <h2 className="mt-3 font-montserrat text-[24px] font-bold leading-8 tracking-[-0.4px] text-gray-900">
-            {intent ? modeLabel : "Your Kollab setup"}
-          </h2>
+        {/* Kinetic caption that morphs with each step */}
+        <div className="mt-16 flex flex-col items-center">
+          <AnimatePresence mode="wait">
+            <motion.p
+              key={eyebrow}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.3, ease: [0.22, 0.85, 0.25, 1] }}
+              className="text-[12px] font-semibold uppercase tracking-[0.24em]"
+              style={{ color: accent }}
+            >
+              {eyebrow}
+            </motion.p>
+          </AnimatePresence>
 
-          <div className="mt-7 space-y-5">
-            <AnimatePresence mode="popLayout" initial={false}>
-              {!intent ? (
-                <motion.p
-                  key="empty"
-                  layout
-                  {...rowMotion}
-                  className="text-[14px] leading-6 text-gray-400"
+          <AnimatePresence mode="wait">
+            <motion.h2
+              key={headline}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.36, ease: [0.22, 0.85, 0.25, 1] }}
+              className="mt-3 max-w-[360px] font-montserrat text-[27px] font-bold leading-9 tracking-[-0.5px] text-white"
+            >
+              {headline}
+            </motion.h2>
+          </AnimatePresence>
+
+          <div className="mt-6 h-9">
+            <AnimatePresence>
+              {domain ? (
+                <motion.div
+                  key="topic"
+                  initial={{ opacity: 0, y: 8, scale: 0.96 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -6, scale: 0.96 }}
+                  transition={{ duration: 0.34, ease: [0.22, 0.85, 0.25, 1] }}
+                  className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-[13px] font-semibold text-white/90 backdrop-blur"
                 >
-                  Make your first choice and watch your space take shape here.
-                </motion.p>
-              ) : (
-                <>
-                  <PreviewRow key="mode" label="Mode" value={modeLabel} />
-                  {hasFocus ? (
-                    <PreviewRow key="focus" label="Focus" value={focusLabel} />
+                  {domainIcon ? (
+                    <span style={{ color: accent }}>
+                      <GhlIcon name={domainIcon} size={15} />
+                    </span>
                   ) : null}
-                  {domain ? (
-                    <PreviewRow key="topic" label="Topic" value={domain} />
-                  ) : null}
-                </>
-              )}
+                  {domain}
+                </motion.div>
+              ) : null}
             </AnimatePresence>
           </div>
         </div>
-
-        <div className="flex items-center gap-3 border-t border-gray-100 bg-gray-50/70 px-8 py-5 sm:px-9">
-          <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#343DE5] text-[13px] font-bold text-white">
-            {initial}
-          </span>
-          <div className="min-w-0">
-            <p className="truncate text-[14px] font-semibold leading-5 text-gray-900">
-              {displayName ?? "Your Kollab account"}
-            </p>
-            <p className="truncate text-[12px] leading-5 text-gray-400">
-              {email.trim().length > 0 ? email.trim() : "Set up in the final step"}
-            </p>
-          </div>
-        </div>
-      </motion.div>
+      </div>
     </aside>
   );
 }
 
-function PreviewRow({ label, value }: { label: string; value: string }) {
-  return (
-    <motion.div layout {...rowMotion}>
-      <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#343DE5]">
-        {label}
-      </p>
-      <p className="mt-1 text-[15px] font-medium leading-6 text-gray-800">
-        {value}
-      </p>
-    </motion.div>
-  );
+function getFocusIcon(
+  intent: Intent | null,
+  buildChoice: BuildChoice | null,
+  learnChoice: LearnChoice | null,
+): GhlIconName {
+  if (!intent) return "sparkles";
+
+  if (intent === "learn") {
+    if (learnChoice === "communities") return "users";
+    if (learnChoice === "creators") return "badge";
+    if (learnChoice === "all") return "sparkles";
+    if (learnChoice === "courses") return "book";
+    return "search";
+  }
+
+  if (buildChoice === "community") return "users";
+  if (buildChoice === "both") return "sparkles";
+  if (buildChoice === "course") return "book";
+  return "rocket";
 }
 
 function GhlIcon({

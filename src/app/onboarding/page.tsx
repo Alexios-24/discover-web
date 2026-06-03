@@ -290,17 +290,22 @@ function OnboardingFlow() {
   const [intent, setIntent] = useState<Intent | null>(null);
   const [buildChoice, setBuildChoice] = useState<BuildChoice | null>(null);
   const [learnChoice, setLearnChoice] = useState<LearnChoice | null>(null);
-  const [domain, setDomain] = useState<DomainValue | null>(null);
+  const [domains, setDomains] = useState<DomainValue[]>([]);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [complete, setComplete] = useState(false);
 
-  const selectedDomain = useMemo(
-    () => domainChoices.find((item) => item.value === domain),
-    [domain],
+  const selectedDomains = useMemo(
+    () => domains
+      .map((value) => domainChoices.find((item) => item.value === value))
+      .filter((item): item is DomainChoice => Boolean(item)),
+    [domains],
   );
+
+  const domainPreviewLabel = formatDomainSelection(selectedDomains);
+  const primaryDomainIcon = selectedDomains[0]?.icon;
 
   const canCreateAccount =
     name.trim().length > 1 &&
@@ -335,24 +340,36 @@ function OnboardingFlow() {
     setIntent(value);
     setBuildChoice(null);
     setLearnChoice(null);
-    setDomain(null);
+    setDomains([]);
     advance(1);
   };
 
   const selectBuildChoice = (value: BuildChoice) => {
     setBuildChoice(value);
-    setDomain(null);
+    setDomains([]);
     advance(2);
   };
 
   const selectLearnChoice = (value: LearnChoice) => {
     setLearnChoice(value);
-    setDomain(null);
+    setDomains([]);
     advance(2);
   };
 
-  const selectDomain = (value: DomainValue) => {
-    setDomain(value);
+  const toggleDomain = (value: DomainValue) => {
+    setDomains((current) => {
+      if (current.includes(value)) {
+        return current.filter((item) => item !== value);
+      }
+      if (current.length >= 3) {
+        return current;
+      }
+      return [...current, value];
+    });
+  };
+
+  const continueFromDomains = () => {
+    if (domains.length === 0) return;
     advance(3);
   };
 
@@ -376,7 +393,7 @@ function OnboardingFlow() {
                   <CompletionStep
                     key="complete"
                     intent={intent}
-                    domain={selectedDomain?.label}
+                    domain={domainPreviewLabel}
                   />
                 ) : step === 0 ? (
                   <motion.div key="intent" {...stepMotion}>
@@ -448,8 +465,9 @@ function OnboardingFlow() {
                       }
                     />
                     <DomainGrid
-                      selected={domain}
-                      onSelect={selectDomain}
+                      selected={domains}
+                      onToggle={toggleDomain}
+                      onContinue={continueFromDomains}
                     />
                   </motion.div>
                 ) : (
@@ -482,8 +500,8 @@ function OnboardingFlow() {
         intent={intent}
         buildChoice={buildChoice}
         learnChoice={learnChoice}
-        domain={selectedDomain?.label}
-        domainIcon={selectedDomain?.icon}
+        domain={domainPreviewLabel}
+        domainIcon={primaryDomainIcon}
         complete={complete}
         variant={orbVariant}
       />
@@ -616,45 +634,77 @@ function OptionCard<T extends string>({
 
 function DomainGrid({
   selected,
-  onSelect,
+  onToggle,
+  onContinue,
 }: {
-  selected: DomainValue | null;
-  onSelect: (value: DomainValue) => void;
+  selected: DomainValue[];
+  onToggle: (value: DomainValue) => void;
+  onContinue: () => void;
 }) {
+  const maxSelected = selected.length >= 3;
+  const canContinue = selected.length > 0;
+
   return (
     <div>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-4">
-        {domainChoices.map((choice) => (
-          <button
-            key={choice.value}
-            type="button"
-            onClick={() => onSelect(choice.value)}
-            className={`flex min-h-11 items-center gap-2.5 rounded-xl border px-3 py-2.5 text-left transition-all duration-200 hover:border-gray-200 hover:bg-gray-50/70 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-indigo-100 active:scale-[0.99] ${
-              selected === choice.value
-                ? "border-[#343DE5]/40 bg-[#f5f7ff] ring-1 ring-[#343DE5]/15"
-                : "border-gray-100 bg-white"
-            }`}
-          >
-            <span
-              className={`flex size-7 shrink-0 items-center justify-center rounded-lg transition-colors duration-200 ${
-                selected === choice.value
-                  ? "bg-[#343DE5] text-white"
-                  : "bg-gray-50 text-gray-500"
-              }`}
+        {domainChoices.map((choice) => {
+          const isSelected = selected.includes(choice.value);
+          const isMaxBlocked = maxSelected && !isSelected;
+
+          return (
+            <button
+              key={choice.value}
+              type="button"
+              aria-pressed={isSelected}
+              aria-disabled={isMaxBlocked}
+              onClick={() => onToggle(choice.value)}
+              className={`flex min-h-11 items-center gap-2.5 rounded-xl border px-3 py-2.5 text-left transition-all duration-200 hover:border-gray-200 hover:bg-gray-50/70 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-indigo-100 active:scale-[0.99] ${
+                isSelected
+                  ? "border-[#343DE5]/40 bg-[#f5f7ff] ring-1 ring-[#343DE5]/15"
+                  : "border-gray-100 bg-white"
+              } ${isMaxBlocked ? "opacity-70" : ""}`}
             >
-              <GhlIcon name={choice.icon} size={15} />
-            </span>
-            <span className="truncate text-[13px] font-semibold leading-5 text-gray-800">
-              {choice.label}
-            </span>
-          </button>
-        ))}
+              <span
+                className={`flex size-7 shrink-0 items-center justify-center rounded-lg transition-colors duration-200 ${
+                  isSelected
+                    ? "bg-[#343DE5] text-white"
+                    : "bg-gray-50 text-gray-500"
+                }`}
+              >
+                <GhlIcon name={choice.icon} size={15} />
+              </span>
+              <span className="truncate text-[13px] font-semibold leading-5 text-gray-800">
+                {choice.label}
+              </span>
+            </button>
+          );
+        })}
       </div>
-      <p className="mt-5 text-[13px] leading-5 text-gray-400">
-        You can add more topics from settings later.
-      </p>
+      <div className="mt-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-[13px] leading-5 text-gray-400">
+          Choose up to 3 categories. You can add more topics from settings later.
+        </p>
+        <button
+          type="button"
+          onClick={onContinue}
+          disabled={!canContinue}
+          className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-[#343DE5] px-5 text-[14px] font-semibold leading-5 text-white shadow-[0_14px_30px_rgba(52,61,229,0.18)] transition-all duration-150 hover:bg-[#2831D3] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-indigo-100 active:scale-[0.97] disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400 disabled:shadow-none"
+        >
+          Continue
+          <GhlIcon name="arrowRight" size={16} />
+        </button>
+      </div>
     </div>
   );
+}
+
+function formatDomainSelection(selected: DomainChoice[]) {
+  if (selected.length === 0) return undefined;
+  if (selected.length === 1) return selected[0].label;
+  if (selected.length === 2) {
+    return `${selected[0].label}, ${selected[1].label}`;
+  }
+  return `${selected[0].label}, ${selected[1].label} +${selected.length - 2}`;
 }
 
 function AccountForm({
@@ -805,7 +855,7 @@ function CompletionStep({
         Your {destination} is ready.
       </h1>
       <p className="mt-3 max-w-[500px] text-[15px] leading-7 text-gray-500">
-        Kollab is tuned for {domain ?? "your interests"} and ready to show the
+        Kollab is tuned around {domain ?? "your interests"} and ready to show the
         first set of courses, communities, and creators.
       </p>
       <Link

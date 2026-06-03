@@ -895,6 +895,7 @@ function ExperiencePanel({
   const accentSoft = !intent ? "#62D2FF" : isLearner ? "#7C83FF" : "#9B5CFF";
   const focusIcon = getFocusIcon(intent, buildChoice, learnChoice);
   const activePillar = getActivePillar(intent, buildChoice, learnChoice);
+  const modeGlyph = getModeGlyph(intent);
   const eyebrow = intent ? modeLabel : "Kollab";
 
   const progress =
@@ -956,7 +957,7 @@ function ExperiencePanel({
         ) : (
           <KollabConstellation
             accent={accent}
-            focusIcon={focusIcon}
+            centerIcon={modeGlyph}
             activePillar={activePillar}
           />
         )}
@@ -1049,15 +1050,16 @@ const KOLLAB_PILLARS: { key: PillarKey; icon: GhlIconName; label: string }[] = [
 ];
 
 // Default Kollab-native concept: the three pillars (courses, communities,
-// creators) orbit a central morphing focus glyph. The pillar matching the
-// user's choice lights up; mode drives the accent color.
+// creators) orbit a central mode glyph (rocket / search / spark) that never
+// repeats a pillar icon. The pillar matching the user's choice lights up;
+// mode drives the accent color and the center glyph.
 function KollabConstellation({
   accent,
-  focusIcon,
+  centerIcon,
   activePillar,
 }: {
   accent: string;
-  focusIcon: GhlIconName;
+  centerIcon: GhlIconName;
   activePillar: PillarKey | null;
 }) {
   const radius = 116;
@@ -1128,7 +1130,7 @@ function KollabConstellation({
         })}
       </motion.div>
 
-      <OrbCore focusIcon={focusIcon} size={104} iconSize={30} />
+      <OrbCore focusIcon={centerIcon} size={104} iconSize={30} />
     </motion.div>
   );
 }
@@ -1459,6 +1461,15 @@ function getActivePillar(
   if (buildChoice === "course") return "courses";
   if (buildChoice === "community") return "communities";
   return null;
+}
+
+// Center glyph for the Kollab constellation. Distinct from every pillar icon
+// (book / users / badge) in all states, so the center never duplicates an
+// orbiting pillar icon.
+function getModeGlyph(intent: Intent | null): GhlIconName {
+  if (intent === "learn") return "search";
+  if (intent === "create") return "rocket";
+  return "sparkles";
 }
 
 function GhlIcon({

@@ -891,8 +891,8 @@ function ExperiencePanel({
   const focusLabel = getFocusLabel(intent, buildChoice, learnChoice);
   const hasFocus = isLearner ? learnChoice !== null : buildChoice !== null;
 
-  const accent = !intent ? "#8E93FF" : isLearner ? "#4CC5FF" : "#F472C8";
-  const accentSoft = !intent ? "#62D2FF" : isLearner ? "#7C83FF" : "#9B5CFF";
+  const accent = "#343DE5";
+  const accentSoft = "#343DE5";
   const focusIcon = getFocusIcon(intent, buildChoice, learnChoice);
   const activePillar = getActivePillar(intent, buildChoice, learnChoice);
   const modeGlyph = getModeGlyph(intent);

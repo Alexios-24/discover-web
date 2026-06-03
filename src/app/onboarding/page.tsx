@@ -386,7 +386,7 @@ function OnboardingFlow() {
         <Header step={visibleStep} />
         <BackControl onBack={goBack} />
 
-        <div className="flex flex-1 items-center px-5 py-10 sm:px-10 lg:px-[72px] xl:pl-0 xl:pr-[40vw]">
+        <div className="flex flex-1 items-center px-5 py-10 sm:px-10 lg:px-[72px] xl:pl-0 xl:pr-[35vw]">
           <div className="mx-auto w-full max-w-[640px]">
               <AnimatePresence mode="wait">
                 {complete ? (
@@ -920,7 +920,7 @@ function ExperiencePanel({
   return (
     <aside
       className="fixed bottom-0 right-0 top-20 z-20 hidden items-center justify-center overflow-hidden px-6 py-10 xl:flex"
-      style={{ width: "40vw" }}
+      style={{ width: "35vw" }}
     >
       <div
         aria-hidden

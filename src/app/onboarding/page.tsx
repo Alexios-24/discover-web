@@ -1042,11 +1042,12 @@ function OrbCaption({
 }
 
 type PillarKey = "courses" | "communities" | "creators";
+type PillarIconName = GhlIconName | "creator";
 
-const KOLLAB_PILLARS: { key: PillarKey; icon: GhlIconName; label: string }[] = [
+const KOLLAB_PILLARS: { key: PillarKey; icon: PillarIconName; label: string }[] = [
   { key: "courses", icon: "book", label: "Courses" },
   { key: "communities", icon: "users", label: "Communities" },
-  { key: "creators", icon: "badge", label: "Creators" },
+  { key: "creators", icon: "creator", label: "Creators" },
 ];
 
 // Default Kollab-native concept: the three pillars (courses, communities,
@@ -1141,7 +1142,7 @@ function PillarNode({
   accent,
   size,
 }: {
-  icon: GhlIconName;
+  icon: PillarIconName;
   active: boolean;
   accent: string;
   size: number;
@@ -1161,8 +1162,67 @@ function PillarNode({
       }}
       transition={{ duration: 0.5, ease: [0.22, 0.85, 0.25, 1] }}
     >
-      <GhlIcon name={icon} size={20} />
+      {icon === "creator" ? (
+        <CreatorPillarIcon size={20} />
+      ) : (
+        <GhlIcon name={icon} size={20} />
+      )}
     </motion.div>
+  );
+}
+
+function CreatorPillarIcon({
+  size = 20,
+  className,
+}: {
+  size?: number;
+  className?: string;
+}) {
+  return (
+    <svg
+      aria-hidden="true"
+      className={className}
+      fill="none"
+      height={size}
+      viewBox="0 0 24 24"
+      width={size}
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <rect
+        height="13.5"
+        rx="3"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+        width="13.5"
+        x="3.75"
+        y="5.25"
+      />
+      <circle
+        cx="10.5"
+        cy="10.25"
+        r="1.9"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+      />
+      <path
+        d="M7.25 15.75c.7-1.45 1.8-2.18 3.25-2.18s2.55.73 3.25 2.18"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+      />
+      <path
+        d="m15.75 7.5 1.35 1.35 3.15-3.55"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+      />
+    </svg>
   );
 }
 

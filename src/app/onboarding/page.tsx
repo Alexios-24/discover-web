@@ -162,12 +162,6 @@ const learnChoices: Choice<LearnChoice>[] = [
     description: "Experts, builders, and operators you can keep following.",
     icon: "badge",
   },
-  {
-    value: "all",
-    title: "A little of everything",
-    description: "Keep recommendations broad while Kollab learns your taste.",
-    icon: "sparkles",
-  },
 ];
 
 const domainChoices: DomainChoice[] = [

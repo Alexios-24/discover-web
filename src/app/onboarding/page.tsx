@@ -1,7 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState, type FormEvent, type ReactNode } from "react";
+import { useSearchParams } from "next/navigation";
+import {
+  Suspense,
+  useMemo,
+  useState,
+  type FormEvent,
+  type ReactNode,
+} from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowLeft,
@@ -196,6 +203,23 @@ const stepMotion = {
 };
 
 export default function OnboardingPage() {
+  return (
+    <Suspense
+      fallback={<main className="min-h-screen w-full bg-[#f7f8fb]" />}
+    >
+      <OnboardingFlow />
+    </Suspense>
+  );
+}
+
+type OrbVariant = 1 | 2 | 3;
+
+function OnboardingFlow() {
+  const searchParams = useSearchParams();
+  const orbParam = searchParams.get("orb");
+  const orbVariant: OrbVariant =
+    orbParam === "2" ? 2 : orbParam === "3" ? 3 : 1;
+
   const [step, setStep] = useState(0);
   const [intent, setIntent] = useState<Intent | null>(null);
   const [buildChoice, setBuildChoice] = useState<BuildChoice | null>(null);
@@ -393,6 +417,7 @@ export default function OnboardingPage() {
           domain={selectedDomain?.label}
           domainIcon={selectedDomain?.icon}
           complete={complete}
+          variant={orbVariant}
         />
       </div>
     </main>
@@ -734,6 +759,7 @@ function ExperiencePanel({
   domain,
   domainIcon,
   complete,
+  variant,
 }: {
   intent: Intent | null;
   buildChoice: BuildChoice | null;
@@ -741,6 +767,7 @@ function ExperiencePanel({
   domain?: string;
   domainIcon?: GhlIconName;
   complete: boolean;
+  variant: OrbVariant;
 }) {
   const isLearner = intent === "learn";
   const modeLabel = isLearner ? "Discovery feed" : "Creator workspace";
@@ -748,8 +775,13 @@ function ExperiencePanel({
   const hasFocus = isLearner ? learnChoice !== null : buildChoice !== null;
 
   const accent = !intent ? "#8E93FF" : isLearner ? "#4CC5FF" : "#F472C8";
+  const accentSoft = !intent ? "#62D2FF" : isLearner ? "#7C83FF" : "#9B5CFF";
   const focusIcon = getFocusIcon(intent, buildChoice, learnChoice);
   const eyebrow = intent ? modeLabel : "Kollab";
+
+  const progress =
+    [intent !== null, hasFocus, Boolean(domain), complete].filter(Boolean)
+      .length / 4;
 
   let headline: string;
   if (complete) {
@@ -765,9 +797,6 @@ function ExperiencePanel({
   } else {
     headline = `${domain}, locked in.`;
   }
-
-  const ringMask =
-    "radial-gradient(closest-side, transparent 73%, #000 75%, #000 100%)";
 
   return (
     <aside className="relative hidden min-w-0 overflow-hidden lg:flex lg:min-h-screen lg:items-center lg:justify-center lg:px-12 lg:py-16">
@@ -787,114 +816,359 @@ function ExperiencePanel({
         }}
         transition={{ duration: 1.1, ease: "easeOut" }}
       />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 opacity-[0.06] mix-blend-soft-light"
+        style={{
+          backgroundImage:
+            "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")",
+        }}
+      />
 
       <div className="relative z-10 flex flex-col items-center text-center">
-        {/* Kollab aura — one breathing orb that reflects the user's choices */}
-        <motion.div
-          className="relative flex size-[260px] items-center justify-center"
-          animate={{ y: [0, -10, 0] }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-        >
-          <motion.div
-            aria-hidden
-            className="absolute inset-0 rounded-full"
-            style={{
-              WebkitMaskImage: ringMask,
-              maskImage: ringMask,
-            }}
-            animate={{
-              rotate: 360,
-              background: `conic-gradient(from 0deg, transparent 0%, ${accent}00 12%, ${accent} 30%, #ffffff 50%, ${accent} 70%, ${accent}00 88%, transparent 100%)`,
-            }}
-            transition={{
-              rotate: { duration: 26, repeat: Infinity, ease: "linear" },
-              background: { duration: 1.1, ease: "easeOut" },
-            }}
-          />
+        {variant === 2 ? (
+          <AuroraOrb accent={accent} accentSoft={accentSoft} focusIcon={focusIcon} />
+        ) : variant === 3 ? (
+          <HaloOrb accent={accent} focusIcon={focusIcon} progress={progress} />
+        ) : (
+          <OrbitOrb accent={accent} focusIcon={focusIcon} />
+        )}
 
-          <motion.div
-            aria-hidden
-            className="absolute size-[150px] rounded-full blur-[42px]"
-            animate={{
-              backgroundColor: accent,
-              scale: [1, 1.12, 1],
-              opacity: [0.5, 0.78, 0.5],
-            }}
-            transition={{
-              backgroundColor: { duration: 1.1, ease: "easeOut" },
-              scale: { duration: 6, repeat: Infinity, ease: "easeInOut" },
-              opacity: { duration: 6, repeat: Infinity, ease: "easeInOut" },
-            }}
-          />
-
-          <div className="relative flex size-[116px] items-center justify-center rounded-full border border-white/15 bg-white/[0.06] text-white shadow-[inset_0_1px_1px_rgba(255,255,255,0.28)] backdrop-blur-md">
-            <AnimatePresence mode="wait">
-              <motion.span
-                key={focusIcon}
-                initial={{ opacity: 0, scale: 0.7 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.7 }}
-                transition={{ duration: 0.32, ease: [0.22, 0.85, 0.25, 1] }}
-              >
-                <GhlIcon name={focusIcon} size={34} />
-              </motion.span>
-            </AnimatePresence>
-          </div>
-        </motion.div>
-
-        {/* Kinetic caption that morphs with each step */}
-        <div className="mt-16 flex flex-col items-center">
-          <AnimatePresence mode="wait">
-            <motion.p
-              key={eyebrow}
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -6 }}
-              transition={{ duration: 0.3, ease: [0.22, 0.85, 0.25, 1] }}
-              className="text-[12px] font-semibold uppercase tracking-[0.24em]"
-              style={{ color: accent }}
-            >
-              {eyebrow}
-            </motion.p>
-          </AnimatePresence>
-
-          <AnimatePresence mode="wait">
-            <motion.h2
-              key={headline}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.36, ease: [0.22, 0.85, 0.25, 1] }}
-              className="mt-3 max-w-[360px] font-montserrat text-[27px] font-bold leading-9 tracking-[-0.5px] text-white"
-            >
-              {headline}
-            </motion.h2>
-          </AnimatePresence>
-
-          <div className="mt-6 h-9">
-            <AnimatePresence>
-              {domain ? (
-                <motion.div
-                  key="topic"
-                  initial={{ opacity: 0, y: 8, scale: 0.96 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -6, scale: 0.96 }}
-                  transition={{ duration: 0.34, ease: [0.22, 0.85, 0.25, 1] }}
-                  className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-[13px] font-semibold text-white/90 backdrop-blur"
-                >
-                  {domainIcon ? (
-                    <span style={{ color: accent }}>
-                      <GhlIcon name={domainIcon} size={15} />
-                    </span>
-                  ) : null}
-                  {domain}
-                </motion.div>
-              ) : null}
-            </AnimatePresence>
-          </div>
-        </div>
+        <OrbCaption
+          accent={accent}
+          eyebrow={eyebrow}
+          headline={headline}
+          domain={domain}
+          domainIcon={domainIcon}
+        />
       </div>
     </aside>
+  );
+}
+
+function OrbCaption({
+  accent,
+  eyebrow,
+  headline,
+  domain,
+  domainIcon,
+}: {
+  accent: string;
+  eyebrow: string;
+  headline: string;
+  domain?: string;
+  domainIcon?: GhlIconName;
+}) {
+  return (
+    <div className="mt-16 flex flex-col items-center">
+      <AnimatePresence mode="wait">
+        <motion.p
+          key={eyebrow}
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -6 }}
+          transition={{ duration: 0.3, ease: [0.22, 0.85, 0.25, 1] }}
+          className="text-[12px] font-semibold uppercase tracking-[0.24em]"
+          style={{ color: accent }}
+        >
+          {eyebrow}
+        </motion.p>
+      </AnimatePresence>
+
+      <AnimatePresence mode="wait">
+        <motion.h2
+          key={headline}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          transition={{ duration: 0.36, ease: [0.22, 0.85, 0.25, 1] }}
+          className="mt-3 max-w-[360px] font-montserrat text-[27px] font-bold leading-9 tracking-[-0.5px] text-white"
+        >
+          {headline}
+        </motion.h2>
+      </AnimatePresence>
+
+      <div className="mt-6 h-9">
+        <AnimatePresence>
+          {domain ? (
+            <motion.div
+              key="topic"
+              initial={{ opacity: 0, y: 8, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -6, scale: 0.96 }}
+              transition={{ duration: 0.34, ease: [0.22, 0.85, 0.25, 1] }}
+              className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-[13px] font-semibold text-white/90 backdrop-blur"
+            >
+              {domainIcon ? (
+                <span style={{ color: accent }}>
+                  <GhlIcon name={domainIcon} size={15} />
+                </span>
+              ) : null}
+              {domain}
+            </motion.div>
+          ) : null}
+        </AnimatePresence>
+      </div>
+    </div>
+  );
+}
+
+function OrbCore({
+  focusIcon,
+  size,
+  iconSize,
+}: {
+  focusIcon: GhlIconName;
+  size: number;
+  iconSize: number;
+}) {
+  return (
+    <div
+      className="relative flex items-center justify-center rounded-full border border-white/15 bg-white/[0.06] text-white backdrop-blur-md"
+      style={{
+        width: size,
+        height: size,
+        boxShadow:
+          "inset 0 2px 3px rgba(255,255,255,0.30), inset 0 -10px 22px rgba(0,0,0,0.35)",
+      }}
+    >
+      <span
+        aria-hidden
+        className="absolute left-1/2 top-[14%] h-1/4 w-1/2 -translate-x-1/2 rounded-full bg-white/35 blur-md"
+      />
+      <span className="relative">
+        <AnimatePresence mode="wait">
+          <motion.span
+            key={focusIcon}
+            initial={{ opacity: 0, scale: 0.7 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.7 }}
+            transition={{ duration: 0.32, ease: [0.22, 0.85, 0.25, 1] }}
+            className="block"
+          >
+            <GhlIcon name={focusIcon} size={iconSize} />
+          </motion.span>
+        </AnimatePresence>
+      </span>
+    </div>
+  );
+}
+
+// Variant 1 (default): layered "Orbit" — concentric rings at different speeds,
+// breathing glow, and a glass core with realistic inner light.
+function OrbitOrb({
+  accent,
+  focusIcon,
+}: {
+  accent: string;
+  focusIcon: GhlIconName;
+}) {
+  const outerMask = "radial-gradient(closest-side, transparent 78%, #000 80%)";
+  const midMask = "radial-gradient(closest-side, transparent 80%, #000 82%)";
+
+  return (
+    <motion.div
+      className="relative flex size-[280px] items-center justify-center"
+      animate={{ y: [0, -10, 0] }}
+      transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+    >
+      <motion.div
+        aria-hidden
+        className="absolute inset-0 rounded-full"
+        style={{ WebkitMaskImage: outerMask, maskImage: outerMask }}
+        animate={{
+          rotate: 360,
+          background: `conic-gradient(from 0deg, transparent 0%, ${accent}00 10%, ${accent} 32%, #ffffff 50%, ${accent} 68%, ${accent}00 90%, transparent 100%)`,
+        }}
+        transition={{
+          rotate: { duration: 32, repeat: Infinity, ease: "linear" },
+          background: { duration: 1.1, ease: "easeOut" },
+        }}
+      />
+
+      <motion.div
+        aria-hidden
+        className="absolute size-[212px] rounded-full"
+        style={{
+          WebkitMaskImage: midMask,
+          maskImage: midMask,
+          background:
+            "conic-gradient(from 0deg, transparent 0%, rgba(255,255,255,0) 22%, rgba(255,255,255,0.85) 50%, rgba(255,255,255,0) 78%, transparent 100%)",
+        }}
+        animate={{ rotate: -360 }}
+        transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+      />
+
+      <motion.div
+        aria-hidden
+        className="absolute size-[150px] rounded-full blur-[44px]"
+        animate={{
+          backgroundColor: accent,
+          scale: [1, 1.12, 1],
+          opacity: [0.5, 0.78, 0.5],
+        }}
+        transition={{
+          backgroundColor: { duration: 1.1, ease: "easeOut" },
+          scale: { duration: 6, repeat: Infinity, ease: "easeInOut" },
+          opacity: { duration: 6, repeat: Infinity, ease: "easeInOut" },
+        }}
+      />
+
+      <OrbCore focusIcon={focusIcon} size={124} iconSize={36} />
+    </motion.div>
+  );
+}
+
+// Variant 2: "Aurora" — drifting, blurred nebula blobs around a calm bright core.
+function AuroraOrb({
+  accent,
+  accentSoft,
+  focusIcon,
+}: {
+  accent: string;
+  accentSoft: string;
+  focusIcon: GhlIconName;
+}) {
+  return (
+    <div className="relative flex size-[320px] items-center justify-center">
+      <motion.div
+        aria-hidden
+        className="absolute size-[190px] rounded-full blur-[55px]"
+        style={{ top: 26, left: 22 }}
+        animate={{
+          backgroundColor: accent,
+          x: [0, 26, -10, 0],
+          y: [0, -18, 14, 0],
+          scale: [1, 1.15, 0.95, 1],
+        }}
+        transition={{
+          backgroundColor: { duration: 1.2, ease: "easeOut" },
+          x: { duration: 16, repeat: Infinity, ease: "easeInOut" },
+          y: { duration: 18, repeat: Infinity, ease: "easeInOut" },
+          scale: { duration: 14, repeat: Infinity, ease: "easeInOut" },
+        }}
+      />
+      <motion.div
+        aria-hidden
+        className="absolute size-[170px] rounded-full blur-[55px]"
+        style={{ bottom: 24, right: 26 }}
+        animate={{
+          backgroundColor: accentSoft,
+          x: [0, -24, 12, 0],
+          y: [0, 16, -12, 0],
+          scale: [1, 0.92, 1.12, 1],
+        }}
+        transition={{
+          backgroundColor: { duration: 1.2, ease: "easeOut" },
+          x: { duration: 19, repeat: Infinity, ease: "easeInOut" },
+          y: { duration: 15, repeat: Infinity, ease: "easeInOut" },
+          scale: { duration: 17, repeat: Infinity, ease: "easeInOut" },
+        }}
+      />
+      <motion.div
+        aria-hidden
+        className="absolute size-[140px] rounded-full blur-[50px] opacity-70"
+        animate={{
+          backgroundColor: "#ffffff",
+          x: [0, 14, -16, 0],
+          y: [0, 12, -10, 0],
+        }}
+        transition={{
+          x: { duration: 21, repeat: Infinity, ease: "easeInOut" },
+          y: { duration: 23, repeat: Infinity, ease: "easeInOut" },
+        }}
+      />
+
+      <motion.div
+        className="relative"
+        animate={{ y: [0, -8, 0] }}
+        transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
+      >
+        <OrbCore focusIcon={focusIcon} size={108} iconSize={32} />
+      </motion.div>
+    </div>
+  );
+}
+
+// Variant 3: "Halo" — a precise mono ring with a thin accent progress arc
+// that fills as the user advances. A leading dot tracks the arc's edge.
+function HaloOrb({
+  accent,
+  focusIcon,
+  progress,
+}: {
+  accent: string;
+  focusIcon: GhlIconName;
+  progress: number;
+}) {
+  const radius = 120;
+  const circumference = 2 * Math.PI * radius;
+
+  return (
+    <motion.div
+      className="relative flex size-[260px] items-center justify-center"
+      animate={{ y: [0, -8, 0] }}
+      transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
+    >
+      <motion.div
+        aria-hidden
+        className="absolute size-[150px] rounded-full blur-[46px]"
+        animate={{ backgroundColor: accent, opacity: [0.22, 0.4, 0.22] }}
+        transition={{
+          backgroundColor: { duration: 1.1, ease: "easeOut" },
+          opacity: { duration: 6, repeat: Infinity, ease: "easeInOut" },
+        }}
+      />
+
+      <svg
+        viewBox="0 0 260 260"
+        className="absolute inset-0 size-full -rotate-90"
+        fill="none"
+      >
+        <circle
+          cx="130"
+          cy="130"
+          r={radius}
+          stroke="rgba(255,255,255,0.12)"
+          strokeWidth="2.5"
+        />
+        <circle
+          cx="130"
+          cy="130"
+          r="92"
+          stroke="rgba(255,255,255,0.07)"
+          strokeWidth="1.5"
+        />
+        <motion.circle
+          cx="130"
+          cy="130"
+          r={radius}
+          stroke={accent}
+          strokeWidth="3"
+          strokeLinecap="round"
+          strokeDasharray={circumference}
+          animate={{
+            strokeDashoffset: circumference * (1 - progress),
+            stroke: accent,
+          }}
+          transition={{ duration: 0.8, ease: [0.22, 0.85, 0.25, 1] }}
+        />
+      </svg>
+
+      <motion.div
+        aria-hidden
+        className="absolute inset-0"
+        animate={{ rotate: progress * 360 }}
+        transition={{ duration: 0.8, ease: [0.22, 0.85, 0.25, 1] }}
+      >
+        <span
+          className="absolute left-1/2 top-[10px] size-2.5 -translate-x-1/2 rounded-full"
+          style={{ backgroundColor: accent, boxShadow: `0 0 12px ${accent}` }}
+        />
+      </motion.div>
+
+      <OrbCore focusIcon={focusIcon} size={120} iconSize={34} />
+    </motion.div>
   );
 }
 

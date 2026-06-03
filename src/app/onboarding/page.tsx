@@ -381,7 +381,7 @@ function OnboardingFlow() {
         <Header step={visibleStep} />
         <BackControl onBack={goBack} />
 
-        <div className="flex flex-1 items-center px-5 py-10 sm:px-10 lg:px-[72px]">
+        <div className="flex flex-1 items-center px-5 py-10 sm:px-10 lg:px-[72px] xl:pl-0 xl:pr-[calc(50vw-360px)]">
           <div className="mx-auto w-full max-w-[640px]">
               <AnimatePresence mode="wait">
                 {complete ? (

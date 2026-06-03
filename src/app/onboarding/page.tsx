@@ -141,12 +141,6 @@ const buildChoices: Choice<BuildChoice>[] = [
     description: "Discussions, live sessions, events, and memberships.",
     icon: "users",
   },
-  {
-    value: "both",
-    title: "Course plus community",
-    description: "A learning product with content and conversation together.",
-    icon: "sparkles",
-  },
 ];
 
 const learnChoices: Choice<LearnChoice>[] = [

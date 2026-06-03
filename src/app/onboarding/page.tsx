@@ -202,6 +202,78 @@ const stepMotion = {
   transition: { duration: 0.32, ease: [0.22, 0.85, 0.25, 1] as const },
 };
 
+// --- Subtle, asset-free sound cues via Web Audio API ---
+let sharedAudioContext: AudioContext | null = null;
+
+function getAudioContext(): AudioContext | null {
+  if (typeof window === "undefined") return null;
+  try {
+    if (!sharedAudioContext) {
+      const Ctor =
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext?: typeof AudioContext })
+          .webkitAudioContext;
+      if (!Ctor) return null;
+      sharedAudioContext = new Ctor();
+    }
+    if (sharedAudioContext.state === "suspended") {
+      void sharedAudioContext.resume();
+    }
+    return sharedAudioContext;
+  } catch {
+    return null;
+  }
+}
+
+function playNotes(
+  notes: { freq: number; start: number; dur: number }[],
+  peak = 0.05,
+) {
+  const ctx = getAudioContext();
+  if (!ctx) return;
+  try {
+    const now = ctx.currentTime;
+    for (const note of notes) {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.value = note.freq;
+      const t0 = now + note.start;
+      gain.gain.setValueAtTime(0.0001, t0);
+      gain.gain.exponentialRampToValueAtTime(peak, t0 + 0.014);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t0 + note.dur);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(t0);
+      osc.stop(t0 + note.dur + 0.03);
+    }
+  } catch {
+    // Web Audio unavailable or blocked — fail silently.
+  }
+}
+
+// Gentle two-note rise when moving to the next step.
+function playAdvanceChime() {
+  playNotes(
+    [
+      { freq: 587.33, start: 0, dur: 0.16 },
+      { freq: 880.0, start: 0.07, dur: 0.2 },
+    ],
+    0.045,
+  );
+}
+
+// Slightly richer ascending arpeggio on completion.
+function playCompleteChime() {
+  playNotes(
+    [
+      { freq: 523.25, start: 0, dur: 0.22 },
+      { freq: 659.25, start: 0.09, dur: 0.26 },
+      { freq: 783.99, start: 0.18, dur: 0.5 },
+    ],
+    0.055,
+  );
+}
+
 export default function OnboardingPage() {
   return (
     <Suspense
@@ -212,13 +284,19 @@ export default function OnboardingPage() {
   );
 }
 
-type OrbVariant = 1 | 2 | 3;
+type OrbVariant = "kollab" | 1 | 2 | 3;
 
 function OnboardingFlow() {
   const searchParams = useSearchParams();
   const orbParam = searchParams.get("orb");
   const orbVariant: OrbVariant =
-    orbParam === "2" ? 2 : orbParam === "3" ? 3 : 1;
+    orbParam === "1"
+      ? 1
+      : orbParam === "2"
+        ? 2
+        : orbParam === "3"
+          ? 3
+          : "kollab";
 
   const [step, setStep] = useState(0);
   const [intent, setIntent] = useState<Intent | null>(null);
@@ -261,6 +339,7 @@ function OnboardingFlow() {
   };
 
   const advance = (nextStep: number) => {
+    playAdvanceChime();
     window.setTimeout(() => setStep(nextStep), 160);
   };
 
@@ -292,14 +371,16 @@ function OnboardingFlow() {
   const submitAccount = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!canCreateAccount) return;
+    playCompleteChime();
     setComplete(true);
   };
 
   return (
     <main className="min-h-screen w-full overflow-x-hidden bg-[#f7f8fb] text-gray-900">
-      <div className="grid min-h-screen grid-cols-[minmax(0,1fr)] lg:grid-cols-[minmax(0,52vw)_minmax(420px,1fr)]">
+      <div className="grid min-h-screen grid-cols-[minmax(0,1fr)] lg:grid-cols-[minmax(0,65fr)_minmax(360px,35fr)]">
         <section className="relative flex min-h-screen min-w-0 flex-col bg-white">
-          <Header step={visibleStep} onBack={goBack} />
+          <Header step={visibleStep} />
+          <BackControl onBack={goBack} />
 
           <div className="flex flex-1 items-center px-5 py-10 sm:px-10 lg:px-[72px]">
             <div className="mx-auto w-full max-w-[640px]">
@@ -424,15 +505,9 @@ function OnboardingFlow() {
   );
 }
 
-function Header({
-  step,
-  onBack,
-}: {
-  step: number;
-  onBack: () => void;
-}) {
+function Header({ step }: { step: number }) {
   return (
-    <header className="sticky top-0 z-40 flex h-20 items-center justify-between border-b border-gray-200 bg-white/90 px-5 backdrop-blur-xl sm:px-10 lg:px-[72px]">
+    <header className="sticky top-0 z-40 flex h-20 items-center border-b border-gray-200 bg-white/90 px-5 backdrop-blur-xl sm:px-10 lg:px-[72px]">
       <Link href="/" aria-label="Kollab home" className="flex h-8 items-center">
         <img
           src="/kollab-logo-light.png"
@@ -444,27 +519,33 @@ function Header({
         />
       </Link>
 
-      <div className="absolute left-1/2 flex -translate-x-1/2 items-center gap-2">
+      <div className="absolute left-1/2 flex -translate-x-1/2 items-center gap-1.5">
         {[0, 1, 2, 3].map((index) => (
           <span
             key={index}
             aria-label={`Step ${index + 1}`}
-            className={`h-1.5 rounded-full transition-all duration-200 ${
-              index <= Math.min(step, 3) ? "w-8 bg-[#343DE5]" : "w-2 bg-gray-200"
+            className={`h-[3px] rounded-full transition-all duration-200 ${
+              index <= Math.min(step, 3)
+                ? "w-5 bg-[#343DE5]"
+                : "w-1.5 bg-gray-200"
             }`}
           />
         ))}
       </div>
-
-      <button
-        type="button"
-        onClick={onBack}
-        aria-label="Go back"
-        className="inline-flex size-10 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-500 shadow-xs transition-all duration-150 hover:bg-gray-50 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-indigo-100 active:scale-[0.97]"
-      >
-        <GhlIcon name="arrowLeft" size={18} />
-      </button>
     </header>
+  );
+}
+
+function BackControl({ onBack }: { onBack: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onBack}
+      className="absolute left-5 top-24 z-30 inline-flex items-center gap-2 rounded-full px-1.5 py-1 text-[13px] font-medium leading-5 text-gray-400 transition-colors duration-150 hover:text-gray-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-indigo-100 sm:left-10 lg:left-[72px]"
+    >
+      <GhlIcon name="arrowLeft" size={15} />
+      Back
+    </button>
   );
 }
 
@@ -777,6 +858,7 @@ function ExperiencePanel({
   const accent = !intent ? "#8E93FF" : isLearner ? "#4CC5FF" : "#F472C8";
   const accentSoft = !intent ? "#62D2FF" : isLearner ? "#7C83FF" : "#9B5CFF";
   const focusIcon = getFocusIcon(intent, buildChoice, learnChoice);
+  const activePillar = getActivePillar(intent, buildChoice, learnChoice);
   const eyebrow = intent ? modeLabel : "Kollab";
 
   const progress =
@@ -826,12 +908,18 @@ function ExperiencePanel({
       />
 
       <div className="relative z-10 flex flex-col items-center text-center">
-        {variant === 2 ? (
+        {variant === 1 ? (
+          <OrbitOrb accent={accent} focusIcon={focusIcon} />
+        ) : variant === 2 ? (
           <AuroraOrb accent={accent} accentSoft={accentSoft} focusIcon={focusIcon} />
         ) : variant === 3 ? (
           <HaloOrb accent={accent} focusIcon={focusIcon} progress={progress} />
         ) : (
-          <OrbitOrb accent={accent} focusIcon={focusIcon} />
+          <KollabConstellation
+            accent={accent}
+            focusIcon={focusIcon}
+            activePillar={activePillar}
+          />
         )}
 
         <OrbCaption
@@ -910,6 +998,130 @@ function OrbCaption({
         </AnimatePresence>
       </div>
     </div>
+  );
+}
+
+type PillarKey = "courses" | "communities" | "creators";
+
+const KOLLAB_PILLARS: { key: PillarKey; icon: GhlIconName; label: string }[] = [
+  { key: "courses", icon: "book", label: "Courses" },
+  { key: "communities", icon: "users", label: "Communities" },
+  { key: "creators", icon: "badge", label: "Creators" },
+];
+
+// Default Kollab-native concept: the three pillars (courses, communities,
+// creators) orbit a central morphing focus glyph. The pillar matching the
+// user's choice lights up; mode drives the accent color.
+function KollabConstellation({
+  accent,
+  focusIcon,
+  activePillar,
+}: {
+  accent: string;
+  focusIcon: GhlIconName;
+  activePillar: PillarKey | null;
+}) {
+  const radius = 116;
+  const nodeSize = 48;
+
+  return (
+    <motion.div
+      className="relative flex size-[300px] items-center justify-center"
+      animate={{ y: [0, -10, 0] }}
+      transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
+    >
+      <motion.div
+        aria-hidden
+        className="absolute size-[150px] rounded-full blur-[46px]"
+        animate={{
+          backgroundColor: accent,
+          scale: [1, 1.1, 1],
+          opacity: [0.4, 0.62, 0.4],
+        }}
+        transition={{
+          backgroundColor: { duration: 1.1, ease: "easeOut" },
+          scale: { duration: 6, repeat: Infinity, ease: "easeInOut" },
+          opacity: { duration: 6, repeat: Infinity, ease: "easeInOut" },
+        }}
+      />
+
+      <div
+        aria-hidden
+        className="absolute rounded-full border border-white/10"
+        style={{ width: radius * 2, height: radius * 2 }}
+      />
+      <div
+        aria-hidden
+        className="absolute rounded-full border border-white/[0.05]"
+        style={{ width: radius * 2 - 56, height: radius * 2 - 56 }}
+      />
+
+      <motion.div
+        className="absolute inset-0"
+        animate={{ rotate: 360 }}
+        transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
+      >
+        {KOLLAB_PILLARS.map((pillar, index) => {
+          const angle = index * 120;
+          return (
+            <div
+              key={pillar.key}
+              className="absolute left-1/2 top-1/2"
+              style={{
+                marginLeft: -nodeSize / 2,
+                marginTop: -nodeSize / 2,
+                transform: `rotate(${angle}deg) translateY(-${radius}px) rotate(${-angle}deg)`,
+              }}
+            >
+              <motion.div
+                animate={{ rotate: -360 }}
+                transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
+              >
+                <PillarNode
+                  icon={pillar.icon}
+                  active={activePillar === pillar.key}
+                  accent={accent}
+                  size={nodeSize}
+                />
+              </motion.div>
+            </div>
+          );
+        })}
+      </motion.div>
+
+      <OrbCore focusIcon={focusIcon} size={104} iconSize={30} />
+    </motion.div>
+  );
+}
+
+function PillarNode({
+  icon,
+  active,
+  accent,
+  size,
+}: {
+  icon: GhlIconName;
+  active: boolean;
+  accent: string;
+  size: number;
+}) {
+  return (
+    <motion.div
+      className="flex items-center justify-center rounded-2xl border backdrop-blur-md"
+      style={{ width: size, height: size }}
+      animate={{
+        backgroundColor: active ? accent : "rgba(255,255,255,0.06)",
+        borderColor: active ? accent : "rgba(255,255,255,0.14)",
+        color: active ? "#ffffff" : "rgba(255,255,255,0.55)",
+        scale: active ? 1.12 : 1,
+        boxShadow: active
+          ? `0 0 24px ${accent}66`
+          : "0 0 0 rgba(0,0,0,0)",
+      }}
+      transition={{ duration: 0.5, ease: [0.22, 0.85, 0.25, 1] }}
+    >
+      <GhlIcon name={icon} size={20} />
+    </motion.div>
   );
 }
 
@@ -1191,6 +1403,23 @@ function getFocusIcon(
   if (buildChoice === "both") return "sparkles";
   if (buildChoice === "course") return "book";
   return "rocket";
+}
+
+function getActivePillar(
+  intent: Intent | null,
+  buildChoice: BuildChoice | null,
+  learnChoice: LearnChoice | null,
+): PillarKey | null {
+  if (intent === "learn") {
+    if (learnChoice === "courses") return "courses";
+    if (learnChoice === "communities") return "communities";
+    if (learnChoice === "creators") return "creators";
+    return null;
+  }
+
+  if (buildChoice === "course") return "courses";
+  if (buildChoice === "community") return "communities";
+  return null;
 }
 
 function GhlIcon({

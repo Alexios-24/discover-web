@@ -376,14 +376,13 @@ function OnboardingFlow() {
   };
 
   return (
-    <main className="min-h-screen w-full overflow-x-hidden bg-[#f7f8fb] text-gray-900">
-      <div className="grid min-h-screen grid-cols-[minmax(0,1fr)] lg:grid-cols-[minmax(0,65fr)_minmax(360px,35fr)]">
-        <section className="relative flex min-h-screen min-w-0 flex-col bg-white">
-          <Header step={visibleStep} />
-          <BackControl onBack={goBack} />
+    <main className="relative min-h-screen w-full overflow-x-hidden bg-[#f7f8fb] text-gray-900">
+      <section className="relative flex min-h-screen flex-col bg-white">
+        <Header step={visibleStep} />
+        <BackControl onBack={goBack} />
 
-          <div className="flex flex-1 items-center px-5 py-10 sm:px-10 lg:px-[72px]">
-            <div className="mx-auto w-full max-w-[640px]">
+        <div className="flex flex-1 items-center px-5 py-10 sm:px-10 lg:px-[72px]">
+          <div className="mx-auto w-full max-w-[640px]">
               <AnimatePresence mode="wait">
                 {complete ? (
                   <CompletionStep
@@ -487,20 +486,19 @@ function OnboardingFlow() {
                   </motion.div>
                 )}
               </AnimatePresence>
-            </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        <ExperiencePanel
-          intent={intent}
-          buildChoice={buildChoice}
-          learnChoice={learnChoice}
-          domain={selectedDomain?.label}
-          domainIcon={selectedDomain?.icon}
-          complete={complete}
-          variant={orbVariant}
-        />
-      </div>
+      <ExperiencePanel
+        intent={intent}
+        buildChoice={buildChoice}
+        learnChoice={learnChoice}
+        domain={selectedDomain?.label}
+        domainIcon={selectedDomain?.icon}
+        complete={complete}
+        variant={orbVariant}
+      />
     </main>
   );
 }
@@ -881,7 +879,10 @@ function ExperiencePanel({
   }
 
   return (
-    <aside className="relative hidden min-w-0 overflow-hidden lg:flex lg:min-h-screen lg:items-center lg:justify-center lg:px-12 lg:py-16">
+    <aside
+      className="fixed bottom-0 right-0 top-20 z-20 hidden items-center justify-center overflow-hidden px-6 py-10 xl:flex"
+      style={{ width: "calc(50vw - 360px)" }}
+    >
       <div
         aria-hidden
         className="absolute inset-0"
@@ -907,7 +908,7 @@ function ExperiencePanel({
         }}
       />
 
-      <div className="relative z-10 flex flex-col items-center text-center">
+      <div className="relative z-10 flex scale-[0.8] flex-col items-center text-center 2xl:scale-100">
         {variant === 1 ? (
           <OrbitOrb accent={accent} focusIcon={focusIcon} />
         ) : variant === 2 ? (

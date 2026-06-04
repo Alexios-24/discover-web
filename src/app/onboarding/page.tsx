@@ -525,30 +525,32 @@ function OnboardingFlow() {
 
 function Header({ step }: { step: number }) {
   return (
-    <header className="sticky top-0 z-40 flex h-20 items-center border-b border-gray-200 bg-white/90 px-5 backdrop-blur-xl sm:px-10 lg:px-[72px]">
-      <Link href="/" aria-label="Kollab home" className="flex h-8 items-center">
-        <img
-          src="/kollab-logo-light.png"
-          alt="Kollab"
-          width={320}
-          height={128}
-          className="h-7 w-auto select-none"
-          draggable={false}
-        />
-      </Link>
-
-      <div className="absolute left-1/2 flex -translate-x-1/2 items-center gap-1.5">
-        {[0, 1, 2, 3].map((index) => (
-          <span
-            key={index}
-            aria-label={`Step ${index + 1}`}
-            className={`h-[3px] rounded-full transition-all duration-200 ${
-              index <= Math.min(step, 3)
-                ? "w-5 bg-[#343DE5]"
-                : "w-1.5 bg-gray-200"
-            }`}
+    <header className="sticky top-0 z-40 h-20 border-b border-gray-200 bg-white/90 backdrop-blur-xl">
+      <div className="relative mx-auto flex h-full w-full max-w-[1440px] items-center px-[54px] max-md:px-4">
+        <Link href="/" aria-label="Kollab home" className="flex h-8 items-center">
+          <img
+            src="/kollab-logo-light.png"
+            alt="Kollab"
+            width={320}
+            height={128}
+            className="h-7 w-auto select-none"
+            draggable={false}
           />
-        ))}
+        </Link>
+
+        <div className="absolute left-1/2 flex -translate-x-1/2 items-center gap-1.5">
+          {[0, 1, 2, 3].map((index) => (
+            <span
+              key={index}
+              aria-label={`Step ${index + 1}`}
+              className={`h-[3px] rounded-full transition-all duration-200 ${
+                index <= Math.min(step, 3)
+                  ? "w-5 bg-[#343DE5]"
+                  : "w-1.5 bg-gray-200"
+              }`}
+            />
+          ))}
+        </div>
       </div>
     </header>
   );
@@ -559,7 +561,7 @@ function BackControl({ onBack }: { onBack: () => void }) {
     <button
       type="button"
       onClick={onBack}
-      className="absolute left-5 top-24 z-30 inline-flex items-center gap-2 rounded-full px-1.5 py-1 text-[13px] font-medium leading-5 text-gray-400 transition-colors duration-150 hover:text-gray-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-indigo-100 sm:left-10 lg:left-[72px]"
+      className="absolute left-4 top-24 z-30 inline-flex items-center gap-2 rounded-full px-1.5 py-1 text-[13px] font-medium leading-5 text-gray-400 transition-colors duration-150 hover:text-gray-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-indigo-100 md:left-[54px]"
     >
       <GhlIcon name="arrowLeft" size={15} />
       Back
@@ -989,7 +991,7 @@ function OrbCaption({
   domainIcon?: GhlIconName;
 }) {
   return (
-    <div className="mt-10 flex flex-col items-center">
+    <div className="mt-4 flex flex-col items-center">
       {showEyebrow ? (
         <AnimatePresence mode="wait">
           <motion.p

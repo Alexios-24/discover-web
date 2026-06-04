@@ -14,30 +14,38 @@ import {
   ArrowLeft,
   ArrowRight,
   BadgeCheck,
+  Banknote,
   BookOpen,
   BriefcaseBusiness,
+  Car,
   Check,
   ChevronRight,
   CircleDollarSign,
   Cloud,
+  Cpu,
   Dumbbell,
   Eye,
+  Gamepad2,
   GraduationCap,
   HeartPulse,
   Home,
   Landmark,
   Laptop,
+  Lightbulb,
   LockKeyhole,
   Mail,
   Megaphone,
   Music,
   Paintbrush,
   Palette,
+  Plane,
+  Presentation,
   Rocket,
   Search,
   ShoppingBag,
   Sparkles,
   Target,
+  Trophy,
   UserRound,
   UsersRound,
   Video,
@@ -48,22 +56,18 @@ type Intent = "create" | "learn";
 type BuildChoice = "course" | "community" | "both";
 type LearnChoice = "courses" | "communities" | "creators" | "all";
 type DomainValue =
-  | "marketing"
-  | "ecommerce"
   | "finance"
-  | "coaching"
-  | "tech"
-  | "design"
-  | "health"
-  | "real-estate"
-  | "crypto"
-  | "content"
-  | "sales"
-  | "saas"
-  | "consulting"
-  | "fitness"
+  | "travel"
+  | "technology"
+  | "productivity"
+  | "cars"
+  | "creative"
+  | "gaming"
+  | "marketing"
+  | "wellness"
   | "music"
-  | "art";
+  | "leadership"
+  | "teaching";
 
 type GhlIconName = keyof typeof GHL_ICON_MAP;
 
@@ -84,30 +88,38 @@ const GHL_ICON_MAP = {
   arrowLeft: ArrowLeft,
   arrowRight: ArrowRight,
   badge: BadgeCheck,
+  banknote: Banknote,
   book: BookOpen,
   briefcase: BriefcaseBusiness,
+  car: Car,
   check: Check,
   chevronRight: ChevronRight,
   cloud: Cloud,
   coin: CircleDollarSign,
+  cpu: Cpu,
   dumbbell: Dumbbell,
   eye: Eye,
+  gamepad: Gamepad2,
   graduation: GraduationCap,
   heart: HeartPulse,
   home: Home,
   landmark: Landmark,
   laptop: Laptop,
+  lightbulb: Lightbulb,
   lock: LockKeyhole,
   mail: Mail,
   megaphone: Megaphone,
   music: Music,
   paintbrush: Paintbrush,
   palette: Palette,
+  plane: Plane,
+  presentation: Presentation,
   rocket: Rocket,
   search: Search,
   shopping: ShoppingBag,
   sparkles: Sparkles,
   target: Target,
+  trophy: Trophy,
   user: UserRound,
   users: UsersRound,
   video: Video,
@@ -164,23 +176,24 @@ const learnChoices: Choice<LearnChoice>[] = [
   },
 ];
 
+// Categories and their exact GHL icons match Figma node 2918:85007 /
+// 2907:60915 (Finance→bank-note-01, Travel→plane, Technology→cpu-chip-01,
+// Productivity→lightbulb-02, Cars→directions_car, Creative→color_lens,
+// Gaming→gaming-pad-01, Marketing→announcement-02, Wellness→activity-heart,
+// Music→music-note-01, Leadership→trophy-01, Teaching→stand).
 const domainChoices: DomainChoice[] = [
+  { value: "finance", label: "Finance", icon: "banknote" },
+  { value: "travel", label: "Travel", icon: "plane" },
+  { value: "technology", label: "Technology", icon: "cpu" },
+  { value: "productivity", label: "Productivity", icon: "lightbulb" },
+  { value: "cars", label: "Cars", icon: "car" },
+  { value: "creative", label: "Creative", icon: "palette" },
+  { value: "gaming", label: "Gaming", icon: "gamepad" },
   { value: "marketing", label: "Marketing", icon: "megaphone" },
-  { value: "ecommerce", label: "E-commerce", icon: "shopping" },
-  { value: "finance", label: "Finance", icon: "landmark" },
-  { value: "coaching", label: "Coaching", icon: "target" },
-  { value: "tech", label: "Tech", icon: "laptop" },
-  { value: "design", label: "Design", icon: "palette" },
-  { value: "health", label: "Health", icon: "heart" },
-  { value: "real-estate", label: "Real Estate", icon: "home" },
-  { value: "crypto", label: "Crypto", icon: "coin" },
-  { value: "content", label: "Content", icon: "video" },
-  { value: "sales", label: "Sales", icon: "search" },
-  { value: "saas", label: "SaaS", icon: "cloud" },
-  { value: "consulting", label: "Consulting", icon: "briefcase" },
-  { value: "fitness", label: "Fitness", icon: "dumbbell" },
+  { value: "wellness", label: "Wellness", icon: "heart" },
   { value: "music", label: "Music", icon: "music" },
-  { value: "art", label: "Art", icon: "paintbrush" },
+  { value: "leadership", label: "Leadership", icon: "trophy" },
+  { value: "teaching", label: "Teaching", icon: "presentation" },
 ];
 
 const stepMotion = {
@@ -458,19 +471,22 @@ function OnboardingFlow() {
                   </motion.div>
                 ) : step === 2 ? (
                   <motion.div key="domain" {...stepMotion}>
-                    <StepHeading
-                      label={currentPath === "learn" ? "Taste profile" : "Workspace profile"}
-                      title={
-                        currentPath === "learn"
-                          ? "Which lane should your recommendations start with?"
-                          : "Which lane best describes your expertise?"
-                      }
-                      description={
-                        currentPath === "learn"
-                          ? "This sets up your first saved searches, creator picks, and community suggestions."
-                          : "This sets up your product defaults, launch prompts, and starter content blocks."
-                      }
-                    />
+                    {currentPath === "learn" ? (
+                      <StepHeading
+                        label="Taste profile"
+                        title="Which lane should your recommendations start with?"
+                        description="This sets up your first saved searches, creator picks, and community suggestions."
+                      />
+                    ) : (
+                      <div className="mb-8">
+                        <h1 className="font-montserrat text-[32px] font-bold leading-[38px] tracking-[-0.5px] text-gray-900 sm:whitespace-nowrap sm:text-[40px] sm:leading-[46px]">
+                          {"What's your area of expertise?"}
+                        </h1>
+                        <p className="mt-3 text-[18px] leading-7 text-[#475467]">
+                          Choose a category to personalize your workspace.
+                        </p>
+                      </div>
+                    )}
                     <DomainGrid
                       selected={domains}
                       onToggle={toggleDomain}
@@ -509,6 +525,7 @@ function OnboardingFlow() {
         learnChoice={learnChoice}
         domain={domainPreviewLabel}
         domainIcon={primaryDomainIcon}
+        selectedDomains={selectedDomains}
         complete={complete}
         variant={orbVariant}
         centerGlyph={
@@ -647,8 +664,12 @@ function DomainGrid({
   const canContinue = selected.length > 0;
 
   return (
-    <div>
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-4">
+    <div className="xl:w-[736px]">
+      {/* Category cards — Figma component set 2907:60915. Each card is a
+          172px tile (16px padding, 16px radius) with an inline 24px icon +
+          Inter Medium 16px label. Default / hover / selected / maxed states
+          mirror the design tokens exactly. */}
+      <div className="flex flex-wrap gap-4">
         {domainChoices.map((choice) => {
           const isSelected = selected.includes(choice.value);
           const isMaxBlocked = maxSelected && !isSelected;
@@ -658,31 +679,37 @@ function DomainGrid({
               key={choice.value}
               type="button"
               aria-pressed={isSelected}
-              aria-disabled={isMaxBlocked}
+              disabled={isMaxBlocked}
               onClick={() => onToggle(choice.value)}
-              className={`flex min-h-11 items-center gap-2.5 rounded-xl border px-3 py-2.5 text-left transition-all duration-200 hover:border-gray-200 hover:bg-gray-50/70 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-indigo-100 active:scale-[0.99] ${
+              className={`flex w-full flex-col items-center justify-center gap-3 rounded-[16px] border p-4 text-left transition-all duration-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-indigo-100 active:scale-[0.99] sm:w-[172px] ${
                 isSelected
-                  ? "border-[#343DE5]/40 bg-[#f5f7ff] ring-1 ring-[#343DE5]/15"
-                  : "border-gray-100 bg-white"
-              } ${isMaxBlocked ? "opacity-70" : ""}`}
+                  ? "border-[#343DE5] bg-[#eff0fd]"
+                  : isMaxBlocked
+                    ? "cursor-not-allowed border-[#eaecf0] bg-white opacity-50"
+                    : "border-[#eaecf0] bg-white hover:border-[#c1c2f9] hover:bg-[#f7f7fe]"
+              }`}
             >
-              <span
-                className={`flex size-7 shrink-0 items-center justify-center rounded-lg transition-colors duration-200 ${
-                  isSelected
-                    ? "bg-[#343DE5] text-white"
-                    : "bg-gray-50 text-gray-500"
-                }`}
-              >
-                <GhlIcon name={choice.icon} size={15} />
-              </span>
-              <span className="truncate text-[13px] font-semibold leading-5 text-gray-800">
-                {choice.label}
+              <span className="flex w-full items-center gap-2">
+                <span
+                  className={`flex size-6 shrink-0 items-center justify-center transition-colors duration-200 ${
+                    isSelected ? "text-[#343DE5]" : "text-[#101828]"
+                  }`}
+                >
+                  <GhlIcon name={choice.icon} size={24} />
+                </span>
+                <span
+                  className={`truncate text-[16px] font-medium leading-6 transition-colors duration-200 ${
+                    isSelected ? "text-[#343DE5]" : "text-[#101828]"
+                  }`}
+                >
+                  {choice.label}
+                </span>
               </span>
             </button>
           );
         })}
       </div>
-      <div className="mt-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-[13px] leading-5 text-gray-400">
           Choose up to 3 categories. You can add more topics from settings later.
         </p>
@@ -877,6 +904,7 @@ function ExperiencePanel({
   learnChoice,
   domain,
   domainIcon,
+  selectedDomains,
   complete,
   variant,
   centerGlyph,
@@ -886,6 +914,7 @@ function ExperiencePanel({
   learnChoice: LearnChoice | null;
   domain?: string;
   domainIcon?: GhlIconName;
+  selectedDomains: DomainChoice[];
   complete: boolean;
   variant: OrbVariant;
   centerGlyph: OrbCenterGlyph;
@@ -899,6 +928,7 @@ function ExperiencePanel({
   const accentSoft = "#343DE5";
   const focusIcon = getFocusIcon(intent, buildChoice, learnChoice);
   const activePillar = getActivePillar(intent, buildChoice, learnChoice);
+  const orbitTiles = getOrbitTiles(intent, activePillar, selectedDomains);
   const eyebrow = intent ? modeLabel : "Kollab";
 
   const progress =
@@ -959,7 +989,7 @@ function ExperiencePanel({
         ) : (
           <KollabConstellation
             accent={accent}
-            activePillar={activePillar}
+            tiles={orbitTiles}
             centerGlyph={centerGlyph}
           />
         )}
@@ -1051,6 +1081,10 @@ function OrbCaption({
 type PillarKey = "courses" | "communities" | "creators";
 type PillarIconName = GhlIconName | "creator";
 
+// Each of the three orbiting tiles is described by the icon it renders and
+// whether it is currently the highlighted (active) tile.
+type OrbitTile = { icon: PillarIconName; active: boolean };
+
 const KOLLAB_PILLARS: { key: PillarKey; icon: PillarIconName; label: string }[] = [
   { key: "courses", icon: "graduation", label: "Courses" },
   { key: "communities", icon: "users", label: "Communities" },
@@ -1066,11 +1100,11 @@ const KOLLAB_PILLAR_RADIUS = 8;
 // matching the user's choice lights up; mode drives the accent color.
 function KollabConstellation({
   accent,
-  activePillar,
+  tiles,
   centerGlyph = "kollab",
 }: {
   accent: string;
-  activePillar: PillarKey | null;
+  tiles: OrbitTile[];
   centerGlyph?: OrbCenterGlyph;
 }) {
   const radius = 125;
@@ -1107,11 +1141,11 @@ function KollabConstellation({
         animate={{ rotate: 360 }}
         transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
       >
-        {KOLLAB_PILLARS.map((pillar, index) => {
+        {tiles.map((tile, index) => {
           const angle = index * 120;
           return (
             <div
-              key={pillar.key}
+              key={index}
               className="absolute left-1/2 top-1/2"
               style={{
                 marginLeft: -nodeSize / 2,
@@ -1124,8 +1158,8 @@ function KollabConstellation({
                 transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
               >
                 <PillarNode
-                  icon={pillar.icon}
-                  active={activePillar === pillar.key}
+                  icon={tile.icon}
+                  active={tile.active}
                   accent={accent}
                   size={nodeSize}
                 />
@@ -1568,6 +1602,31 @@ function getActivePillar(
   if (buildChoice === "course") return "courses";
   if (buildChoice === "community") return "communities";
   return null;
+}
+
+// Builds the three orbiting tiles. By default the orbit shows the Kollab
+// pillars (courses / communities / creators) with the focus pillar lit. On the
+// create path, once the user starts picking expertise categories (max 3, which
+// maps cleanly onto the 3 orbit slots), those slots adopt the exact GHL icon of
+// each selected category and the most-recently selected one lights up — so the
+// rotating tile whose icon matches the selection is highlighted (Figma Part 3).
+function getOrbitTiles(
+  intent: Intent | null,
+  activePillar: PillarKey | null,
+  selectedDomains: DomainChoice[],
+): OrbitTile[] {
+  const useCategoryTiles = intent === "create" && selectedDomains.length > 0;
+  const activeIndex = selectedDomains.length - 1;
+
+  return KOLLAB_PILLARS.map((pillar, index) => {
+    if (useCategoryTiles && index < selectedDomains.length) {
+      return { icon: selectedDomains[index].icon, active: index === activeIndex };
+    }
+    return {
+      icon: pillar.icon,
+      active: !useCategoryTiles && activePillar === pillar.key,
+    };
+  });
 }
 
 function GhlIcon({

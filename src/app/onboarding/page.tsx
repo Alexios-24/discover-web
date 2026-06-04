@@ -539,15 +539,16 @@ function OnboardingFlow() {
                   </motion.div>
                 ) : (
                   <motion.div key="account" {...stepMotion}>
-                    <div className="mb-6">
-                      <h1 className="font-montserrat text-[32px] font-bold leading-[38px] tracking-[-0.5px] text-gray-900 sm:whitespace-nowrap sm:text-[40px] sm:leading-[46px]">
-                        Finish your setup
-                      </h1>
-                    </div>
-                    {/* Account step only: constrain to the Figma "Modal Body"
-                        width (node 2918:83597 = 483px). Other steps keep the
-                        shared 640px wrapper above. */}
+                    {/* Account step only: heading + form share one column
+                        matching the Figma "Finish your setup" section
+                        (node 2942:30818 = 483px wide, 32px heading→form gap).
+                        Other steps keep the shared 640px wrapper above. */}
                     <div className="w-full max-w-[483px]">
+                      <div className="mb-8">
+                        <h1 className="font-montserrat text-[32px] font-bold leading-[38px] tracking-[-0.5px] text-gray-900 sm:whitespace-nowrap sm:text-[40px] sm:leading-[46px]">
+                          Finish your setup
+                        </h1>
+                      </div>
                       <AccountForm
                         name={name}
                         email={email}

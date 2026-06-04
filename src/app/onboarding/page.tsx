@@ -132,13 +132,13 @@ const buildChoices: Choice<BuildChoice>[] = [
   {
     value: "course",
     title: "Course",
-    description: "Structured lessons, modules, resources, and progress.",
-    icon: "book",
+    description: "Structured lessons, modules, quizzes and drip content.",
+    icon: "graduation",
   },
   {
     value: "community",
     title: "Community",
-    description: "Discussions, live sessions, events, and memberships.",
+    description: "Discussions, live sessions, events and memberships.",
     icon: "users",
   },
 ];
@@ -273,6 +273,7 @@ export default function OnboardingPage() {
 }
 
 type OrbVariant = "kollab" | 1 | 2 | 3;
+type OrbCenterGlyph = "kollab" | "rocket";
 
 function OnboardingFlow() {
   const searchParams = useSearchParams();
@@ -434,11 +435,14 @@ function OnboardingFlow() {
                   </motion.div>
                 ) : step === 1 ? (
                   <motion.div key="build" {...stepMotion}>
-                    <StepHeading
-                      label="Creator fit"
-                      title="What are you building first?"
-                      description="Start with one product shape. Kollab can add more formats to your workspace later."
-                    />
+                    <div className="mb-8">
+                      <h1 className="font-montserrat text-[32px] font-bold leading-[38px] tracking-[-0.5px] text-gray-900 sm:whitespace-nowrap sm:text-[40px] sm:leading-[46px]">
+                        What are you building first?
+                      </h1>
+                      <p className="mt-3 max-w-[520px] text-[18px] leading-7 text-[#475467]">
+                        You can build more or both later. Create unlimited products.
+                      </p>
+                    </div>
                     <OptionList>
                       {buildChoices.map((choice) => (
                         <OptionCard
@@ -504,6 +508,7 @@ function OnboardingFlow() {
         domainIcon={primaryDomainIcon}
         complete={complete}
         variant={orbVariant}
+        centerGlyph={intent === "create" && step === 1 ? "rocket" : "kollab"}
       />
     </main>
   );
@@ -861,6 +866,7 @@ function ExperiencePanel({
   domainIcon,
   complete,
   variant,
+  centerGlyph,
 }: {
   intent: Intent | null;
   buildChoice: BuildChoice | null;
@@ -869,6 +875,7 @@ function ExperiencePanel({
   domainIcon?: GhlIconName;
   complete: boolean;
   variant: OrbVariant;
+  centerGlyph: OrbCenterGlyph;
 }) {
   const isLearner = intent === "learn";
   const modeLabel = isLearner ? "Discovery feed" : "Creator workspace";
@@ -937,7 +944,11 @@ function ExperiencePanel({
         ) : variant === 3 ? (
           <HaloOrb accent={accent} focusIcon={focusIcon} progress={progress} />
         ) : (
-          <KollabConstellation accent={accent} activePillar={activePillar} />
+          <KollabConstellation
+            accent={accent}
+            activePillar={activePillar}
+            centerGlyph={centerGlyph}
+          />
         )}
 
         <OrbCaption
@@ -1039,9 +1050,11 @@ const KOLLAB_PILLARS: { key: PillarKey; icon: PillarIconName; label: string }[] 
 function KollabConstellation({
   accent,
   activePillar,
+  centerGlyph = "kollab",
 }: {
   accent: string;
   activePillar: PillarKey | null;
+  centerGlyph?: OrbCenterGlyph;
 }) {
   const radius = 145;
   const nodeSize = 52;
@@ -1105,7 +1118,7 @@ function KollabConstellation({
         })}
       </motion.div>
 
-      <KollabMarkCore size={150} />
+      <KollabMarkCore size={150} glyph={centerGlyph} />
     </motion.div>
   );
 }
@@ -1141,8 +1154,16 @@ function PillarNode({
   );
 }
 
-// Glass orb core holding the constant Kollab "K" brand mark.
-function KollabMarkCore({ size }: { size: number }) {
+// Glass orb core holding the constant Kollab "K" brand mark. On the create
+// path's "What are you building first?" step it instead shows a rocket glyph;
+// every other step/state keeps the "K" mark exactly as before.
+function KollabMarkCore({
+  size,
+  glyph = "kollab",
+}: {
+  size: number;
+  glyph?: OrbCenterGlyph;
+}) {
   return (
     <div
       className="relative flex items-center justify-center rounded-full border border-white/15 bg-white/[0.06] backdrop-blur-md"
@@ -1157,14 +1178,20 @@ function KollabMarkCore({ size }: { size: number }) {
         aria-hidden
         className="absolute left-1/2 top-[14%] h-1/4 w-1/2 -translate-x-1/2 rounded-full bg-white/35 blur-md"
       />
-      <img
-        src="/kollab-mark.png"
-        alt="Kollab"
-        width={120}
-        height={120}
-        className="relative w-[66px] select-none"
-        draggable={false}
-      />
+      {glyph === "rocket" ? (
+        <span className="relative text-white">
+          <GhlIcon name="rocket" size={60} />
+        </span>
+      ) : (
+        <img
+          src="/kollab-mark.png"
+          alt="Kollab"
+          width={120}
+          height={120}
+          className="relative w-[66px] select-none"
+          draggable={false}
+        />
+      )}
     </div>
   );
 }

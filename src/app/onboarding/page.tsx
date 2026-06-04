@@ -1090,13 +1090,18 @@ function OrbCaption({
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
           transition={{ duration: 0.36, ease: [0.22, 0.85, 0.25, 1] }}
-          className="max-w-[360px] text-[20px] font-semibold leading-7 tracking-[-0.2px] text-white"
+          className="max-w-[360px] text-center text-[20px] font-semibold leading-[30px] tracking-[0px] text-white"
         >
           {headline}
         </motion.h2>
       </AnimatePresence>
 
-      <div className="mt-6 h-9">
+      {/* Category tag — Figma node 2911:62292 (Highrise Tag). 16px gap above
+          (Figma caption frame spacing/4) and a 36px-tall chip: rgba white 15%
+          fill, 1px #475467 border, 2px backdrop blur, fully rounded, px 12 /
+          py 6, 4px icon-to-label gap. Label is Inter Medium 16/24 white; the
+          leading icon is the selected category's exact 18px GHL icon in white. */}
+      <div className="mt-4 h-9">
         <AnimatePresence>
           {domain ? (
             <motion.div
@@ -1105,11 +1110,11 @@ function OrbCaption({
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -6, scale: 0.96 }}
               transition={{ duration: 0.34, ease: [0.22, 0.85, 0.25, 1] }}
-              className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-[13px] font-semibold text-white/90 backdrop-blur"
+              className="inline-flex items-center justify-center gap-1 rounded-full border border-[#475467] bg-white/15 px-3 py-1.5 text-[16px] font-medium leading-6 text-white backdrop-blur-[2px]"
             >
               {domainIcon ? (
-                <span style={{ color: accent }}>
-                  <GhlIcon name={domainIcon} size={15} />
+                <span className="text-white">
+                  <GhlIcon name={domainIcon} size={18} />
                 </span>
               ) : null}
               {domain}

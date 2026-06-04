@@ -10,6 +10,7 @@ import {
   useState,
   type FormEvent,
   type ReactNode,
+  type Ref,
 } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -536,18 +537,23 @@ function OnboardingFlow() {
                         Finish your setup
                       </h1>
                     </div>
-                    <AccountForm
-                      name={name}
-                      email={email}
-                      password={password}
-                      showPassword={showPassword}
-                      canSubmit={canCreateAccount}
-                      onNameChange={setName}
-                      onEmailChange={setEmail}
-                      onPasswordChange={setPassword}
-                      onTogglePassword={() => setShowPassword((value) => !value)}
-                      onSubmit={submitAccount}
-                    />
+                    {/* Account step only: constrain to the Figma "Modal Body"
+                        width (node 2918:83597 = 483px). Other steps keep the
+                        shared 640px wrapper above. */}
+                    <div className="w-full max-w-[483px]">
+                      <AccountForm
+                        name={name}
+                        email={email}
+                        password={password}
+                        showPassword={showPassword}
+                        canSubmit={canCreateAccount}
+                        onNameChange={setName}
+                        onEmailChange={setEmail}
+                        onPasswordChange={setPassword}
+                        onTogglePassword={() => setShowPassword((value) => !value)}
+                        onSubmit={submitAccount}
+                      />
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -805,6 +811,16 @@ function AccountForm({
   // Figma node 2918:83597 ("Finish your setup"): Google button → divider
   // ("Or sign up with your email") → three required, labelled fields → primary
   // "Create account" CTA → terms line. All blocks sit on a 16px vertical rhythm.
+
+  // Autofocus the Full name field whenever the account step becomes active.
+  // AccountForm only mounts on the account step (AnimatePresence remounts it on
+  // each navigation back to it), so a mount effect focuses it every time. The
+  // optional-chained ref is null-safe and never steals focus on other steps.
+  const nameInputRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    nameInputRef.current?.focus();
+  }, []);
+
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-4">
       <button
@@ -827,6 +843,7 @@ function AccountForm({
         onChange={onNameChange}
         placeholder="Enter your name"
         autoComplete="name"
+        inputRef={nameInputRef}
       />
       <AccountField
         label="Email"
@@ -885,6 +902,7 @@ function AccountField({
   type = "text",
   autoComplete,
   trailing,
+  inputRef,
 }: {
   label: string;
   value: string;
@@ -893,6 +911,7 @@ function AccountField({
   type?: string;
   autoComplete?: string;
   trailing?: ReactNode;
+  inputRef?: Ref<HTMLInputElement>;
 }) {
   return (
     <label className="flex flex-col gap-1">
@@ -904,6 +923,7 @@ function AccountField({
       </span>
       <span className="flex h-9 w-full items-center gap-2 rounded-md border border-[#d0d5dd] bg-white px-2 shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] transition-all duration-150 focus-within:border-[#343DE5] focus-within:ring-4 focus-within:ring-indigo-100">
         <input
+          ref={inputRef}
           type={type}
           value={value}
           onChange={(event) => onChange(event.target.value)}

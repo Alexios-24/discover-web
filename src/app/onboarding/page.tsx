@@ -437,8 +437,8 @@ function OnboardingFlow() {
 
         <div className="flex flex-1 flex-col overflow-y-auto px-5 py-10 sm:px-10 lg:px-[72px] xl:pl-0 xl:pr-[30vw]">
           <div
-            className={`mx-auto my-auto w-full max-w-[640px] ${
-              step === 3 && !complete ? "" : "-translate-y-8"
+            className={`mx-auto my-auto w-full ${
+              step === 3 && !complete ? "max-w-[483px]" : "max-w-[640px] -translate-y-8"
             }`}
           >
               <AnimatePresence mode="wait">

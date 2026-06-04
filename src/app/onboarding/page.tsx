@@ -993,7 +993,7 @@ function OrbCaption({
   domainIcon?: GhlIconName;
 }) {
   return (
-    <div className="mt-4 flex flex-col items-center">
+    <div className="-mt-6 flex flex-col items-center">
       {showEyebrow ? (
         <AnimatePresence mode="wait">
           <motion.p

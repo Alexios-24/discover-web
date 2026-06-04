@@ -558,14 +558,16 @@ function Header({ step }: { step: number }) {
 
 function BackControl({ onBack }: { onBack: () => void }) {
   return (
-    <button
-      type="button"
-      onClick={onBack}
-      className="absolute left-4 top-24 z-30 inline-flex items-center gap-2 rounded-full px-1.5 py-1 text-[13px] font-medium leading-5 text-gray-400 transition-colors duration-150 hover:text-gray-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-indigo-100 md:left-[54px]"
-    >
-      <GhlIcon name="arrowLeft" size={15} />
-      Back
-    </button>
+    <div className="absolute left-1/2 top-20 z-30 w-full max-w-[1440px] -translate-x-1/2 px-[54px] max-md:px-4">
+      <button
+        type="button"
+        onClick={onBack}
+        className="inline-flex items-center gap-2 rounded-full px-1.5 py-1 text-[13px] font-medium leading-5 text-gray-400 transition-colors duration-150 hover:text-gray-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-indigo-100"
+      >
+        <GhlIcon name="arrowLeft" size={15} />
+        Back
+      </button>
+    </div>
   );
 }
 

@@ -14,46 +14,31 @@ import {
 } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  ArrowLeft,
-  ArrowRight,
-  BadgeCheck,
-  Banknote,
-  BookOpen,
-  BriefcaseBusiness,
-  Car,
-  Check,
-  ChevronRight,
-  CircleDollarSign,
-  Cloud,
-  Cpu,
-  Dumbbell,
-  Eye,
-  Gamepad2,
-  GraduationCap,
-  HeartPulse,
-  Home,
-  Landmark,
-  Laptop,
-  Lightbulb,
-  LockKeyhole,
-  Mail,
-  Megaphone,
-  Music,
-  Paintbrush,
-  Palette,
-  Plane,
-  Presentation,
-  Rocket,
-  Search,
-  ShoppingBag,
-  Sparkles,
-  Target,
-  Trophy,
-  UserRound,
-  UsersRound,
-  Video,
-  type LucideIcon,
-} from "lucide-react";
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  BanknoteIcon,
+  BookIcon,
+  CarIcon,
+  CheckIcon,
+  CpuIcon,
+  EyeIcon,
+  GamepadIcon,
+  GraduationIcon,
+  HeartIcon,
+  ImageUserCheckIcon,
+  LightbulbIcon,
+  MegaphoneIcon,
+  MusicIcon,
+  PaletteIcon,
+  PlaneIcon,
+  PresentationIcon,
+  RocketIcon,
+  SearchIcon,
+  SparklesIcon,
+  TrophyIcon,
+  UsersIcon,
+  type GhlIconComponent,
+} from "@/components/icons/ghl-icons";
 
 type Intent = "create" | "learn";
 type BuildChoice = "course" | "community" | "both";
@@ -87,46 +72,36 @@ interface DomainChoice {
   icon: GhlIconName;
 }
 
+// Semantic name → real GHL icon component. Each glyph is the exact GHL icon
+// the Figma onboarding designs specify (file lSuVFjWScTgFMplHt0JsQK); the GHL
+// file name is noted beside each entry. Components inherit color via
+// `currentColor` and size via the `size` prop, so swapping these in keeps the
+// existing onboarding sizes/colors and only changes the glyph shape.
 const GHL_ICON_MAP = {
-  arrowLeft: ArrowLeft,
-  arrowRight: ArrowRight,
-  badge: BadgeCheck,
-  banknote: Banknote,
-  book: BookOpen,
-  briefcase: BriefcaseBusiness,
-  car: Car,
-  check: Check,
-  chevronRight: ChevronRight,
-  cloud: Cloud,
-  coin: CircleDollarSign,
-  cpu: Cpu,
-  dumbbell: Dumbbell,
-  eye: Eye,
-  gamepad: Gamepad2,
-  graduation: GraduationCap,
-  heart: HeartPulse,
-  home: Home,
-  landmark: Landmark,
-  laptop: Laptop,
-  lightbulb: Lightbulb,
-  lock: LockKeyhole,
-  mail: Mail,
-  megaphone: Megaphone,
-  music: Music,
-  paintbrush: Paintbrush,
-  palette: Palette,
-  plane: Plane,
-  presentation: Presentation,
-  rocket: Rocket,
-  search: Search,
-  shopping: ShoppingBag,
-  sparkles: Sparkles,
-  target: Target,
-  trophy: Trophy,
-  user: UserRound,
-  users: UsersRound,
-  video: Video,
-} satisfies Record<string, LucideIcon>;
+  arrowLeft: ArrowLeftIcon, // arrow-left
+  arrowRight: ArrowRightIcon, // arrow-right
+  badge: ImageUserCheckIcon, // image-user-check (Creators)
+  banknote: BanknoteIcon, // bank-note-01 (Finance)
+  book: BookIcon, // book-closed (Discover / learn)
+  car: CarIcon, // directions_car (Cars)
+  check: CheckIcon, // check
+  cpu: CpuIcon, // cpu-chip-01 (Technology)
+  eye: EyeIcon, // eye
+  gamepad: GamepadIcon, // gaming-pad-01 (Gaming)
+  graduation: GraduationIcon, // graduation-hat-02 (Course)
+  heart: HeartIcon, // activity-heart (Wellness)
+  lightbulb: LightbulbIcon, // lightbulb-02 (Productivity)
+  megaphone: MegaphoneIcon, // announcement-02 (Marketing)
+  music: MusicIcon, // music-note-01 (Music)
+  palette: PaletteIcon, // color_lens (Creative)
+  plane: PlaneIcon, // plane (Travel)
+  presentation: PresentationIcon, // stand (Teaching)
+  rocket: RocketIcon, // rocket-02 (Create / launch)
+  search: SearchIcon, // search-md
+  sparkles: SparklesIcon, // stars-02
+  trophy: TrophyIcon, // trophy-01 (Leadership)
+  users: UsersIcon, // users-02 (Community)
+} satisfies Record<string, GhlIconComponent>;
 
 const intentChoices: Choice<Intent>[] = [
   {
@@ -1222,8 +1197,8 @@ type PillarIconName = GhlIconName | "creator";
 
 // Exact GHL icons from Figma (file lSuVFjWScTgFMplHt0JsQK):
 // Courses → graduation-hat-02 (2907:36912), Communities → users-02
-// (2907:36878), Creators → image-user-check (2907:36946, the bespoke
-// CreatorPillarIcon SVG rendered via the "creator" sentinel).
+// (2907:36878), Creators → image-user-check (2907:36946, rendered by
+// CreatorPillarIcon via the "creator" sentinel).
 const KOLLAB_PILLARS: { key: PillarKey; icon: PillarIconName; label: string }[] = [
   { key: "courses", icon: "graduation", label: "Courses" },
   { key: "communities", icon: "users", label: "Communities" },
@@ -1394,6 +1369,9 @@ function KollabMarkCore({
   );
 }
 
+// Creators orbit pillar uses the exact GHL image-user-check glyph
+// (Figma node 2907:36946), matching the "badge" mapping used by the Creators
+// option card so the two stay in sync.
 function CreatorPillarIcon({
   size = 20,
   className,
@@ -1401,52 +1379,7 @@ function CreatorPillarIcon({
   size?: number;
   className?: string;
 }) {
-  return (
-    <svg
-      aria-hidden="true"
-      className={className}
-      fill="none"
-      height={size}
-      viewBox="0 0 24 24"
-      width={size}
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <rect
-        height="13.5"
-        rx="3"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2"
-        width="13.5"
-        x="3.75"
-        y="5.25"
-      />
-      <circle
-        cx="10.5"
-        cy="10.25"
-        r="1.9"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2"
-      />
-      <path
-        d="M7.25 15.75c.7-1.45 1.8-2.18 3.25-2.18s2.55.73 3.25 2.18"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2"
-      />
-      <path
-        d="m15.75 7.5 1.35 1.35 3.15-3.55"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2"
-      />
-    </svg>
-  );
+  return <ImageUserCheckIcon size={size} className={className} />;
 }
 
 function OrbCore({
@@ -1759,7 +1692,7 @@ function GhlIcon({
   className?: string;
 }) {
   const Icon = GHL_ICON_MAP[name];
-  return <Icon size={size} strokeWidth={1.85} className={className} />;
+  return <Icon size={size} className={className} />;
 }
 
 function getFocusLabel(

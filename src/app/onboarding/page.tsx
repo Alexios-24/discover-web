@@ -146,20 +146,20 @@ const buildChoices: Choice<BuildChoice>[] = [
 const learnChoices: Choice<LearnChoice>[] = [
   {
     value: "courses",
-    title: "Courses",
-    description: "Deep programs with a clear path and measurable outcomes.",
-    icon: "book",
+    title: "Course",
+    description: "Structured lessons, modules, quizzes and drip content.",
+    icon: "graduation",
   },
   {
     value: "communities",
-    title: "Communities",
-    description: "Spaces where members learn together and keep momentum.",
+    title: "Community",
+    description: "Discussions, live sessions, events and memberships.",
     icon: "users",
   },
   {
     value: "creators",
     title: "Creators",
-    description: "Experts, builders, and operators you can keep following.",
+    description: "Experts, builders and operators you can keep following.",
     icon: "badge",
   },
 ];
@@ -273,7 +273,7 @@ export default function OnboardingPage() {
 }
 
 type OrbVariant = "kollab" | 1 | 2 | 3;
-type OrbCenterGlyph = "kollab" | "rocket";
+type OrbCenterGlyph = "kollab" | "rocket" | "book";
 
 function OnboardingFlow() {
   const searchParams = useSearchParams();
@@ -418,11 +418,14 @@ function OnboardingFlow() {
                   </motion.div>
                 ) : step === 1 && intent === "learn" ? (
                   <motion.div key="learn" {...stepMotion}>
-                    <StepHeading
-                      label="Discovery fit"
-                      title="What do you want to find first?"
-                      description="Kollab will tune recommendations around the kind of learning experience you choose here."
-                    />
+                    <div className="mb-8">
+                      <h1 className="font-montserrat text-[32px] font-bold leading-[38px] tracking-[-0.5px] text-gray-900 sm:whitespace-nowrap sm:text-[40px] sm:leading-[46px]">
+                        What do you want to discover?
+                      </h1>
+                      <p className="mt-3 max-w-[520px] text-[18px] leading-7 text-[#475467]">
+                        Kollab will tune the recommendations for you.
+                      </p>
+                    </div>
                     <OptionList>
                       {learnChoices.map((choice) => (
                         <OptionCard
@@ -508,7 +511,13 @@ function OnboardingFlow() {
         domainIcon={primaryDomainIcon}
         complete={complete}
         variant={orbVariant}
-        centerGlyph={intent === "create" && step === 1 ? "rocket" : "kollab"}
+        centerGlyph={
+          intent === "learn" && step === 1
+            ? "book"
+            : intent === "create" && step === 1
+              ? "rocket"
+              : "kollab"
+        }
       />
     </main>
   );
@@ -1056,7 +1065,7 @@ function KollabConstellation({
   activePillar: PillarKey | null;
   centerGlyph?: OrbCenterGlyph;
 }) {
-  const radius = 145;
+  const radius = 125;
   const nodeSize = 52;
 
   return (
@@ -1067,7 +1076,7 @@ function KollabConstellation({
     >
       <motion.div
         aria-hidden
-        className="absolute size-[150px] rounded-full blur-[48px]"
+        className="absolute size-[130px] rounded-full blur-[48px]"
         animate={{
           backgroundColor: accent,
           scale: [1, 1.08, 1],
@@ -1082,7 +1091,7 @@ function KollabConstellation({
 
       <div
         aria-hidden
-        className="absolute size-[300px] rounded-full border border-white/10"
+        className="absolute size-[270px] rounded-full border border-white/10"
       />
 
       <motion.div
@@ -1118,7 +1127,7 @@ function KollabConstellation({
         })}
       </motion.div>
 
-      <KollabMarkCore size={150} glyph={centerGlyph} />
+      <KollabMarkCore size={128} glyph={centerGlyph} />
     </motion.div>
   );
 }
@@ -1155,8 +1164,9 @@ function PillarNode({
 }
 
 // Glass orb core holding the constant Kollab "K" brand mark. On the create
-// path's "What are you building first?" step it instead shows a rocket glyph;
-// every other step/state keeps the "K" mark exactly as before.
+// path's "What are you building first?" step it instead shows a rocket glyph,
+// and on the learner path's "What do you want to discover?" step it shows a
+// book glyph; every other step/state keeps the "K" mark exactly as before.
 function KollabMarkCore({
   size,
   glyph = "kollab",
@@ -1180,7 +1190,11 @@ function KollabMarkCore({
       />
       {glyph === "rocket" ? (
         <span className="relative text-white">
-          <GhlIcon name="rocket" size={60} />
+          <GhlIcon name="rocket" size={52} />
+        </span>
+      ) : glyph === "book" ? (
+        <span className="relative text-white">
+          <GhlIcon name="book" size={52} />
         </span>
       ) : (
         <img
@@ -1188,7 +1202,7 @@ function KollabMarkCore({
           alt="Kollab"
           width={120}
           height={120}
-          className="relative w-[66px] select-none"
+          className="relative w-[56px] select-none"
           draggable={false}
         />
       )}

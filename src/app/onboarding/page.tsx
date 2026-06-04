@@ -4,7 +4,9 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
   Suspense,
+  useEffect,
   useMemo,
+  useRef,
   useState,
   type FormEvent,
   type ReactNode,
@@ -330,7 +332,23 @@ function OnboardingFlow() {
   const visibleStep = complete ? 4 : step;
   const currentPath = intent === "learn" ? "learn" : "create";
 
+  // Tracks the pending auto-advance timer used by the create/launch path's
+  // single-select category step so we can cancel it on re-select, navigation,
+  // or unmount and never advance twice / set state after unmount.
+  const autoAdvanceTimeout = useRef<number | null>(null);
+
+  const clearAutoAdvance = () => {
+    if (autoAdvanceTimeout.current !== null) {
+      window.clearTimeout(autoAdvanceTimeout.current);
+      autoAdvanceTimeout.current = null;
+    }
+  };
+
+  useEffect(() => clearAutoAdvance, []);
+
   const goBack = () => {
+    clearAutoAdvance();
+
     if (complete) {
       setComplete(false);
       setStep(3);
@@ -370,6 +388,7 @@ function OnboardingFlow() {
     advance(2);
   };
 
+  // Learner path: multi-select up to 3 categories, confirmed via Continue.
   const toggleDomain = (value: DomainValue) => {
     setDomains((current) => {
       if (current.includes(value)) {
@@ -380,6 +399,18 @@ function OnboardingFlow() {
       }
       return [...current, value];
     });
+  };
+
+  // Create/launch path: single-select with no Continue CTA. The picked card
+  // shows its selected state briefly, then we auto-advance. Re-selecting before
+  // the timer fires cancels the prior timer and reschedules.
+  const selectCreateDomain = (value: DomainValue) => {
+    setDomains([value]);
+    clearAutoAdvance();
+    autoAdvanceTimeout.current = window.setTimeout(() => {
+      autoAdvanceTimeout.current = null;
+      advance(3);
+    }, 300);
   };
 
   const continueFromDomains = () => {
@@ -488,8 +519,13 @@ function OnboardingFlow() {
                       </div>
                     )}
                     <DomainGrid
+                      mode={currentPath}
                       selected={domains}
-                      onToggle={toggleDomain}
+                      onSelect={
+                        currentPath === "learn"
+                          ? toggleDomain
+                          : selectCreateDomain
+                      }
                       onContinue={continueFromDomains}
                     />
                   </motion.div>
@@ -652,15 +688,20 @@ function OptionCard<T extends string>({
 }
 
 function DomainGrid({
+  mode,
   selected,
-  onToggle,
+  onSelect,
   onContinue,
 }: {
+  mode: "create" | "learn";
   selected: DomainValue[];
-  onToggle: (value: DomainValue) => void;
+  onSelect: (value: DomainValue) => void;
   onContinue: () => void;
 }) {
-  const maxSelected = selected.length >= 3;
+  // Create/launch path is single-select with no max-block and no Continue CTA;
+  // learner path keeps the up-to-3 multi-select with the Continue button.
+  const isCreate = mode === "create";
+  const maxSelected = !isCreate && selected.length >= 3;
   const canContinue = selected.length > 0;
 
   return (
@@ -680,7 +721,7 @@ function DomainGrid({
               type="button"
               aria-pressed={isSelected}
               disabled={isMaxBlocked}
-              onClick={() => onToggle(choice.value)}
+              onClick={() => onSelect(choice.value)}
               className={`flex w-full flex-col items-center justify-center gap-3 rounded-[16px] border p-4 text-left transition-all duration-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-indigo-100 active:scale-[0.99] sm:w-[172px] ${
                 isSelected
                   ? "border-[#343DE5] bg-[#eff0fd]"
@@ -709,20 +750,22 @@ function DomainGrid({
           );
         })}
       </div>
-      <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-[13px] leading-5 text-gray-400">
-          Choose up to 3 categories. You can add more topics from settings later.
-        </p>
-        <button
-          type="button"
-          onClick={onContinue}
-          disabled={!canContinue}
-          className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-[#343DE5] px-5 text-[14px] font-semibold leading-5 text-white shadow-[0_14px_30px_rgba(52,61,229,0.18)] transition-all duration-150 hover:bg-[#2831D3] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-indigo-100 active:scale-[0.97] disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400 disabled:shadow-none"
-        >
-          Continue
-          <GhlIcon name="arrowRight" size={16} />
-        </button>
-      </div>
+      {!isCreate ? (
+        <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-[13px] leading-5 text-gray-400">
+            Choose up to 3 categories. You can add more topics from settings later.
+          </p>
+          <button
+            type="button"
+            onClick={onContinue}
+            disabled={!canContinue}
+            className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-[#343DE5] px-5 text-[14px] font-semibold leading-5 text-white shadow-[0_14px_30px_rgba(52,61,229,0.18)] transition-all duration-150 hover:bg-[#2831D3] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-indigo-100 active:scale-[0.97] disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400 disabled:shadow-none"
+          >
+            Continue
+            <GhlIcon name="arrowRight" size={16} />
+          </button>
+        </div>
+      ) : null}
     </div>
   );
 }

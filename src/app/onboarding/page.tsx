@@ -967,7 +967,7 @@ function ExperiencePanel({
         <OrbCaption
           accent={accent}
           eyebrow={eyebrow}
-          showEyebrow={Boolean(intent)}
+          showEyebrow={Boolean(intent) && hasFocus}
           headline={headline}
           domain={domain}
           domainIcon={domainIcon}

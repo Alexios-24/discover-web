@@ -895,7 +895,6 @@ function ExperiencePanel({
   const accentSoft = "#343DE5";
   const focusIcon = getFocusIcon(intent, buildChoice, learnChoice);
   const activePillar = getActivePillar(intent, buildChoice, learnChoice);
-  const modeGlyph = getModeGlyph(intent);
   const eyebrow = intent ? modeLabel : "Kollab";
 
   const progress =
@@ -906,7 +905,7 @@ function ExperiencePanel({
   if (complete) {
     headline = "Everything's ready.";
   } else if (!intent) {
-    headline = "Composing your space.";
+    headline = "Personalizing your space";
   } else if (!hasFocus) {
     headline = isLearner
       ? "Tuning your discovery feed."
@@ -926,8 +925,7 @@ function ExperiencePanel({
         aria-hidden
         className="absolute inset-0"
         style={{
-          background:
-            "linear-gradient(165deg, #2B2F8C 0%, #1B1E63 55%, #14163F 100%)",
+          background: "linear-gradient(180deg, #151D8E 0%, #000000 100%)",
         }}
       />
       <motion.div
@@ -955,16 +953,13 @@ function ExperiencePanel({
         ) : variant === 3 ? (
           <HaloOrb accent={accent} focusIcon={focusIcon} progress={progress} />
         ) : (
-          <KollabConstellation
-            accent={accent}
-            centerIcon={modeGlyph}
-            activePillar={activePillar}
-          />
+          <KollabConstellation accent={accent} activePillar={activePillar} />
         )}
 
         <OrbCaption
           accent={accent}
           eyebrow={eyebrow}
+          showEyebrow={Boolean(intent)}
           headline={headline}
           domain={domain}
           domainIcon={domainIcon}
@@ -977,31 +972,35 @@ function ExperiencePanel({
 function OrbCaption({
   accent,
   eyebrow,
+  showEyebrow = true,
   headline,
   domain,
   domainIcon,
 }: {
   accent: string;
   eyebrow: string;
+  showEyebrow?: boolean;
   headline: string;
   domain?: string;
   domainIcon?: GhlIconName;
 }) {
   return (
-    <div className="mt-16 flex flex-col items-center">
-      <AnimatePresence mode="wait">
-        <motion.p
-          key={eyebrow}
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -6 }}
-          transition={{ duration: 0.3, ease: [0.22, 0.85, 0.25, 1] }}
-          className="text-[12px] font-semibold uppercase tracking-[0.24em]"
-          style={{ color: accent }}
-        >
-          {eyebrow}
-        </motion.p>
-      </AnimatePresence>
+    <div className="mt-10 flex flex-col items-center">
+      {showEyebrow ? (
+        <AnimatePresence mode="wait">
+          <motion.p
+            key={eyebrow}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.3, ease: [0.22, 0.85, 0.25, 1] }}
+            className="mb-3 text-[12px] font-semibold uppercase tracking-[0.24em]"
+            style={{ color: accent }}
+          >
+            {eyebrow}
+          </motion.p>
+        </AnimatePresence>
+      ) : null}
 
       <AnimatePresence mode="wait">
         <motion.h2
@@ -1010,7 +1009,7 @@ function OrbCaption({
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
           transition={{ duration: 0.36, ease: [0.22, 0.85, 0.25, 1] }}
-          className="mt-3 max-w-[360px] font-montserrat text-[27px] font-bold leading-9 tracking-[-0.5px] text-white"
+          className="max-w-[360px] text-[20px] font-semibold leading-7 tracking-[-0.2px] text-white"
         >
           {headline}
         </motion.h2>
@@ -1051,20 +1050,17 @@ const KOLLAB_PILLARS: { key: PillarKey; icon: PillarIconName; label: string }[] 
 ];
 
 // Default Kollab-native concept: the three pillars (courses, communities,
-// creators) orbit a central mode glyph (rocket / search / spark) that never
-// repeats a pillar icon. The pillar matching the user's choice lights up;
-// mode drives the accent color and the center glyph.
+// creators) orbit the constant Kollab "K" mark at the center. The pillar
+// matching the user's choice lights up; mode drives the accent color.
 function KollabConstellation({
   accent,
-  centerIcon,
   activePillar,
 }: {
   accent: string;
-  centerIcon: GhlIconName;
   activePillar: PillarKey | null;
 }) {
-  const radius = 116;
-  const nodeSize = 48;
+  const radius = 118;
+  const nodeSize = 40;
 
   return (
     <motion.div
@@ -1074,11 +1070,11 @@ function KollabConstellation({
     >
       <motion.div
         aria-hidden
-        className="absolute size-[150px] rounded-full blur-[46px]"
+        className="absolute size-[120px] rounded-full blur-[42px]"
         animate={{
           backgroundColor: accent,
-          scale: [1, 1.1, 1],
-          opacity: [0.4, 0.62, 0.4],
+          scale: [1, 1.08, 1],
+          opacity: [0.32, 0.52, 0.32],
         }}
         transition={{
           backgroundColor: { duration: 1.1, ease: "easeOut" },
@@ -1089,13 +1085,11 @@ function KollabConstellation({
 
       <div
         aria-hidden
-        className="absolute rounded-full border border-white/10"
-        style={{ width: radius * 2, height: radius * 2 }}
+        className="absolute size-[250px] rounded-full border border-white/10"
       />
       <div
         aria-hidden
-        className="absolute rounded-full border border-white/[0.05]"
-        style={{ width: radius * 2 - 56, height: radius * 2 - 56 }}
+        className="absolute size-[188px] rounded-full border border-white/[0.05]"
       />
 
       <motion.div
@@ -1131,7 +1125,7 @@ function KollabConstellation({
         })}
       </motion.div>
 
-      <OrbCore focusIcon={centerIcon} size={104} iconSize={30} />
+      <KollabMarkCore size={104} />
     </motion.div>
   );
 }
@@ -1149,25 +1143,49 @@ function PillarNode({
 }) {
   return (
     <motion.div
-      className="flex items-center justify-center rounded-2xl border backdrop-blur-md"
+      className="flex items-center justify-center rounded-[9px] text-white"
       style={{ width: size, height: size }}
       animate={{
-        backgroundColor: active ? accent : "rgba(255,255,255,0.06)",
-        borderColor: active ? accent : "rgba(255,255,255,0.14)",
-        color: active ? "#ffffff" : "rgba(255,255,255,0.55)",
+        backgroundColor: active ? accent : "#323797",
         scale: active ? 1.12 : 1,
-        boxShadow: active
-          ? `0 0 24px ${accent}66`
-          : "0 0 0 rgba(0,0,0,0)",
+        boxShadow: active ? `0 0 24px ${accent}66` : "0 0 0 rgba(0,0,0,0)",
       }}
       transition={{ duration: 0.5, ease: [0.22, 0.85, 0.25, 1] }}
     >
       {icon === "creator" ? (
-        <CreatorPillarIcon size={20} />
+        <CreatorPillarIcon size={22} />
       ) : (
-        <GhlIcon name={icon} size={20} />
+        <GhlIcon name={icon} size={22} />
       )}
     </motion.div>
+  );
+}
+
+// Glass orb core holding the constant Kollab "K" brand mark.
+function KollabMarkCore({ size }: { size: number }) {
+  return (
+    <div
+      className="relative flex items-center justify-center rounded-full border border-white/15 bg-white/[0.06] backdrop-blur-md"
+      style={{
+        width: size,
+        height: size,
+        boxShadow:
+          "inset 0 2px 3px rgba(255,255,255,0.30), inset 0 -10px 22px rgba(0,0,0,0.35)",
+      }}
+    >
+      <span
+        aria-hidden
+        className="absolute left-1/2 top-[14%] h-1/4 w-1/2 -translate-x-1/2 rounded-full bg-white/35 blur-md"
+      />
+      <img
+        src="/kollab-mark.png"
+        alt="Kollab"
+        width={120}
+        height={120}
+        className="relative w-[38px] select-none"
+        draggable={false}
+      />
+    </div>
   );
 }
 
@@ -1521,15 +1539,6 @@ function getActivePillar(
   if (buildChoice === "course") return "courses";
   if (buildChoice === "community") return "communities";
   return null;
-}
-
-// Center glyph for the Kollab constellation. Distinct from every pillar icon
-// (book / users / badge) in all states, so the center never duplicates an
-// orbiting pillar icon.
-function getModeGlyph(intent: Intent | null): GhlIconName {
-  if (intent === "learn") return "search";
-  if (intent === "create") return "rocket";
-  return "sparkles";
 }
 
 function GhlIcon({

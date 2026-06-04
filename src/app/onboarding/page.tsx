@@ -1055,6 +1055,10 @@ const KOLLAB_PILLARS: { key: PillarKey; icon: PillarIconName; label: string }[] 
   { key: "creators", icon: "badge", label: "Creators" },
 ];
 
+const KOLLAB_PILLAR_NODE_SIZE = 36;
+const KOLLAB_PILLAR_ICON_SIZE = 19.8;
+const KOLLAB_PILLAR_RADIUS = 8;
+
 // Default Kollab-native concept: the three pillars (courses, communities,
 // creators) orbit the constant Kollab "K" mark at the center. The pillar
 // matching the user's choice lights up; mode drives the accent color.
@@ -1068,7 +1072,7 @@ function KollabConstellation({
   centerGlyph?: OrbCenterGlyph;
 }) {
   const radius = 125;
-  const nodeSize = 52;
+  const nodeSize = KOLLAB_PILLAR_NODE_SIZE;
 
   return (
     <motion.div
@@ -1147,19 +1151,19 @@ function PillarNode({
 }) {
   return (
     <motion.div
-      className="flex items-center justify-center rounded-[9px] text-white"
-      style={{ width: size, height: size }}
+      className="flex items-center justify-center text-white"
+      style={{ width: size, height: size, borderRadius: KOLLAB_PILLAR_RADIUS }}
       animate={{
         backgroundColor: active ? accent : "#323797",
-        scale: active ? 1.12 : 1,
+        scale: 1,
         boxShadow: active ? `0 0 24px ${accent}66` : "0 0 0 rgba(0,0,0,0)",
       }}
       transition={{ duration: 0.5, ease: [0.22, 0.85, 0.25, 1] }}
     >
       {icon === "creator" ? (
-        <CreatorPillarIcon size={22} />
+        <CreatorPillarIcon size={KOLLAB_PILLAR_ICON_SIZE} />
       ) : (
-        <GhlIcon name={icon} size={22} />
+        <GhlIcon name={icon} size={KOLLAB_PILLAR_ICON_SIZE} />
       )}
     </motion.div>
   );

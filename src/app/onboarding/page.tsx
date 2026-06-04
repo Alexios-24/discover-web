@@ -531,11 +531,11 @@ function OnboardingFlow() {
                   </motion.div>
                 ) : (
                   <motion.div key="account" {...stepMotion}>
-                    <StepHeading
-                      label="Create account"
-                      title="Save your setup and enter Kollab."
-                      description="Your answers become the starting point for your workspace and recommendations."
-                    />
+                    <div className="mb-8">
+                      <h1 className="font-montserrat text-[32px] font-bold leading-[38px] tracking-[-0.5px] text-gray-900 sm:whitespace-nowrap sm:text-[40px] sm:leading-[46px]">
+                        Finish your setup
+                      </h1>
+                    </div>
                     <AccountForm
                       name={name}
                       email={email}
@@ -565,10 +565,10 @@ function OnboardingFlow() {
         complete={complete}
         variant={orbVariant}
         centerGlyph={
-          intent === "learn" && step === 1
-            ? "book"
-            : intent === "create" && step === 1
-              ? "rocket"
+          intent === "create" && (step === 1 || step === 2)
+            ? "rocket"
+            : intent === "learn" && (step === 1 || step === 2)
+              ? "book"
               : "kollab"
         }
       />
@@ -802,72 +802,74 @@ function AccountForm({
   onTogglePassword: () => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
 }) {
+  // Figma node 2918:83597 ("Finish your setup"): Google button → divider
+  // ("Or sign up with your email") → three required, labelled fields → primary
+  // "Create account" CTA → terms line. All blocks sit on a 16px vertical rhythm.
   return (
-    <form onSubmit={onSubmit} className="grid gap-3">
+    <form onSubmit={onSubmit} className="flex flex-col gap-4">
       <button
         type="button"
-        className="flex h-12 w-full items-center justify-center gap-3 rounded-xl border border-gray-200 bg-white text-[14px] font-semibold leading-5 text-gray-800 shadow-xs transition-colors duration-150 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-indigo-100 active:scale-[0.99]"
+        className="flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-[#d0d5dd] bg-white px-4 py-2.5 text-[16px] font-semibold leading-6 text-[#344054] shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] transition-colors duration-150 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-indigo-100 active:scale-[0.99]"
       >
-        <span className="text-[16px] font-bold text-[#4285F4]">G</span>
+        <GoogleGlyph size={20} />
         Continue with Google
       </button>
 
-      <div className="flex items-center gap-4 py-3 text-[13px] font-medium leading-5 text-gray-400">
-        <div className="h-px flex-1 bg-gray-200" />
-        or use email
-        <div className="h-px flex-1 bg-gray-200" />
+      <div className="flex items-center gap-1 text-[14px] font-medium leading-5 text-[#475467]">
+        <div className="h-px flex-1 bg-[#eaecf0]" />
+        Or sign up with your email
+        <div className="h-px flex-1 bg-[#eaecf0]" />
       </div>
 
-      <TextField
-        icon="user"
+      <AccountField
+        label="Full name"
         value={name}
         onChange={onNameChange}
-        placeholder="Full name"
+        placeholder="Enter your name"
         autoComplete="name"
       />
-      <TextField
-        icon="mail"
+      <AccountField
+        label="Email"
         value={email}
         onChange={onEmailChange}
-        placeholder="Email address"
+        placeholder="Enter your email address"
         autoComplete="email"
         type="email"
       />
-      <div className="relative">
-        <TextField
-          icon="lock"
-          value={password}
-          onChange={onPasswordChange}
-          placeholder="Password (min 8 characters)"
-          autoComplete="new-password"
-          type={showPassword ? "text" : "password"}
-        />
-        <button
-          type="button"
-          onClick={onTogglePassword}
-          aria-label={showPassword ? "Hide password" : "Show password"}
-          className="absolute right-3 top-1/2 flex size-9 -translate-y-1/2 items-center justify-center rounded-lg text-gray-400 transition-colors duration-150 hover:bg-gray-50 hover:text-gray-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-indigo-100"
-        >
-          <GhlIcon name="eye" size={18} />
-        </button>
-      </div>
+      <AccountField
+        label="Password"
+        value={password}
+        onChange={onPasswordChange}
+        placeholder="Minimum 8 characters"
+        autoComplete="new-password"
+        type={showPassword ? "text" : "password"}
+        trailing={
+          <button
+            type="button"
+            onClick={onTogglePassword}
+            aria-label={showPassword ? "Hide password" : "Show password"}
+            className="flex size-6 shrink-0 items-center justify-center rounded text-[#667085] transition-colors duration-150 hover:text-gray-700 focus-visible:outline-none"
+          >
+            <GhlIcon name="eye" size={16} />
+          </button>
+        }
+      />
 
       <button
         type="submit"
         disabled={!canSubmit}
-        className="mt-3 inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-[#343DE5] px-5 text-[14px] font-semibold leading-5 text-white shadow-[0_14px_30px_rgba(52,61,229,0.22)] transition-all duration-150 hover:bg-[#2831D3] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-indigo-100 active:scale-[0.97] disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400 disabled:shadow-none"
+        className="flex h-11 w-full items-center justify-center rounded-lg bg-[#343DE5] px-4 py-2.5 text-[16px] font-semibold leading-6 text-white shadow-[0_14px_30px_rgba(52,61,229,0.22)] transition-all duration-150 hover:bg-[#2831D3] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-indigo-100 active:scale-[0.97] disabled:cursor-not-allowed disabled:bg-[#b2ccff] disabled:shadow-none disabled:active:scale-100"
       >
-        Create free account
-        <GhlIcon name="arrowRight" size={17} />
+        Create account
       </button>
-      <p className="text-center text-[12px] leading-5 text-gray-500">
-        By continuing you agree to our{" "}
-        <a href="#" className="font-semibold text-gray-700 underline">
-          Terms
+      <p className="text-center text-[12px] leading-[17px] text-[#475467]">
+        By signing in, you agree to the{" "}
+        <a href="#" className="underline">
+          terms of service
         </a>{" "}
-        and{" "}
-        <a href="#" className="font-semibold text-gray-700 underline">
-          Privacy Policy
+        and have read the{" "}
+        <a href="#" className="underline">
+          privacy policy
         </a>
         .
       </p>
@@ -875,37 +877,74 @@ function AccountForm({
   );
 }
 
-function TextField({
-  icon,
+function AccountField({
+  label,
   value,
   onChange,
   placeholder,
   type = "text",
   autoComplete,
+  trailing,
 }: {
-  icon: GhlIconName;
+  label: string;
   value: string;
   onChange: (value: string) => void;
   placeholder: string;
   type?: string;
   autoComplete?: string;
+  trailing?: ReactNode;
 }) {
   return (
-    <label className="relative block">
-      <GhlIcon
-        name={icon}
-        size={18}
-        className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
-      />
-      <input
-        type={type}
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        placeholder={placeholder}
-        autoComplete={autoComplete}
-        className="h-12 w-full rounded-xl border border-gray-200 bg-white pl-12 pr-12 text-[14px] leading-5 text-gray-900 shadow-xs outline-none transition-all duration-150 placeholder:text-gray-400 focus:border-[#343DE5] focus:ring-4 focus:ring-indigo-100"
-      />
+    <label className="flex flex-col gap-1">
+      <span className="flex items-center gap-1">
+        <span className="text-[16px] font-medium leading-6 text-[#344054]">
+          {label}
+        </span>
+        <span className="text-[14px] leading-5 text-[#d92d20]">*</span>
+      </span>
+      <span className="flex h-9 w-full items-center gap-2 rounded-md border border-[#d0d5dd] bg-white px-2 shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] transition-all duration-150 focus-within:border-[#343DE5] focus-within:ring-4 focus-within:ring-indigo-100">
+        <input
+          type={type}
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          placeholder={placeholder}
+          autoComplete={autoComplete}
+          className="h-full min-w-0 flex-1 bg-transparent text-[16px] leading-6 text-gray-900 outline-none placeholder:text-[#667085]"
+        />
+        {trailing}
+      </span>
     </label>
+  );
+}
+
+// Standard four-colour Google "G" mark for the social sign-in button
+// (Figma node 2918:83693 → google logo asset).
+function GoogleGlyph({ size = 20 }: { size?: number }) {
+  return (
+    <svg
+      aria-hidden
+      width={size}
+      height={size}
+      viewBox="0 0 20 20"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M19.6 10.227c0-.709-.064-1.39-.182-2.045H10v3.868h5.382a4.6 4.6 0 0 1-1.996 3.018v2.51h3.232C18.491 15.92 19.6 13.318 19.6 10.227Z"
+        fill="#4285F4"
+      />
+      <path
+        d="M10 20c2.7 0 4.964-.895 6.618-2.422l-3.232-2.51c-.895.6-2.04.955-3.386.955-2.605 0-4.81-1.76-5.596-4.123H1.064v2.59A9.997 9.997 0 0 0 10 20Z"
+        fill="#34A853"
+      />
+      <path
+        d="M4.404 11.9A6 6 0 0 1 4.09 10c0-.659.114-1.3.314-1.9V5.51H1.064A9.997 9.997 0 0 0 0 10c0 1.614.386 3.141 1.064 4.49l3.34-2.59Z"
+        fill="#FBBC05"
+      />
+      <path
+        d="M10 3.977c1.468 0 2.786.505 3.823 1.496l2.868-2.868C14.959.99 12.695 0 10 0A9.997 9.997 0 0 0 1.064 5.51l3.34 2.59C5.19 5.736 7.395 3.977 10 3.977Z"
+        fill="#EA4335"
+      />
+    </svg>
   );
 }
 
@@ -1131,10 +1170,14 @@ type PillarIconName = GhlIconName | "creator";
 // whether it is currently the highlighted (active) tile.
 type OrbitTile = { icon: PillarIconName; active: boolean };
 
+// Exact GHL icons from Figma (file lSuVFjWScTgFMplHt0JsQK):
+// Courses → graduation-hat-02 (2907:36912), Communities → users-02
+// (2907:36878), Creators → image-user-check (2907:36946, the bespoke
+// CreatorPillarIcon SVG rendered via the "creator" sentinel).
 const KOLLAB_PILLARS: { key: PillarKey; icon: PillarIconName; label: string }[] = [
   { key: "courses", icon: "graduation", label: "Courses" },
   { key: "communities", icon: "users", label: "Communities" },
-  { key: "creators", icon: "badge", label: "Creators" },
+  { key: "creators", icon: "creator", label: "Creators" },
 ];
 
 const KOLLAB_PILLAR_NODE_SIZE = 40;

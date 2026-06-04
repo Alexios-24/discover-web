@@ -116,15 +116,15 @@ const GHL_ICON_MAP = {
 const intentChoices: Choice<Intent>[] = [
   {
     value: "create",
-    title: "Create and sell",
-    description: "Launch a course, community, or both from a guided workspace.",
+    title: "I want to create and sell",
+    description: "Build courses, grow communities, and earn on your terms.",
     icon: "rocket",
   },
   {
     value: "learn",
-    title: "Learn and discover",
-    description: "Find trusted creators, useful courses, and communities worth joining.",
-    icon: "graduation",
+    title: "I want to discover and learn",
+    description: "Find courses, join communities, and level up your skills.",
+    icon: "book",
   },
 ];
 
@@ -397,17 +397,19 @@ function OnboardingFlow() {
                   />
                 ) : step === 0 ? (
                   <motion.div key="intent" {...stepMotion}>
-                    <StepHeading
-                      label="Kollab onboarding"
-                      title="First, what should Kollab shape around?"
-                      description="Your first answer decides whether we open with a creator workspace or a discovery feed."
-                    />
+                    <div className="mb-8">
+                      <h1 className="max-w-[560px] font-montserrat text-[32px] font-bold leading-[38px] tracking-[-0.5px] text-gray-900 sm:text-[40px] sm:leading-[46px]">
+                        What do you want to do first?
+                      </h1>
+                      <p className="mt-3 max-w-[520px] text-[18px] leading-7 text-[#475467]">
+                        You can always do both later.
+                      </p>
+                    </div>
                     <OptionList>
                       {intentChoices.map((choice) => (
                         <OptionCard
                           key={choice.value}
                           choice={choice}
-                          selected={intent === choice.value}
                           onSelect={() => selectIntent(choice.value)}
                         />
                       ))}
@@ -425,7 +427,6 @@ function OnboardingFlow() {
                         <OptionCard
                           key={choice.value}
                           choice={choice}
-                          selected={learnChoice === choice.value}
                           onSelect={() => selectLearnChoice(choice.value)}
                         />
                       ))}
@@ -443,7 +444,6 @@ function OnboardingFlow() {
                         <OptionCard
                           key={choice.value}
                           choice={choice}
-                          selected={buildChoice === choice.value}
                           onSelect={() => selectBuildChoice(choice.value)}
                         />
                       ))}
@@ -583,51 +583,35 @@ function OptionList({ children }: { children: ReactNode }) {
 
 function OptionCard<T extends string>({
   choice,
-  selected,
   onSelect,
 }: {
   choice: Choice<T>;
-  selected: boolean;
   onSelect: () => void;
 }) {
   return (
     <button
       type="button"
       onClick={onSelect}
-      className={`group flex w-full items-center gap-4 rounded-2xl border bg-white p-4 text-left transition-all duration-200 hover:border-gray-200 hover:bg-gray-50/70 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-indigo-100 active:scale-[0.99] ${
-        selected
-          ? "border-[#343DE5]/40 bg-[#f5f7ff] ring-1 ring-[#343DE5]/15"
-          : "border-gray-100"
-      }`}
+      className="group flex h-20 w-full max-w-[625px] items-center gap-4 rounded-[16px] border border-[#eaecf0] bg-white p-4 text-left transition-all duration-200 hover:border-[#c1c2f9] hover:bg-[#f7f7fe] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-indigo-100 active:scale-[0.99]"
     >
-      <span
-        className={`flex size-11 shrink-0 items-center justify-center rounded-xl transition-colors duration-200 ${
-          selected
-            ? "bg-[#343DE5] text-white"
-            : "bg-gray-50 text-gray-500 group-hover:text-gray-700"
-        }`}
-      >
-        <GhlIcon name={choice.icon} size={20} />
+      <span className="flex size-11 shrink-0 items-center justify-center rounded-[8px] bg-[#f2f4f7] text-gray-700">
+        <GhlIcon name={choice.icon} size={28} />
       </span>
 
       <span className="min-w-0 flex-1">
-        <span className="block text-[15px] font-semibold leading-6 text-gray-900">
+        <span className="block text-[16px] font-semibold leading-6 text-[#101828]">
           {choice.title}
         </span>
-        <span className="mt-0.5 block text-[13px] leading-5 text-gray-500">
+        <span className="mt-0.5 block text-[14px] leading-5 text-[#475467]">
           {choice.description}
         </span>
       </span>
 
-      <span
-        className={`flex size-5 shrink-0 items-center justify-center rounded-full transition-all duration-200 ${
-          selected
-            ? "bg-[#343DE5] text-white"
-            : "text-transparent group-hover:text-gray-300"
-        }`}
-      >
-        <GhlIcon name="check" size={13} />
-      </span>
+      <GhlIcon
+        name="arrowRight"
+        size={16}
+        className="shrink-0 text-gray-400"
+      />
     </button>
   );
 }
@@ -1087,10 +1071,6 @@ function KollabConstellation({
         aria-hidden
         className="absolute size-[250px] rounded-full border border-white/10"
       />
-      <div
-        aria-hidden
-        className="absolute size-[188px] rounded-full border border-white/[0.05]"
-      />
 
       <motion.div
         className="absolute inset-0"
@@ -1125,7 +1105,7 @@ function KollabConstellation({
         })}
       </motion.div>
 
-      <KollabMarkCore size={104} />
+      <KollabMarkCore size={120} />
     </motion.div>
   );
 }
@@ -1182,7 +1162,7 @@ function KollabMarkCore({ size }: { size: number }) {
         alt="Kollab"
         width={120}
         height={120}
-        className="relative w-[38px] select-none"
+        className="relative w-[33px] select-none"
         draggable={false}
       />
     </div>

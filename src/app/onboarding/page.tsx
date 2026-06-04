@@ -525,7 +525,7 @@ function OnboardingFlow() {
 
 function Header({ step }: { step: number }) {
   return (
-    <header className="sticky top-0 z-40 h-20 border-b border-gray-200 bg-white/90 backdrop-blur-xl">
+    <header className="sticky top-0 z-40 h-[60px] border-b border-gray-200 bg-white/90 backdrop-blur-xl">
       <div className="relative mx-auto flex h-full w-full max-w-[1440px] items-center px-[54px] max-md:px-4">
         <Link href="/" aria-label="Kollab home" className="flex h-8 items-center">
           <img
@@ -920,7 +920,7 @@ function ExperiencePanel({
 
   return (
     <aside
-      className="fixed bottom-0 right-0 top-20 z-20 hidden items-center justify-center overflow-hidden px-6 py-10 xl:flex"
+      className="fixed bottom-0 right-0 top-[60px] z-20 hidden items-center justify-center overflow-hidden px-6 py-10 xl:flex"
       style={{ width: "30vw" }}
     >
       <div

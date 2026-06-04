@@ -1013,6 +1013,7 @@ function ExperiencePanel({
   const accent = "#343DE5";
   const accentSoft = "#343DE5";
   const focusIcon = getFocusIcon(intent, buildChoice, learnChoice);
+  const activePillar = getActivePillar(intent, buildChoice, learnChoice);
   const eyebrow = intent ? modeLabel : "Kollab";
 
   const progress =
@@ -1071,6 +1072,7 @@ function ExperiencePanel({
         ) : (
           <KollabConstellation
             accent={accent}
+            activePillar={activePillar}
             centerGlyph={centerGlyph}
           />
         )}
@@ -1188,12 +1190,15 @@ const KOLLAB_PILLAR_RADIUS = 8;
 // Default Kollab-native concept: the three fixed pillars (courses,
 // communities, creators) orbit the center glyph. The orbiting set is always
 // the same KOLLAB_PILLARS and never changes with the user's flow or category
-// choice, so no tile is ever highlighted based on a selection.
+// choice; only the pillar matching the user's selection lights up, while mode
+// drives the accent color.
 function KollabConstellation({
   accent,
+  activePillar,
   centerGlyph = "kollab",
 }: {
   accent: string;
+  activePillar: PillarKey | null;
   centerGlyph?: OrbCenterGlyph;
 }) {
   const radius = 125;
@@ -1246,7 +1251,12 @@ function KollabConstellation({
                 animate={{ rotate: -360 }}
                 transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
               >
-                <PillarNode icon={pillar.icon} size={nodeSize} />
+                <PillarNode
+                  icon={pillar.icon}
+                  active={activePillar === pillar.key}
+                  accent={accent}
+                  size={nodeSize}
+                />
               </motion.div>
             </div>
           );
@@ -1260,9 +1270,13 @@ function KollabConstellation({
 
 function PillarNode({
   icon,
+  active,
+  accent,
   size,
 }: {
   icon: PillarIconName;
+  active: boolean;
+  accent: string;
   size: number;
 }) {
   return (
@@ -1270,9 +1284,9 @@ function PillarNode({
       className="flex items-center justify-center text-white"
       style={{ width: size, height: size, borderRadius: KOLLAB_PILLAR_RADIUS }}
       animate={{
-        backgroundColor: "#323797",
+        backgroundColor: active ? accent : "#323797",
         scale: 1,
-        boxShadow: "0 0 0 rgba(0,0,0,0)",
+        boxShadow: active ? `0 0 24px ${accent}66` : "0 0 0 rgba(0,0,0,0)",
       }}
       transition={{ duration: 0.5, ease: [0.22, 0.85, 0.25, 1] }}
     >
@@ -1666,6 +1680,26 @@ function getFocusIcon(
   if (buildChoice === "both") return "sparkles";
   if (buildChoice === "course") return "book";
   return "rocket";
+}
+
+// Maps the user's current selection to one of the three fixed orbit pillars so
+// the matching pillar can light up. The orbit icons themselves stay constant
+// (KOLLAB_PILLARS); only the highlight tracks the selection.
+function getActivePillar(
+  intent: Intent | null,
+  buildChoice: BuildChoice | null,
+  learnChoice: LearnChoice | null,
+): PillarKey | null {
+  if (intent === "learn") {
+    if (learnChoice === "courses") return "courses";
+    if (learnChoice === "communities") return "communities";
+    if (learnChoice === "creators") return "creators";
+    return null;
+  }
+
+  if (buildChoice === "course") return "courses";
+  if (buildChoice === "community") return "communities";
+  return null;
 }
 
 function GhlIcon({

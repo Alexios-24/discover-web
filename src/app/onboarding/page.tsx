@@ -987,10 +987,8 @@ function ExperiencePanel({
     headline = isLearner
       ? "Tuning your discovery feed."
       : "Building your creator workspace.";
-  } else if (!domain) {
-    headline = isLearner ? `${focusLabel} in focus.` : `${focusLabel} in motion.`;
   } else {
-    headline = `${domain}, locked in.`;
+    headline = isLearner ? `${focusLabel} in focus` : `${focusLabel} in motion`;
   }
 
   return (

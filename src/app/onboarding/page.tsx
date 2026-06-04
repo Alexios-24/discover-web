@@ -1202,7 +1202,7 @@ function KollabMarkCore({
           alt="Kollab"
           width={120}
           height={120}
-          className="relative w-[56px] select-none"
+          className="relative w-[64px] select-none"
           draggable={false}
         />
       )}

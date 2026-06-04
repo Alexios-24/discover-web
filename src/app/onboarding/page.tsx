@@ -416,10 +416,10 @@ function OnboardingFlow() {
     }, 300);
   };
 
-  // Learner path only (the create path auto-advances on single-select). Gate on
-  // the min-3 rule: the learner must pick at least 3 categories to continue.
+  // Learner path only (the create path auto-advances on single-select). Up to 3
+  // categories, no minimum: the learner can continue once at least one is picked.
   const continueFromDomains = () => {
-    if (domains.length < 3) return;
+    if (domains.length === 0) return;
     advance(3);
   };
 
@@ -690,10 +690,11 @@ function DomainGrid({
 }) {
   // Create/launch path is single-select with no max-block and no Continue CTA;
   // learner path keeps the multi-select capped at 3 (Figma "up to 3") and gates
-  // Continue on the min-3 rule, so the learner confirms exactly 3 categories.
+  // Up to 3 categories with no minimum: Continue is enabled once at least one
+  // is selected; selecting is capped at 3.
   const isCreate = mode === "create";
   const maxSelected = !isCreate && selected.length >= 3;
-  const canContinue = selected.length >= 3;
+  const canContinue = selected.length >= 1;
 
   return (
     <div className="xl:w-[736px]">

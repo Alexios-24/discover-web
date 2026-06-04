@@ -322,7 +322,6 @@ function OnboardingFlow() {
   );
 
   const domainPreviewLabel = formatDomainSelection(selectedDomains);
-  const primaryDomainIcon = selectedDomains[0]?.icon;
 
   const canCreateAccount =
     name.trim().length > 1 &&
@@ -574,7 +573,6 @@ function OnboardingFlow() {
         buildChoice={buildChoice}
         learnChoice={learnChoice}
         domain={domainPreviewLabel}
-        domainIcon={primaryDomainIcon}
         selectedDomains={selectedDomains}
         complete={complete}
         variant={orbVariant}
@@ -992,7 +990,6 @@ function ExperiencePanel({
   buildChoice,
   learnChoice,
   domain,
-  domainIcon,
   selectedDomains,
   complete,
   variant,
@@ -1002,7 +999,6 @@ function ExperiencePanel({
   buildChoice: BuildChoice | null;
   learnChoice: LearnChoice | null;
   domain?: string;
-  domainIcon?: GhlIconName;
   selectedDomains: DomainChoice[];
   complete: boolean;
   variant: OrbVariant;
@@ -1086,8 +1082,7 @@ function ExperiencePanel({
           eyebrow={eyebrow}
           showEyebrow={false}
           headline={headline}
-          domain={domain}
-          domainIcon={domainIcon}
+          domains={selectedDomains}
         />
       </div>
     </aside>
@@ -1099,15 +1094,13 @@ function OrbCaption({
   eyebrow,
   showEyebrow = true,
   headline,
-  domain,
-  domainIcon,
+  domains,
 }: {
   accent: string;
   eyebrow: string;
   showEyebrow?: boolean;
   headline: string;
-  domain?: string;
-  domainIcon?: GhlIconName;
+  domains: DomainChoice[];
 }) {
   return (
     <div className="-mt-4 flex flex-col items-center">
@@ -1140,30 +1133,37 @@ function OrbCaption({
         </motion.h2>
       </AnimatePresence>
 
-      {/* Category tag — Figma node 2911:62292 (Highrise Tag). 16px gap above
-          (Figma caption frame spacing/4) and a 36px-tall chip: rgba white 15%
+      {/* Category tags — Figma node 2916:66759. One chip per selected category
+          (no "+N" overflow), laid out in a centered, 12px-gap flex-wrap row
+          16px below the headline (Figma caption frame spacing/4 + spacing/3).
+          Each chip reuses the launch-flow Tag (node 2911:62292): rgba white 15%
           fill, 1px #475467 border, 2px backdrop blur, fully rounded, px 12 /
           py 6, 4px icon-to-label gap. Label is Inter Medium 16/24 white; the
-          leading icon is the selected category's exact 18px GHL icon in white. */}
-      <div className="mt-4 h-9">
+          leading icon is that category's exact 18px GHL icon in white. Chips
+          stagger in on selection. The create path passes a single category, so
+          this naturally renders one chip. */}
+      <div className="mt-4 flex min-h-9 flex-wrap items-center justify-center gap-3">
         <AnimatePresence>
-          {domain ? (
+          {domains.map((domainChoice, index) => (
             <motion.div
-              key="topic"
+              key={domainChoice.value}
+              layout
               initial={{ opacity: 0, y: 8, scale: 0.96 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -6, scale: 0.96 }}
-              transition={{ duration: 0.34, ease: [0.22, 0.85, 0.25, 1] }}
+              transition={{
+                duration: 0.34,
+                ease: [0.22, 0.85, 0.25, 1],
+                delay: index * 0.06,
+              }}
               className="inline-flex items-center justify-center gap-1 rounded-full border border-[#475467] bg-white/15 px-3 py-1.5 text-[16px] font-medium leading-6 text-white backdrop-blur-[2px]"
             >
-              {domainIcon ? (
-                <span className="text-white">
-                  <GhlIcon name={domainIcon} size={18} />
-                </span>
-              ) : null}
-              {domain}
+              <span className="text-white">
+                <GhlIcon name={domainChoice.icon} size={18} />
+              </span>
+              {domainChoice.label}
             </motion.div>
-          ) : null}
+          ))}
         </AnimatePresence>
       </div>
     </div>

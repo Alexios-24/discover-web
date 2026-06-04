@@ -389,7 +389,9 @@ function OnboardingFlow() {
     advance(2);
   };
 
-  // Learner path: multi-select up to 3 categories, confirmed via Continue.
+  // Learner path: multi-select capped at 3 (Figma 2916:65429 says "up to 3"),
+  // and Continue is gated on selecting the full 3 (min-3 rule), so the learner
+  // confirms exactly 3 categories before advancing.
   const toggleDomain = (value: DomainValue) => {
     setDomains((current) => {
       if (current.includes(value)) {
@@ -414,8 +416,10 @@ function OnboardingFlow() {
     }, 300);
   };
 
+  // Learner path only (the create path auto-advances on single-select). Gate on
+  // the min-3 rule: the learner must pick at least 3 categories to continue.
   const continueFromDomains = () => {
-    if (domains.length === 0) return;
+    if (domains.length < 3) return;
     advance(3);
   };
 
@@ -507,22 +511,22 @@ function OnboardingFlow() {
                   </motion.div>
                 ) : step === 2 ? (
                   <motion.div key="domain" {...stepMotion}>
-                    {currentPath === "learn" ? (
-                      <StepHeading
-                        label="Taste profile"
-                        title="Which lane should your recommendations start with?"
-                        description="This sets up your first saved searches, creator picks, and community suggestions."
-                      />
-                    ) : (
-                      <div className="mb-8">
-                        <h1 className="font-montserrat text-[32px] font-bold leading-[38px] tracking-[-0.5px] text-gray-900 sm:whitespace-nowrap sm:text-[40px] sm:leading-[46px]">
-                          {"What's your area of expertise?"}
-                        </h1>
-                        <p className="mt-3 text-[18px] leading-7 text-[#475467]">
-                          Choose a category to personalize your workspace.
-                        </p>
-                      </div>
-                    )}
+                    {/* Learner step 3 copy matches Figma node 2916:65429
+                        ("Pick your interests" / "Choose up to 3 categories…").
+                        The create/launch step keeps its own heading. Both use
+                        the same Montserrat 40px / 18px #475467 heading block. */}
+                    <div className="mb-8">
+                      <h1 className="font-montserrat text-[32px] font-bold leading-[38px] tracking-[-0.5px] text-gray-900 sm:whitespace-nowrap sm:text-[40px] sm:leading-[46px]">
+                        {currentPath === "learn"
+                          ? "Pick your interests"
+                          : "What's your area of expertise?"}
+                      </h1>
+                      <p className="mt-3 text-[18px] leading-7 text-[#475467]">
+                        {currentPath === "learn"
+                          ? "Choose up to 3 categories to personalize your experience."
+                          : "Choose a category to personalize your workspace."}
+                      </p>
+                    </div>
                     <DomainGrid
                       mode={currentPath}
                       selected={domains}
@@ -634,30 +638,6 @@ function BackControl({ onBack }: { onBack: () => void }) {
   );
 }
 
-function StepHeading({
-  label,
-  title,
-  description,
-}: {
-  label: string;
-  title: string;
-  description: string;
-}) {
-  return (
-    <div className="mb-8">
-      <p className="mb-3 text-[12px] font-semibold uppercase tracking-[0.16em] text-[#343DE5]/70">
-        {label}
-      </p>
-      <h1 className="max-w-[560px] font-montserrat text-[28px] font-bold leading-[34px] tracking-[-0.5px] text-gray-900 sm:text-[34px] sm:leading-[40px]">
-        {title}
-      </h1>
-      <p className="mt-3 max-w-[520px] text-[15px] leading-6 text-gray-500">
-        {description}
-      </p>
-    </div>
-  );
-}
-
 function OptionList({ children }: { children: ReactNode }) {
   return <div className="grid gap-4">{children}</div>;
 }
@@ -709,10 +689,11 @@ function DomainGrid({
   onContinue: () => void;
 }) {
   // Create/launch path is single-select with no max-block and no Continue CTA;
-  // learner path keeps the up-to-3 multi-select with the Continue button.
+  // learner path keeps the multi-select capped at 3 (Figma "up to 3") and gates
+  // Continue on the min-3 rule, so the learner confirms exactly 3 categories.
   const isCreate = mode === "create";
   const maxSelected = !isCreate && selected.length >= 3;
-  const canContinue = selected.length > 0;
+  const canContinue = selected.length >= 3;
 
   return (
     <div className="xl:w-[736px]">
@@ -761,18 +742,19 @@ function DomainGrid({
         })}
       </div>
       {!isCreate ? (
-        <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-[13px] leading-5 text-gray-400">
-            Choose up to 3 categories. You can add more topics from settings later.
-          </p>
+        // Figma node 2916:65429: the Continue CTA is right-aligned with no
+        // helper line beside it (the "Choose up to 3…" copy lives in the
+        // heading subtext). Disabled until the min-3 rule is met; the disabled
+        // fill is the design's #b2ccff light-blue with white label + arrow.
+        <div className="mt-6 flex items-center justify-end">
           <button
             type="button"
             onClick={onContinue}
             disabled={!canContinue}
-            className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-[#343DE5] px-5 text-[14px] font-semibold leading-5 text-white shadow-[0_14px_30px_rgba(52,61,229,0.18)] transition-all duration-150 hover:bg-[#2831D3] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-indigo-100 active:scale-[0.97] disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400 disabled:shadow-none"
+            className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-[#343DE5] px-4 py-2.5 text-[16px] font-semibold leading-6 text-white shadow-[0_14px_30px_rgba(52,61,229,0.18)] transition-all duration-150 hover:bg-[#2831D3] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-indigo-100 active:scale-[0.97] disabled:cursor-not-allowed disabled:bg-[#b2ccff] disabled:shadow-none disabled:hover:bg-[#b2ccff] disabled:active:scale-100"
           >
             Continue
-            <GhlIcon name="arrowRight" size={16} />
+            <GhlIcon name="arrowRight" size={20} />
           </button>
         </div>
       ) : null}

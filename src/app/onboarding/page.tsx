@@ -346,6 +346,34 @@ function OnboardingFlow() {
 
   useEffect(() => clearAutoAdvance, []);
 
+  // Going back to a destination step must reset every selection captured on the
+  // steps ahead of it so the right-side ExperiencePanel (orbit highlight,
+  // headline, category tags, center glyph) reflects exactly the step the user
+  // returns to. Each step owns one slice of state: step 0 → intent, step 1 →
+  // build/learn choice, step 2 → domains, step 3 → account fields. We clear all
+  // slices owned by steps with index > destination. Returning to the intent
+  // step (0) additionally clears intent itself so the glyph resets to the "K"
+  // and the user re-picks fresh. Decrementing by one keeps multi-level back
+  // presses correct: each press resets the step it leaves.
+  const resetStepsAfter = (destination: number) => {
+    if (destination < 3) {
+      setName("");
+      setEmail("");
+      setPassword("");
+      setShowPassword(false);
+    }
+    if (destination < 2) {
+      setDomains([]);
+    }
+    if (destination < 1) {
+      setBuildChoice(null);
+      setLearnChoice(null);
+    }
+    if (destination === 0) {
+      setIntent(null);
+    }
+  };
+
   const goBack = () => {
     clearAutoAdvance();
 
@@ -356,7 +384,9 @@ function OnboardingFlow() {
     }
 
     if (step > 0) {
-      setStep((current) => current - 1);
+      const destination = step - 1;
+      resetStepsAfter(destination);
+      setStep(destination);
       return;
     }
 

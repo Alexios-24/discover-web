@@ -435,9 +435,9 @@ function OnboardingFlow() {
         <Header step={visibleStep} />
         <BackControl onBack={goBack} />
 
-        <div className="flex flex-1 items-center px-5 py-10 sm:px-10 lg:px-[72px] xl:pl-0 xl:pr-[30vw]">
+        <div className="flex flex-1 flex-col overflow-y-auto px-5 py-10 sm:px-10 lg:px-[72px] xl:pl-0 xl:pr-[30vw]">
           <div
-            className={`mx-auto w-full max-w-[640px] ${
+            className={`mx-auto my-auto w-full max-w-[640px] ${
               step === 3 && !complete ? "" : "-translate-y-8"
             }`}
           >
@@ -539,7 +539,7 @@ function OnboardingFlow() {
                   </motion.div>
                 ) : (
                   <motion.div key="account" {...stepMotion}>
-                    <div className="mb-8">
+                    <div className="mb-6">
                       <h1 className="font-montserrat text-[32px] font-bold leading-[38px] tracking-[-0.5px] text-gray-900 sm:whitespace-nowrap sm:text-[40px] sm:leading-[46px]">
                         Finish your setup
                       </h1>
@@ -807,7 +807,7 @@ function AccountForm({
   }, []);
 
   return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-4">
+    <form onSubmit={onSubmit} className="flex flex-col gap-3.5">
       <button
         type="button"
         className="flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-[#d0d5dd] bg-white px-4 py-2.5 text-[16px] font-semibold leading-6 text-[#344054] shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] transition-colors duration-150 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-indigo-100 active:scale-[0.99]"

@@ -751,7 +751,7 @@ function DomainGrid({
             type="button"
             onClick={onContinue}
             disabled={!canContinue}
-            className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-[#343DE5] px-4 py-2.5 text-[16px] font-semibold leading-6 text-white shadow-[0_14px_30px_rgba(52,61,229,0.18)] transition-all duration-150 hover:bg-[#2831D3] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-indigo-100 active:scale-[0.97] disabled:cursor-not-allowed disabled:bg-[#b2ccff] disabled:shadow-none disabled:hover:bg-[#b2ccff] disabled:active:scale-100"
+            className="inline-flex shrink-0 items-center justify-center gap-2 overflow-clip rounded-lg border border-[#343DE5] bg-[#343DE5] px-4 py-2.5 text-[16px] font-semibold leading-6 text-white shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] transition-all duration-150 hover:border-[#2831D3] hover:bg-[#2831D3] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-indigo-100 active:scale-[0.97] disabled:cursor-not-allowed disabled:border-[#b2ccff] disabled:bg-[#b2ccff] disabled:shadow-none disabled:hover:border-[#b2ccff] disabled:hover:bg-[#b2ccff] disabled:active:scale-100"
           >
             Continue
             <GhlIcon name="arrowRight" size={20} />

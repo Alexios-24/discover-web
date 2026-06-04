@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   Suspense,
   useEffect,
@@ -292,6 +292,7 @@ type OrbVariant = "kollab" | 1 | 2 | 3;
 type OrbCenterGlyph = "kollab" | "rocket" | "book";
 
 function OnboardingFlow() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const orbParam = searchParams.get("orb");
   const orbVariant: OrbVariant =
@@ -451,11 +452,28 @@ function OnboardingFlow() {
     advance(3);
   };
 
+  // On account creation we mark the session as logged in and hand off to the
+  // full-screen personalizing animation. We replace (not push) the onboarding
+  // entry so the browser Back button never returns into the account form.
+  // Create → /personalizing → /workspace; Learn → /personalizing → /picks.
   const submitAccount = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!canCreateAccount) return;
     playCompleteChime();
-    setComplete(true);
+    try {
+      window.localStorage.setItem("kollabLoggedIn", "1");
+    } catch {
+      // Storage can be unavailable (private mode); the ?app=1 param still gates
+      // the logged-in shell, so this is non-fatal.
+    }
+    const domainQuery = domains.length ? `&domains=${domains.join(",")}` : "";
+    if (intent === "learn") {
+      router.replace(`/personalizing?intent=learn${domainQuery}`);
+    } else {
+      router.replace(
+        `/personalizing?intent=create&choice=${buildChoice ?? "course"}${domainQuery}`,
+      );
+    }
   };
 
   return (

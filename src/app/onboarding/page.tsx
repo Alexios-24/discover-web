@@ -433,7 +433,11 @@ function OnboardingFlow() {
         <BackControl onBack={goBack} />
 
         <div className="flex flex-1 items-center px-5 py-10 sm:px-10 lg:px-[72px] xl:pl-0 xl:pr-[30vw]">
-          <div className="mx-auto w-full max-w-[640px] -translate-y-8">
+          <div
+            className={`mx-auto w-full max-w-[640px] ${
+              step === 3 && !complete ? "" : "-translate-y-8"
+            }`}
+          >
               <AnimatePresence mode="wait">
                 {complete ? (
                   <CompletionStep

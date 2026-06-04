@@ -398,7 +398,7 @@ function OnboardingFlow() {
                 ) : step === 0 ? (
                   <motion.div key="intent" {...stepMotion}>
                     <div className="mb-8">
-                      <h1 className="max-w-[560px] font-montserrat text-[32px] font-bold leading-[38px] tracking-[-0.5px] text-gray-900 sm:text-[40px] sm:leading-[46px]">
+                      <h1 className="font-montserrat text-[32px] font-bold leading-[38px] tracking-[-0.5px] text-gray-900 sm:whitespace-nowrap sm:text-[40px] sm:leading-[46px]">
                         What do you want to do first?
                       </h1>
                       <p className="mt-3 max-w-[520px] text-[18px] leading-7 text-[#475467]">

@@ -1127,7 +1127,7 @@ function KollabConstellation({
         })}
       </motion.div>
 
-      <KollabMarkCore size={128} glyph={centerGlyph} />
+      <KollabMarkCore size={120} glyph={centerGlyph} />
     </motion.div>
   );
 }
@@ -1174,20 +1174,20 @@ function KollabMarkCore({
   size: number;
   glyph?: OrbCenterGlyph;
 }) {
+  // Figma node 2890-36702 (ellipse 2890:36383): glass core is a Ø120 circle
+  // filled white @ 5%, no stroke, with a blue outer glow drop shadow
+  // (#151D8E, blur 50, spread 12) and a white @ 50% inner-shadow rim
+  // (blur 12, spread 3). The bright rim is the inner shadow — no top blob.
   return (
     <div
-      className="relative flex items-center justify-center rounded-full border border-white/15 bg-white/[0.06] backdrop-blur-md"
+      className="relative flex items-center justify-center rounded-full bg-white/[0.05]"
       style={{
         width: size,
         height: size,
         boxShadow:
-          "inset 0 2px 3px rgba(255,255,255,0.30), inset 0 -10px 22px rgba(0,0,0,0.35)",
+          "0 0 50px 12px #151D8E, inset 0 0 12px 3px rgba(255,255,255,0.50)",
       }}
     >
-      <span
-        aria-hidden
-        className="absolute left-1/2 top-[14%] h-1/4 w-1/2 -translate-x-1/2 rounded-full bg-white/35 blur-md"
-      />
       {glyph === "rocket" ? (
         <span className="relative text-white">
           <GhlIcon name="rocket" size={52} />
@@ -1202,7 +1202,7 @@ function KollabMarkCore({
           alt="Kollab"
           width={120}
           height={120}
-          className="relative w-[64px] select-none"
+          className="relative w-[60px] select-none"
           draggable={false}
         />
       )}

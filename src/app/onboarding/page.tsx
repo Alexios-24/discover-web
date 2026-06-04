@@ -1028,9 +1028,9 @@ type PillarKey = "courses" | "communities" | "creators";
 type PillarIconName = GhlIconName | "creator";
 
 const KOLLAB_PILLARS: { key: PillarKey; icon: PillarIconName; label: string }[] = [
-  { key: "courses", icon: "book", label: "Courses" },
+  { key: "courses", icon: "graduation", label: "Courses" },
   { key: "communities", icon: "users", label: "Communities" },
-  { key: "creators", icon: "creator", label: "Creators" },
+  { key: "creators", icon: "badge", label: "Creators" },
 ];
 
 // Default Kollab-native concept: the three pillars (courses, communities,
@@ -1133,9 +1133,9 @@ function PillarNode({
       transition={{ duration: 0.5, ease: [0.22, 0.85, 0.25, 1] }}
     >
       {icon === "creator" ? (
-        <CreatorPillarIcon size={28} />
+        <CreatorPillarIcon size={22} />
       ) : (
-        <GhlIcon name={icon} size={28} />
+        <GhlIcon name={icon} size={22} />
       )}
     </motion.div>
   );

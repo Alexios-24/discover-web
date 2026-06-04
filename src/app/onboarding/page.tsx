@@ -1055,8 +1055,8 @@ const KOLLAB_PILLARS: { key: PillarKey; icon: PillarIconName; label: string }[] 
   { key: "creators", icon: "badge", label: "Creators" },
 ];
 
-const KOLLAB_PILLAR_NODE_SIZE = 36;
-const KOLLAB_PILLAR_ICON_SIZE = 19.8;
+const KOLLAB_PILLAR_NODE_SIZE = 40;
+const KOLLAB_PILLAR_ICON_SIZE = 22;
 const KOLLAB_PILLAR_RADIUS = 8;
 
 // Default Kollab-native concept: the three pillars (courses, communities,

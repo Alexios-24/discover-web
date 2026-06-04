@@ -346,30 +346,29 @@ function OnboardingFlow() {
 
   useEffect(() => clearAutoAdvance, []);
 
-  // Going back to a destination step must reset every selection captured on the
-  // steps ahead of it so the right-side ExperiencePanel (orbit highlight,
-  // headline, category tags, center glyph) reflects exactly the step the user
-  // returns to. Each step owns one slice of state: step 0 → intent, step 1 →
-  // build/learn choice, step 2 → domains, step 3 → account fields. We clear all
-  // slices owned by steps with index > destination. Returning to the intent
-  // step (0) additionally clears intent itself so the glyph resets to the "K"
-  // and the user re-picks fresh. Decrementing by one keeps multi-level back
-  // presses correct: each press resets the step it leaves.
-  const resetStepsAfter = (destination: number) => {
-    if (destination < 3) {
+  // Going back to a destination step presents that step fresh: it clears the
+  // destination step's OWN selection plus everything captured after it, so the
+  // right-side ExperiencePanel (orbit highlight, headline, category tags, center
+  // glyph) returns to its default non-selected state for the step the user lands
+  // on. Each step owns one slice of state: step 0 → intent, step 1 → build/learn
+  // choice, step 2 → domains, step 3 → account fields. We clear all slices owned
+  // by steps with index >= destination. Decrementing by one keeps multi-level
+  // back presses correct: each press resets the step it returns to.
+  const resetFromStep = (destination: number) => {
+    if (destination <= 3) {
       setName("");
       setEmail("");
       setPassword("");
       setShowPassword(false);
     }
-    if (destination < 2) {
+    if (destination <= 2) {
       setDomains([]);
     }
-    if (destination < 1) {
+    if (destination <= 1) {
       setBuildChoice(null);
       setLearnChoice(null);
     }
-    if (destination === 0) {
+    if (destination <= 0) {
       setIntent(null);
     }
   };
@@ -385,7 +384,7 @@ function OnboardingFlow() {
 
     if (step > 0) {
       const destination = step - 1;
-      resetStepsAfter(destination);
+      resetFromStep(destination);
       setStep(destination);
       return;
     }

@@ -1057,7 +1057,7 @@ function ExperiencePanel({
   } else if (!hasFocus) {
     headline = isLearner
       ? "Tuning your discovery feed."
-      : "Building your creator workspace.";
+      : "Building your creator workspace";
   } else {
     headline = isLearner ? `${focusLabel} in focus` : `${focusLabel} in motion`;
   }

@@ -578,9 +578,9 @@ function OnboardingFlow() {
         complete={complete}
         variant={orbVariant}
         centerGlyph={
-          intent === "create" && (step === 1 || step === 2)
+          intent === "create" && (step === 1 || step === 2 || step === 3)
             ? "rocket"
-            : intent === "learn" && (step === 1 || step === 2)
+            : intent === "learn" && (step === 1 || step === 2 || step === 3)
               ? "book"
               : "kollab"
         }
@@ -1013,8 +1013,6 @@ function ExperiencePanel({
   const accent = "#343DE5";
   const accentSoft = "#343DE5";
   const focusIcon = getFocusIcon(intent, buildChoice, learnChoice);
-  const activePillar = getActivePillar(intent, buildChoice, learnChoice);
-  const orbitTiles = getOrbitTiles(intent, activePillar, selectedDomains);
   const eyebrow = intent ? modeLabel : "Kollab";
 
   const progress =
@@ -1073,7 +1071,6 @@ function ExperiencePanel({
         ) : (
           <KollabConstellation
             accent={accent}
-            tiles={orbitTiles}
             centerGlyph={centerGlyph}
           />
         )}
@@ -1174,10 +1171,6 @@ function OrbCaption({
 type PillarKey = "courses" | "communities" | "creators";
 type PillarIconName = GhlIconName | "creator";
 
-// Each of the three orbiting tiles is described by the icon it renders and
-// whether it is currently the highlighted (active) tile.
-type OrbitTile = { icon: PillarIconName; active: boolean };
-
 // Exact GHL icons from Figma (file lSuVFjWScTgFMplHt0JsQK):
 // Courses → graduation-hat-02 (2907:36912), Communities → users-02
 // (2907:36878), Creators → image-user-check (2907:36946, the bespoke
@@ -1192,16 +1185,15 @@ const KOLLAB_PILLAR_NODE_SIZE = 40;
 const KOLLAB_PILLAR_ICON_SIZE = 22;
 const KOLLAB_PILLAR_RADIUS = 8;
 
-// Default Kollab-native concept: the three pillars (courses, communities,
-// creators) orbit the constant Kollab "K" mark at the center. The pillar
-// matching the user's choice lights up; mode drives the accent color.
+// Default Kollab-native concept: the three fixed pillars (courses,
+// communities, creators) orbit the center glyph. The orbiting set is always
+// the same KOLLAB_PILLARS and never changes with the user's flow or category
+// choice, so no tile is ever highlighted based on a selection.
 function KollabConstellation({
   accent,
-  tiles,
   centerGlyph = "kollab",
 }: {
   accent: string;
-  tiles: OrbitTile[];
   centerGlyph?: OrbCenterGlyph;
 }) {
   const radius = 125;
@@ -1238,11 +1230,11 @@ function KollabConstellation({
         animate={{ rotate: 360 }}
         transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
       >
-        {tiles.map((tile, index) => {
+        {KOLLAB_PILLARS.map((pillar, index) => {
           const angle = index * 120;
           return (
             <div
-              key={index}
+              key={pillar.key}
               className="absolute left-1/2 top-1/2"
               style={{
                 marginLeft: -nodeSize / 2,
@@ -1254,12 +1246,7 @@ function KollabConstellation({
                 animate={{ rotate: -360 }}
                 transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
               >
-                <PillarNode
-                  icon={tile.icon}
-                  active={tile.active}
-                  accent={accent}
-                  size={nodeSize}
-                />
+                <PillarNode icon={pillar.icon} size={nodeSize} />
               </motion.div>
             </div>
           );
@@ -1273,13 +1260,9 @@ function KollabConstellation({
 
 function PillarNode({
   icon,
-  active,
-  accent,
   size,
 }: {
   icon: PillarIconName;
-  active: boolean;
-  accent: string;
   size: number;
 }) {
   return (
@@ -1287,9 +1270,9 @@ function PillarNode({
       className="flex items-center justify-center text-white"
       style={{ width: size, height: size, borderRadius: KOLLAB_PILLAR_RADIUS }}
       animate={{
-        backgroundColor: active ? accent : "#323797",
+        backgroundColor: "#323797",
         scale: 1,
-        boxShadow: active ? `0 0 24px ${accent}66` : "0 0 0 rgba(0,0,0,0)",
+        boxShadow: "0 0 0 rgba(0,0,0,0)",
       }}
       transition={{ duration: 0.5, ease: [0.22, 0.85, 0.25, 1] }}
     >
@@ -1302,10 +1285,11 @@ function PillarNode({
   );
 }
 
-// Glass orb core holding the constant Kollab "K" brand mark. On the create
-// path's "What are you building first?" step it instead shows a rocket glyph,
-// and on the learner path's "What do you want to discover?" step it shows a
-// book glyph; every other step/state keeps the "K" mark exactly as before.
+// Glass orb core. The Kollab "K" brand mark only appears on the intent step.
+// Once a flow is chosen the core adopts that flow's glyph for the rest of the
+// journey — a rocket on the create/launch steps and a book on the
+// learner/discover steps — including the final account ("Finish your setup")
+// step, which never reverts to the "K".
 function KollabMarkCore({
   size,
   glyph = "kollab",
@@ -1682,48 +1666,6 @@ function getFocusIcon(
   if (buildChoice === "both") return "sparkles";
   if (buildChoice === "course") return "book";
   return "rocket";
-}
-
-function getActivePillar(
-  intent: Intent | null,
-  buildChoice: BuildChoice | null,
-  learnChoice: LearnChoice | null,
-): PillarKey | null {
-  if (intent === "learn") {
-    if (learnChoice === "courses") return "courses";
-    if (learnChoice === "communities") return "communities";
-    if (learnChoice === "creators") return "creators";
-    return null;
-  }
-
-  if (buildChoice === "course") return "courses";
-  if (buildChoice === "community") return "communities";
-  return null;
-}
-
-// Builds the three orbiting tiles. By default the orbit shows the Kollab
-// pillars (courses / communities / creators) with the focus pillar lit. On the
-// create path, once the user starts picking expertise categories (max 3, which
-// maps cleanly onto the 3 orbit slots), those slots adopt the exact GHL icon of
-// each selected category and the most-recently selected one lights up — so the
-// rotating tile whose icon matches the selection is highlighted (Figma Part 3).
-function getOrbitTiles(
-  intent: Intent | null,
-  activePillar: PillarKey | null,
-  selectedDomains: DomainChoice[],
-): OrbitTile[] {
-  const useCategoryTiles = intent === "create" && selectedDomains.length > 0;
-  const activeIndex = selectedDomains.length - 1;
-
-  return KOLLAB_PILLARS.map((pillar, index) => {
-    if (useCategoryTiles && index < selectedDomains.length) {
-      return { icon: selectedDomains[index].icon, active: index === activeIndex };
-    }
-    return {
-      icon: pillar.icon,
-      active: !useCategoryTiles && activePillar === pillar.key,
-    };
-  });
 }
 
 function GhlIcon({

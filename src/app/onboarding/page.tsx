@@ -1043,18 +1043,18 @@ function KollabConstellation({
   accent: string;
   activePillar: PillarKey | null;
 }) {
-  const radius = 118;
-  const nodeSize = 40;
+  const radius = 145;
+  const nodeSize = 52;
 
   return (
     <motion.div
-      className="relative flex size-[300px] items-center justify-center"
+      className="relative flex size-[360px] items-center justify-center"
       animate={{ y: [0, -10, 0] }}
       transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
     >
       <motion.div
         aria-hidden
-        className="absolute size-[120px] rounded-full blur-[42px]"
+        className="absolute size-[150px] rounded-full blur-[48px]"
         animate={{
           backgroundColor: accent,
           scale: [1, 1.08, 1],
@@ -1069,7 +1069,7 @@ function KollabConstellation({
 
       <div
         aria-hidden
-        className="absolute size-[250px] rounded-full border border-white/10"
+        className="absolute size-[300px] rounded-full border border-white/10"
       />
 
       <motion.div
@@ -1105,7 +1105,7 @@ function KollabConstellation({
         })}
       </motion.div>
 
-      <KollabMarkCore size={120} />
+      <KollabMarkCore size={150} />
     </motion.div>
   );
 }
@@ -1133,9 +1133,9 @@ function PillarNode({
       transition={{ duration: 0.5, ease: [0.22, 0.85, 0.25, 1] }}
     >
       {icon === "creator" ? (
-        <CreatorPillarIcon size={22} />
+        <CreatorPillarIcon size={28} />
       ) : (
-        <GhlIcon name={icon} size={22} />
+        <GhlIcon name={icon} size={28} />
       )}
     </motion.div>
   );
@@ -1162,7 +1162,7 @@ function KollabMarkCore({ size }: { size: number }) {
         alt="Kollab"
         width={120}
         height={120}
-        className="relative w-[52px] select-none"
+        className="relative w-[66px] select-none"
         draggable={false}
       />
     </div>

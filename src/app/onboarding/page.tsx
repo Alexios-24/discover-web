@@ -427,19 +427,13 @@ function OnboardingFlow() {
     advance(3);
   };
 
-  // On account creation we mark the session as logged in and hand off to the
-  // full-screen personalizing animation. We replace (not push) the onboarding
-  // entry so the browser Back button never returns into the account form.
-  // Create → /personalizing → /workspace; Learn → /personalizing → /picks.
-  const submitAccount = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (!canCreateAccount) return;
+  // Shared login logic used by both the email form and Google sign-in.
+  const finishLogin = () => {
     playCompleteChime();
     try {
       window.localStorage.setItem("kollabLoggedIn", "1");
     } catch {
-      // Storage can be unavailable (private mode); the ?app=1 param still gates
-      // the logged-in shell, so this is non-fatal.
+      // Storage can be unavailable (private mode); non-fatal.
     }
     const domainQuery = domains.length ? `&domains=${domains.join(",")}` : "";
     if (intent === "learn") {
@@ -449,6 +443,20 @@ function OnboardingFlow() {
         `/personalizing?intent=create&choice=${buildChoice ?? "course"}${domainQuery}`,
       );
     }
+  };
+
+  // On account creation we mark the session as logged in and hand off to the
+  // full-screen personalizing animation. We replace (not push) the onboarding
+  // entry so the browser Back button never returns into the account form.
+  // Create → /personalizing → /workspace; Learn → /personalizing → /picks.
+  const submitAccount = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!canCreateAccount) return;
+    finishLogin();
+  };
+
+  const handleGoogleSignIn = () => {
+    finishLogin();
   };
 
   return (
@@ -582,6 +590,7 @@ function OnboardingFlow() {
                         onPasswordChange={setPassword}
                         onTogglePassword={() => setShowPassword((value) => !value)}
                         onSubmit={submitAccount}
+                        onGoogleSignIn={handleGoogleSignIn}
                       />
                     </div>
                   </motion.div>
@@ -804,6 +813,7 @@ function AccountForm({
   onPasswordChange,
   onTogglePassword,
   onSubmit,
+  onGoogleSignIn,
 }: {
   name: string;
   email: string;
@@ -815,6 +825,7 @@ function AccountForm({
   onPasswordChange: (value: string) => void;
   onTogglePassword: () => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
+  onGoogleSignIn: () => void;
 }) {
   // Figma node 2918:83597 ("Finish your setup"): Google button → divider
   // ("Or sign up with your email") → three required, labelled fields → primary
@@ -833,6 +844,7 @@ function AccountForm({
     <form onSubmit={onSubmit} className="flex flex-col gap-3.5">
       <button
         type="button"
+        onClick={onGoogleSignIn}
         className="flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-[#d0d5dd] bg-white px-4 py-2.5 text-[16px] font-semibold leading-6 text-[#344054] shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] transition-colors duration-150 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-indigo-100 active:scale-[0.99]"
       >
         <GoogleGlyph size={20} />

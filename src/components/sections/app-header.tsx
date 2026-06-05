@@ -31,7 +31,7 @@ export function AppHeader({
 }) {
   return (
     <header className="sticky top-0 z-50 w-full bg-white shadow-xs">
-      <div className="flex h-[60px] items-center gap-6 px-[54px] py-2 max-md:gap-3 max-md:px-4">
+      <div className="mx-auto flex h-[60px] w-full max-w-[1440px] items-center gap-6 px-[54px] py-2 max-md:gap-3 max-md:px-4">
         {/* Logo + nav */}
         <div className="flex min-w-0 flex-1 items-center gap-6">
           <a

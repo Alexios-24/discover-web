@@ -136,9 +136,9 @@ export function TopHeader() {
             Log in
           </button>
 
-          <button type="button" className="bg-indigo-600 border border-indigo-600 rounded-md px-[14px] py-2 text-[14px] leading-5 font-semibold text-white shadow-xs hover:bg-indigo-600/90 transition-colors cursor-pointer max-md:px-3 max-md:py-1.5 max-md:text-[13px]">
+          <Link href="/onboarding" className="bg-indigo-600 border border-indigo-600 rounded-md px-[14px] py-2 text-[14px] leading-5 font-semibold text-white shadow-xs hover:bg-indigo-600/90 transition-colors cursor-pointer max-md:px-3 max-md:py-1.5 max-md:text-[13px]">
             Get started
-          </button>
+          </Link>
         </div>
       </div>
 

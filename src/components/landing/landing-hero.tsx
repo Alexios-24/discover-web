@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -663,7 +664,7 @@ export function LandingHero() {
           >
             {/* CTA Button */}
             <motion.div {...fadeUp(0.45)}>
-            <button type="button" className="group inline-block cursor-pointer">
+            <Link href="/onboarding" className="group inline-block cursor-pointer">
               <div
                 className="relative rounded-xl p-[2px] overflow-hidden transition-[filter] duration-300"
                 style={{
@@ -685,7 +686,7 @@ export function LandingHero() {
                   <ArrowRight size={20} className="text-white" />
                 </div>
               </div>
-            </button>
+            </Link>
           </motion.div>
 
           {/* Trust stats */}

@@ -148,9 +148,9 @@ export function LandingNav() {
             Log in
           </button>
 
-          <button type="button" className="bg-[#343DE5] border border-[#343DE5] rounded-md px-[14px] py-2 text-[14px] leading-5 font-semibold text-white shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] hover:bg-[#343DE5]/90 transition-colors cursor-pointer max-md:px-3 max-md:py-1.5 max-md:text-[13px]">
+          <Link href="/onboarding" className="bg-[#343DE5] border border-[#343DE5] rounded-md px-[14px] py-2 text-[14px] leading-5 font-semibold text-white shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] hover:bg-[#343DE5]/90 transition-colors cursor-pointer max-md:px-3 max-md:py-1.5 max-md:text-[13px]">
             Get started
-          </button>
+          </Link>
         </div>
       </div>
 
@@ -180,12 +180,13 @@ export function LandingNav() {
           <button className="text-left px-6 py-3 text-[16px] leading-6 font-medium text-[#343DE5] hover:bg-gray-50 transition-colors max-md:block hidden">
             Log in
           </button>
-          <button
-            type="button"
+          <Link
+            href="/onboarding"
+            onClick={() => setMenuOpen(false)}
             className="md:hidden block mx-6 my-3 bg-[#343DE5] text-white text-center rounded-md px-4 py-3 text-[15px] leading-5 font-semibold cursor-pointer"
           >
             Get started for free
-          </button>
+          </Link>
         </nav>
       </div>
 

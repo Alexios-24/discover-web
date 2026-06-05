@@ -9,12 +9,16 @@ import { AppHeader } from "@/components/sections/app-header";
 // Premium "personalizing your experience" interstitial.
 // Flow A (intent=create) → minimal header (Figma 2940:30669), then → /workspace.
 // Flow B (intent=learn)  → full logged-in header (Figma 2948:29350), then → /picks.
-// Both render a polished assembly animation on the blank white canvas the
-// designs specify, tuned to the onboarding orb aesthetic and the #343DE5 brand.
+//
+// The two flows share the orb, copy, and progress bar but render distinct
+// surrounding animations:
+//   Discover (learn)  → scattered photo tiles assembling from center (content-browsing feel)
+//   Launch   (create) → flat workspace module cards sliding in from sides (workspace-building feel)
 
 const DURATION_MS = 3800;
 
-// Thumbnails that "assemble" into the personalized layout around the orb.
+// ── Discover path: curated photo tiles ───────────────────────────────────────
+
 const TILES = [
   "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=240&h=160&auto=format&fit=crop&q=60",
   "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=240&h=160&auto=format&fit=crop&q=60",
@@ -24,17 +28,33 @@ const TILES = [
   "https://images.unsplash.com/photo-1605000797499-95a51c5269ae?w=240&h=160&auto=format&fit=crop&q=60",
 ];
 
-// Resting positions for the six tiles, fanned symmetrically around the orb.
 const TILE_LAYOUT = [
   { x: -226, y: -86, rotate: -10, w: 116, h: 80 },
-  { x: 226, y: -70, rotate: 9, w: 116, h: 80 },
-  { x: -250, y: 84, rotate: 8, w: 116, h: 80 },
-  { x: 250, y: 96, rotate: -8, w: 116, h: 80 },
-  { x: -120, y: 168, rotate: -5, w: 104, h: 72 },
-  { x: 130, y: 176, rotate: 6, w: 104, h: 72 },
+  { x: 226,  y: -70, rotate:   9, w: 116, h: 80 },
+  { x: -250, y:  84, rotate:   8, w: 116, h: 80 },
+  { x: 250,  y:  96, rotate:  -8, w: 116, h: 80 },
+  { x: -120, y: 168, rotate:  -5, w: 104, h: 72 },
+  { x: 130,  y: 176, rotate:   6, w: 104, h: 72 },
 ];
 
+// ── Launch path: workspace module cards ───────────────────────────────────────
+//
+// Six flat (zero-rotation) UI widget cards arranged symmetrically around the
+// orb, like dashboard panels sliding into place. This conveys that a real
+// workspace is being assembled rather than content being curated.
+
+const WORKSPACE_LAYOUT = [
+  { x: -234, y: -108, w: 134, h: 80 },  // top-left  – course module
+  { x:  234, y: -108, w: 134, h: 80 },  // top-right – members
+  { x: -246, y:   26, w: 122, h: 66 },  // mid-left  – revenue
+  { x:  246, y:   26, w: 122, h: 66 },  // mid-right – lesson content
+  { x: -234, y:  146, w: 134, h: 56 },  // btm-left  – activity feed
+  { x:  234, y:  146, w: 134, h: 56 },  // btm-right – launch checklist
+] as const;
+
 const EASE = [0.22, 0.85, 0.25, 1] as const;
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 function PersonalizingScreen() {
   const router = useRouter();
@@ -63,7 +83,6 @@ function PersonalizingScreen() {
 
   const [phraseIndex, setPhraseIndex] = useState(0);
 
-  // Advance the status copy in step with the progress bar.
   useEffect(() => {
     const interval = window.setInterval(() => {
       setPhraseIndex((index) => Math.min(index + 1, phrases.length - 1));
@@ -71,8 +90,6 @@ function PersonalizingScreen() {
     return () => window.clearInterval(interval);
   }, [phrases.length]);
 
-  // Hand off to the destination screen once the animation completes. We replace
-  // (not push) so the browser Back button never returns to this interstitial.
   useEffect(() => {
     const timeout = window.setTimeout(() => {
       if (intent === "learn") {
@@ -108,57 +125,66 @@ function PersonalizingScreen() {
         <div className="relative flex scale-[0.78] flex-col items-center sm:scale-90 lg:scale-100">
           {/* Assembly stage */}
           <div className="relative flex h-[420px] w-[640px] items-center justify-center">
-            {TILES.map((src, index) => {
-              const spot = TILE_LAYOUT[index];
-              return (
-                <motion.div
-                  key={src}
-                  className="absolute overflow-hidden rounded-2xl bg-white shadow-[0_18px_40px_rgba(16,24,40,0.16)] ring-1 ring-black/5"
-                  style={{ width: spot.w, height: spot.h }}
-                  initial={{ x: 0, y: 0, rotate: 0, scale: 0.3, opacity: 0 }}
-                  animate={{
-                    x: spot.x,
-                    y: [spot.y - 6, spot.y + 6, spot.y - 6],
-                    rotate: spot.rotate,
-                    scale: 1,
-                    opacity: 1,
-                  }}
-                  transition={{
-                    opacity: { duration: 0.5, delay: 0.15 + index * 0.1 },
-                    scale: {
-                      duration: 0.7,
-                      ease: EASE,
-                      delay: 0.15 + index * 0.1,
-                    },
-                    x: {
-                      duration: 0.7,
-                      ease: EASE,
-                      delay: 0.15 + index * 0.1,
-                    },
-                    rotate: {
-                      duration: 0.7,
-                      ease: EASE,
-                      delay: 0.15 + index * 0.1,
-                    },
-                    y: {
-                      duration: 6,
-                      repeat: Infinity,
-                      ease: "easeInOut",
-                      delay: 0.85 + index * 0.1,
-                    },
-                  }}
-                >
-                  <img
-                    src={src}
-                    alt=""
-                    className="size-full object-cover"
-                    draggable={false}
-                  />
-                </motion.div>
-              );
-            })}
 
-            {/* Orbiting ring + glass core */}
+            {intent === "create" ? (
+              // Launch: flat workspace module cards slide in from their sides
+              WORKSPACE_LAYOUT.map((spot, index) => (
+                <WorkspaceCard key={index} index={index} spot={spot} />
+              ))
+            ) : (
+              // Discover: curated photo tiles assemble from center
+              TILES.map((src, index) => {
+                const spot = TILE_LAYOUT[index];
+                return (
+                  <motion.div
+                    key={src}
+                    className="absolute overflow-hidden rounded-2xl bg-white shadow-[0_18px_40px_rgba(16,24,40,0.16)] ring-1 ring-black/5"
+                    style={{ width: spot.w, height: spot.h }}
+                    initial={{ x: 0, y: 0, rotate: 0, scale: 0.3, opacity: 0 }}
+                    animate={{
+                      x: spot.x,
+                      y: [spot.y - 6, spot.y + 6, spot.y - 6],
+                      rotate: spot.rotate,
+                      scale: 1,
+                      opacity: 1,
+                    }}
+                    transition={{
+                      opacity: { duration: 0.5, delay: 0.15 + index * 0.1 },
+                      scale: {
+                        duration: 0.7,
+                        ease: EASE,
+                        delay: 0.15 + index * 0.1,
+                      },
+                      x: {
+                        duration: 0.7,
+                        ease: EASE,
+                        delay: 0.15 + index * 0.1,
+                      },
+                      rotate: {
+                        duration: 0.7,
+                        ease: EASE,
+                        delay: 0.15 + index * 0.1,
+                      },
+                      y: {
+                        duration: 6,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                        delay: 0.85 + index * 0.1,
+                      },
+                    }}
+                  >
+                    <img
+                      src={src}
+                      alt=""
+                      className="size-full object-cover"
+                      draggable={false}
+                    />
+                  </motion.div>
+                );
+              })
+            )}
+
+            {/* Orbiting ring + glass core — shared between both flows */}
             <motion.div
               className="relative flex size-[176px] items-center justify-center"
               animate={{ y: [0, -8, 0] }}
@@ -253,5 +279,259 @@ export default function PersonalizingPage() {
     <Suspense fallback={<main className="min-h-screen w-full bg-white" />}>
       <PersonalizingScreen />
     </Suspense>
+  );
+}
+
+// ── Launch flow: workspace module card components ─────────────────────────────
+
+type WorkspaceSpot = (typeof WORKSPACE_LAYOUT)[number];
+
+// Each card slides in from its own side (left cards from further left, right
+// from further right), settles flat with no rotation, then floats gently at
+// ±2 px — much more grounded than the discover tiles' ±6 px drift.
+function WorkspaceCard({
+  index,
+  spot,
+}: {
+  index: number;
+  spot: WorkspaceSpot;
+}) {
+  const entryDelay = 0.18 + index * 0.09;
+  const initialX = spot.x * 1.5;
+
+  return (
+    <motion.div
+      className="absolute overflow-hidden rounded-xl bg-white shadow-[0_12px_32px_rgba(16,24,40,0.11)] ring-1 ring-black/[0.06]"
+      style={{ width: spot.w, height: spot.h }}
+      initial={{ x: initialX, y: spot.y, opacity: 0, scale: 0.88 }}
+      animate={{
+        x: spot.x,
+        y: [spot.y - 2, spot.y + 2, spot.y - 2],
+        opacity: 1,
+        scale: 1,
+      }}
+      transition={{
+        opacity: { duration: 0.42, delay: entryDelay },
+        scale: { duration: 0.58, ease: EASE, delay: entryDelay },
+        x: { duration: 0.58, ease: EASE, delay: entryDelay },
+        y: {
+          duration: 5,
+          repeat: Infinity,
+          ease: "easeInOut",
+          delay: entryDelay + 0.62,
+        },
+      }}
+    >
+      <WorkspaceCardContent index={index} />
+    </motion.div>
+  );
+}
+
+function WorkspaceCardContent({ index }: { index: number }) {
+  switch (index) {
+    case 0: return <ModuleCard />;
+    case 1: return <MembersCard />;
+    case 2: return <RevenueCard />;
+    case 3: return <LessonCard />;
+    case 4: return <ActivityCard />;
+    case 5: return <ChecklistCard />;
+    default: return null;
+  }
+}
+
+// Card 0 – top-left: course module with three completion progress bars.
+function ModuleCard() {
+  return (
+    <div className="flex h-full flex-col p-3">
+      <div className="mb-2 flex items-center">
+        <span className="text-[9px] font-semibold uppercase tracking-[0.06em] text-[#343DE5]">
+          Module 1
+        </span>
+        <span className="ml-auto text-[8px] text-gray-400">12 lessons</span>
+      </div>
+      <div className="flex flex-col gap-[5px]">
+        {[85, 62, 91].map((pct, i) => (
+          <div key={i} className="flex items-center gap-1.5">
+            <div className="relative h-[5px] flex-1 rounded-full bg-gray-100">
+              <div
+                className="absolute inset-y-0 left-0 rounded-full bg-[#343DE5]"
+                style={{ width: `${pct}%`, opacity: 0.5 + i * 0.18 }}
+              />
+            </div>
+            <span className="w-5 text-right text-[7.5px] tabular-nums text-gray-400">
+              {pct}%
+            </span>
+          </div>
+        ))}
+      </div>
+      <div className="mt-auto pt-1.5">
+        <span className="text-[7.5px] text-gray-400">2h 40m · 3 quizzes</span>
+      </div>
+    </div>
+  );
+}
+
+const MEMBER_COLORS = ["#343DE5", "#7C3AED", "#059669", "#D97706"] as const;
+
+// Card 1 – top-right: stacked member avatar rings with enrollment count.
+function MembersCard() {
+  return (
+    <div className="flex h-full flex-col justify-between p-3">
+      <span className="text-[9px] font-semibold uppercase tracking-[0.06em] text-gray-400">
+        Members
+      </span>
+      <div className="flex items-center">
+        {MEMBER_COLORS.map((color, i) => (
+          <span
+            key={color}
+            className="flex size-[18px] shrink-0 rounded-full border-[1.5px] border-white"
+            style={{ backgroundColor: color, marginLeft: i > 0 ? -5 : 0 }}
+          />
+        ))}
+        <span className="ml-1.5 text-[8.5px] font-medium text-gray-500">
+          +152
+        </span>
+      </div>
+      <div className="flex items-center gap-1.5">
+        <span className="text-[8.5px] font-medium text-gray-700">
+          156 enrolled
+        </span>
+        <span className="text-[8.5px] font-semibold text-emerald-600">
+          ↑ 12%
+        </span>
+      </div>
+    </div>
+  );
+}
+
+// Card 2 – mid-left: revenue figure with a mini bar chart below it.
+function RevenueCard() {
+  const bars = [30, 45, 60, 55, 78, 65, 88];
+  return (
+    <div className="flex h-full flex-col justify-between p-2.5">
+      <div className="flex items-start justify-between">
+        <div>
+          <p className="text-[7.5px] font-medium text-gray-400">Revenue</p>
+          <p className="text-[13px] font-bold leading-none tracking-tight text-gray-900">
+            $2,450
+          </p>
+        </div>
+        <span className="rounded-full bg-emerald-50 px-1.5 py-0.5 text-[7.5px] font-semibold text-emerald-700">
+          ↑ 12%
+        </span>
+      </div>
+      <div className="flex items-end gap-[2.5px]">
+        {bars.map((h, i) => (
+          <div
+            key={i}
+            className="flex-1 rounded-[2px] bg-[#343DE5]"
+            style={{
+              height: `${h * 0.19}px`,
+              opacity: 0.3 + (h / 88) * 0.7,
+            }}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Card 3 – mid-right: lesson skeleton that signals content being populated.
+function LessonCard() {
+  return (
+    <div className="flex h-full flex-col gap-2 p-2.5">
+      <div className="flex items-center gap-1.5">
+        <span className="text-[9px] font-semibold text-gray-700">Lesson 3</span>
+        <span className="rounded bg-[#eff0fd] px-1 py-px text-[7px] font-semibold text-[#343DE5]">
+          Module 1
+        </span>
+      </div>
+      <div className="flex flex-col gap-[5px]">
+        <div className="h-[5px] w-full rounded-full bg-gray-100" />
+        <div className="h-[5px] w-3/4 rounded-full bg-gray-100" />
+        <div className="h-[5px] w-5/6 rounded-full bg-gray-100" />
+      </div>
+    </div>
+  );
+}
+
+// Card 4 – bottom-left: live activity feed with two recent events.
+function ActivityCard() {
+  return (
+    <div className="flex h-full flex-col justify-between p-2.5">
+      <span className="text-[7.5px] font-semibold uppercase tracking-[0.06em] text-gray-400">
+        Activity
+      </span>
+      <div className="flex flex-col gap-[5px]">
+        {[
+          { label: "Alex enrolled", time: "just now", color: "#343DE5" },
+          { label: "New comment", time: "2m ago", color: "#7C3AED" },
+        ].map((row) => (
+          <div key={row.label} className="flex items-center gap-1.5">
+            <span
+              className="size-[7px] shrink-0 rounded-full"
+              style={{ backgroundColor: row.color }}
+            />
+            <span className="flex-1 truncate text-[8px] text-gray-700">
+              {row.label}
+            </span>
+            <span className="shrink-0 text-[7px] text-gray-400">{row.time}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Card 5 – bottom-right: setup checklist. Two items done, the third shows a
+// blinking cursor — the clearest signal that generation is actively happening.
+function ChecklistCard() {
+  return (
+    <div className="flex h-full flex-col justify-between p-2.5">
+      <span className="text-[7.5px] font-semibold uppercase tracking-[0.06em] text-gray-400">
+        Setup
+      </span>
+      <div className="flex flex-col gap-[5px]">
+        {["Profile complete", "Module 1 ready"].map((item) => (
+          <div key={item} className="flex items-center gap-1.5">
+            <CheckDot />
+            <span className="text-[8px] text-gray-700">{item}</span>
+          </div>
+        ))}
+        <div className="flex items-center gap-1.5">
+          <span className="size-2.5 shrink-0 rounded-full border-[1.5px] border-[#343DE5]" />
+          <span className="text-[8px] text-[#343DE5]">
+            Going live
+            <motion.span
+              aria-hidden
+              className="ml-px inline-block h-[9px] w-[1.5px] translate-y-[1px] rounded-[1px] bg-[#343DE5]"
+              animate={{ opacity: [1, 1, 0, 0] }}
+              transition={{
+                duration: 1,
+                repeat: Infinity,
+                times: [0, 0.45, 0.5, 0.95],
+                ease: "linear",
+              }}
+            />
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CheckDot() {
+  return (
+    <span className="flex size-2.5 shrink-0 items-center justify-center rounded-full bg-[#343DE5]">
+      <svg width="5" height="5" viewBox="0 0 7 7" fill="none" aria-hidden>
+        <path
+          d="M1.5 3.5L3 5L5.5 2"
+          stroke="white"
+          strokeWidth="1.4"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    </span>
   );
 }

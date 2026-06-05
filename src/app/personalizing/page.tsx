@@ -10,14 +10,16 @@ import { AppHeader } from "@/components/sections/app-header";
 // Flow A (intent=create) → minimal header (Figma 2940:30669), then → /workspace.
 // Flow B (intent=learn)  → full logged-in header (Figma 2948:29350), then → /picks.
 //
-// The two flows share the orb, copy, and progress bar but render distinct
+// The two flows share the orb, copy, and progress bar but use distinct
 // surrounding animations:
-//   Discover (learn)  → scattered photo tiles assembling from center (content-browsing feel)
-//   Launch   (create) → flat workspace module cards sliding in from sides (workspace-building feel)
+//   Discover (learn)  → scattered photo tiles assembling from center
+//   Launch   (create) → flat creation-UI cards sliding in from sides:
+//                       course outline, page preview, content editor,
+//                       media encoding, community spaces, publish checklist.
 
 const DURATION_MS = 3800;
 
-// ── Discover path: curated photo tiles ───────────────────────────────────────
+// ── Discover path ─────────────────────────────────────────────────────────────
 
 const TILES = [
   "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=240&h=160&auto=format&fit=crop&q=60",
@@ -37,19 +39,19 @@ const TILE_LAYOUT = [
   { x: 130,  y: 176, rotate:   6, w: 104, h: 72 },
 ];
 
-// ── Launch path: workspace module cards ───────────────────────────────────────
+// ── Launch path ───────────────────────────────────────────────────────────────
 //
-// Six flat (zero-rotation) UI widget cards arranged symmetrically around the
-// orb, like dashboard panels sliding into place. This conveys that a real
-// workspace is being assembled rather than content being curated.
+// Six flat creation-UI cards positioned symmetrically around the orb.
+// They slide in from their respective sides — left cards from left, right from
+// right — conveying a workspace being assembled panel by panel.
 
 const WORKSPACE_LAYOUT = [
-  { x: -234, y: -108, w: 134, h: 80 },  // top-left  – course module
-  { x:  234, y: -108, w: 134, h: 80 },  // top-right – members
-  { x: -246, y:   26, w: 122, h: 66 },  // mid-left  – revenue
-  { x:  246, y:   26, w: 122, h: 66 },  // mid-right – lesson content
-  { x: -234, y:  146, w: 134, h: 56 },  // btm-left  – activity feed
-  { x:  234, y:  146, w: 134, h: 56 },  // btm-right – launch checklist
+  { x: -234, y: -108, w: 134, h: 80 },  // top-left  – course outline
+  { x:  234, y: -108, w: 134, h: 80 },  // top-right – page preview
+  { x: -246, y:   26, w: 122, h: 66 },  // mid-left  – content editor
+  { x:  246, y:   26, w: 122, h: 66 },  // mid-right – media encoding
+  { x: -234, y:  146, w: 134, h: 56 },  // btm-left  – community spaces
+  { x:  234, y:  146, w: 134, h: 56 },  // btm-right – publish checklist
 ] as const;
 
 const EASE = [0.22, 0.85, 0.25, 1] as const;
@@ -127,12 +129,10 @@ function PersonalizingScreen() {
           <div className="relative flex h-[420px] w-[640px] items-center justify-center">
 
             {intent === "create" ? (
-              // Launch: flat workspace module cards slide in from their sides
               WORKSPACE_LAYOUT.map((spot, index) => (
                 <WorkspaceCard key={index} index={index} spot={spot} />
               ))
             ) : (
-              // Discover: curated photo tiles assemble from center
               TILES.map((src, index) => {
                 const spot = TILE_LAYOUT[index];
                 return (
@@ -150,21 +150,9 @@ function PersonalizingScreen() {
                     }}
                     transition={{
                       opacity: { duration: 0.5, delay: 0.15 + index * 0.1 },
-                      scale: {
-                        duration: 0.7,
-                        ease: EASE,
-                        delay: 0.15 + index * 0.1,
-                      },
-                      x: {
-                        duration: 0.7,
-                        ease: EASE,
-                        delay: 0.15 + index * 0.1,
-                      },
-                      rotate: {
-                        duration: 0.7,
-                        ease: EASE,
-                        delay: 0.15 + index * 0.1,
-                      },
+                      scale: { duration: 0.7, ease: EASE, delay: 0.15 + index * 0.1 },
+                      x: { duration: 0.7, ease: EASE, delay: 0.15 + index * 0.1 },
+                      rotate: { duration: 0.7, ease: EASE, delay: 0.15 + index * 0.1 },
                       y: {
                         duration: 6,
                         repeat: Infinity,
@@ -173,12 +161,7 @@ function PersonalizingScreen() {
                       },
                     }}
                   >
-                    <img
-                      src={src}
-                      alt=""
-                      className="size-full object-cover"
-                      draggable={false}
-                    />
+                    <img src={src} alt="" className="size-full object-cover" draggable={false} />
                   </motion.div>
                 );
               })
@@ -282,13 +265,12 @@ export default function PersonalizingPage() {
   );
 }
 
-// ── Launch flow: workspace module card components ─────────────────────────────
+// ── Launch flow: creation-UI card components ──────────────────────────────────
 
 type WorkspaceSpot = (typeof WORKSPACE_LAYOUT)[number];
 
-// Each card slides in from its own side (left cards from further left, right
-// from further right), settles flat with no rotation, then floats gently at
-// ±2 px — much more grounded than the discover tiles' ±6 px drift.
+// Left-side cards slide from further left, right-side cards from further right.
+// All cards are flat (zero rotation), ±2 px idle float — grounded and structured.
 function WorkspaceCard({
   index,
   spot,
@@ -329,153 +311,153 @@ function WorkspaceCard({
 
 function WorkspaceCardContent({ index }: { index: number }) {
   switch (index) {
-    case 0: return <ModuleCard />;
-    case 1: return <MembersCard />;
-    case 2: return <RevenueCard />;
-    case 3: return <LessonCard />;
-    case 4: return <ActivityCard />;
+    case 0: return <OutlineCard />;
+    case 1: return <PagePreviewCard />;
+    case 2: return <EditorCard />;
+    case 3: return <MediaCard />;
+    case 4: return <SpacesCard />;
     case 5: return <ChecklistCard />;
     default: return null;
   }
 }
 
-// Card 0 – top-left: course module with three completion progress bars.
-function ModuleCard() {
+// Card 0 – top-left: course outline being written. Module 2 has a blinking
+// cursor to show the structure is still being generated.
+function OutlineCard() {
   return (
     <div className="flex h-full flex-col p-3">
-      <div className="mb-2 flex items-center">
-        <span className="text-[9px] font-semibold uppercase tracking-[0.06em] text-[#343DE5]">
+      <span className="mb-1.5 text-[9px] font-semibold uppercase tracking-[0.06em] text-[#343DE5]">
+        Outline
+      </span>
+      <div className="flex flex-col gap-[3px]">
+        <div className="flex items-center gap-1 text-[8px] font-semibold text-gray-700">
+          <span className="w-3 text-gray-400">1.</span>
           Module 1
-        </span>
-        <span className="ml-auto text-[8px] text-gray-400">12 lessons</span>
+        </div>
+        <div className="ml-3 flex items-center gap-1 text-[7.5px] text-gray-500">
+          <span className="w-2.5 text-gray-300">├</span>
+          Lesson 1
+        </div>
+        <div className="ml-3 flex items-center gap-1 text-[7.5px] text-gray-500">
+          <span className="w-2.5 text-gray-300">└</span>
+          Lesson 2
+        </div>
+        <div className="mt-0.5 flex items-center gap-1 text-[8px] font-semibold text-gray-700">
+          <span className="w-3 text-gray-400">2.</span>
+          Module 2
+          <motion.span
+            aria-hidden
+            className="ml-px inline-block h-[9px] w-[1.5px] translate-y-[1px] rounded-[1px] bg-[#343DE5]"
+            animate={{ opacity: [1, 1, 0, 0] }}
+            transition={{ duration: 1, repeat: Infinity, times: [0, 0.45, 0.5, 0.95], ease: "linear" }}
+          />
+        </div>
       </div>
-      <div className="flex flex-col gap-[5px]">
-        {[85, 62, 91].map((pct, i) => (
-          <div key={i} className="flex items-center gap-1.5">
-            <div className="relative h-[5px] flex-1 rounded-full bg-gray-100">
-              <div
-                className="absolute inset-y-0 left-0 rounded-full bg-[#343DE5]"
-                style={{ width: `${pct}%`, opacity: 0.5 + i * 0.18 }}
-              />
-            </div>
-            <span className="w-5 text-right text-[7.5px] tabular-nums text-gray-400">
-              {pct}%
+    </div>
+  );
+}
+
+// Card 1 – top-right: miniature course landing page being generated.
+// Cover gradient → course name → category badge → enroll CTA.
+function PagePreviewCard() {
+  return (
+    <div className="flex h-full flex-col overflow-hidden">
+      <div
+        className="h-[26px] w-full shrink-0"
+        style={{ background: "linear-gradient(120deg, #343DE5 0%, #7C3AED 100%)" }}
+      />
+      <div className="flex flex-1 flex-col justify-between p-2.5">
+        <div>
+          <p className="text-[9px] font-semibold leading-tight text-gray-900">
+            Your course
+          </p>
+          <div className="mt-1 flex items-center gap-1">
+            <span className="rounded bg-[#ecfdf3] px-1 py-px text-[7px] font-semibold text-emerald-700">
+              Free
+            </span>
+            <span className="rounded border border-gray-200 px-1 py-px text-[7px] font-medium text-gray-500">
+              Finance
             </span>
           </div>
-        ))}
-      </div>
-      <div className="mt-auto pt-1.5">
-        <span className="text-[7.5px] text-gray-400">2h 40m · 3 quizzes</span>
+        </div>
+        <div className="flex h-[18px] w-full items-center justify-center rounded bg-[#343DE5]">
+          <span className="text-[7.5px] font-semibold text-white">Enroll now →</span>
+        </div>
       </div>
     </div>
   );
 }
 
-const MEMBER_COLORS = ["#343DE5", "#7C3AED", "#059669", "#D97706"] as const;
-
-// Card 1 – top-right: stacked member avatar rings with enrollment count.
-function MembersCard() {
+// Card 2 – mid-left: lesson content editor with text appearing mid-sentence
+// and a blinking cursor signalling active drafting.
+function EditorCard() {
   return (
-    <div className="flex h-full flex-col justify-between p-3">
-      <span className="text-[9px] font-semibold uppercase tracking-[0.06em] text-gray-400">
-        Members
-      </span>
-      <div className="flex items-center">
-        {MEMBER_COLORS.map((color, i) => (
-          <span
-            key={color}
-            className="flex size-[18px] shrink-0 rounded-full border-[1.5px] border-white"
-            style={{ backgroundColor: color, marginLeft: i > 0 ? -5 : 0 }}
-          />
-        ))}
-        <span className="ml-1.5 text-[8.5px] font-medium text-gray-500">
-          +152
+    <div className="flex h-full flex-col p-2.5">
+      <div className="mb-1.5 flex items-center gap-1.5">
+        <span className="text-[9px] font-semibold text-gray-700">Lesson 1</span>
+        <span className="rounded bg-[#eff0fd] px-1 py-px text-[7px] font-semibold text-[#343DE5]">
+          Intro
         </span>
       </div>
-      <div className="flex items-center gap-1.5">
-        <span className="text-[8.5px] font-medium text-gray-700">
-          156 enrolled
-        </span>
-        <span className="text-[8.5px] font-semibold text-emerald-600">
-          ↑ 12%
-        </span>
+      <div className="h-px w-full bg-gray-100" />
+      <div className="mt-1.5 flex-1">
+        <p className="text-[8px] leading-[14px] text-gray-700">
+          Welcome! In this lesson
+          <motion.span
+            aria-hidden
+            className="ml-px inline-block h-[9px] w-[1.5px] translate-y-[1px] rounded-[1px] bg-[#343DE5]"
+            animate={{ opacity: [1, 1, 0, 0] }}
+            transition={{ duration: 1, repeat: Infinity, times: [0, 0.45, 0.5, 0.95], ease: "linear" }}
+          />
+        </p>
+        <div className="mt-1.5 h-[4px] w-2/3 rounded-full bg-gray-100" />
       </div>
     </div>
   );
 }
 
-// Card 2 – mid-left: revenue figure with a mini bar chart below it.
-function RevenueCard() {
-  const bars = [30, 45, 60, 55, 78, 65, 88];
+// Card 3 – mid-right: intro video being encoded. The progress bar animates
+// across the full duration of the personalizing screen.
+function MediaCard() {
   return (
     <div className="flex h-full flex-col justify-between p-2.5">
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-[7.5px] font-medium text-gray-400">Revenue</p>
-          <p className="text-[13px] font-bold leading-none tracking-tight text-gray-900">
-            $2,450
-          </p>
-        </div>
-        <span className="rounded-full bg-emerald-50 px-1.5 py-0.5 text-[7.5px] font-semibold text-emerald-700">
-          ↑ 12%
-        </span>
-      </div>
-      <div className="flex items-end gap-[2.5px]">
-        {bars.map((h, i) => (
-          <div
-            key={i}
-            className="flex-1 rounded-[2px] bg-[#343DE5]"
-            style={{
-              height: `${h * 0.19}px`,
-              opacity: 0.3 + (h / 88) * 0.7,
-            }}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// Card 3 – mid-right: lesson skeleton that signals content being populated.
-function LessonCard() {
-  return (
-    <div className="flex h-full flex-col gap-2 p-2.5">
       <div className="flex items-center gap-1.5">
-        <span className="text-[9px] font-semibold text-gray-700">Lesson 3</span>
-        <span className="rounded bg-[#eff0fd] px-1 py-px text-[7px] font-semibold text-[#343DE5]">
-          Module 1
+        <span className="flex size-[14px] shrink-0 items-center justify-center rounded-sm bg-[#eff0fd]">
+          <svg width="8" height="8" viewBox="0 0 8 8" fill="none" aria-hidden>
+            <path d="M2 1.5L6.5 4L2 6.5V1.5Z" fill="#343DE5" />
+          </svg>
         </span>
+        <span className="text-[9px] font-medium text-gray-700">Intro video</span>
       </div>
-      <div className="flex flex-col gap-[5px]">
-        <div className="h-[5px] w-full rounded-full bg-gray-100" />
-        <div className="h-[5px] w-3/4 rounded-full bg-gray-100" />
-        <div className="h-[5px] w-5/6 rounded-full bg-gray-100" />
+      <div>
+        <div className="relative h-[5px] w-full overflow-hidden rounded-full bg-gray-100">
+          <motion.div
+            className="absolute inset-y-0 left-0 rounded-full bg-[#343DE5]"
+            initial={{ width: "36%" }}
+            animate={{ width: "93%" }}
+            transition={{ duration: 3.2, ease: [0.4, 0, 0.2, 1] }}
+          />
+        </div>
+        <p className="mt-1 text-[7.5px] text-gray-400">Encoding…</p>
       </div>
     </div>
   );
 }
 
-// Card 4 – bottom-left: live activity feed with two recent events.
-function ActivityCard() {
+// Card 4 – bottom-left: community channels being created, each with a green
+// "live" dot once it comes online.
+function SpacesCard() {
   return (
     <div className="flex h-full flex-col justify-between p-2.5">
       <span className="text-[7.5px] font-semibold uppercase tracking-[0.06em] text-gray-400">
-        Activity
+        Spaces
       </span>
       <div className="flex flex-col gap-[5px]">
-        {[
-          { label: "Alex enrolled", time: "just now", color: "#343DE5" },
-          { label: "New comment", time: "2m ago", color: "#7C3AED" },
-        ].map((row) => (
-          <div key={row.label} className="flex items-center gap-1.5">
-            <span
-              className="size-[7px] shrink-0 rounded-full"
-              style={{ backgroundColor: row.color }}
-            />
-            <span className="flex-1 truncate text-[8px] text-gray-700">
-              {row.label}
-            </span>
-            <span className="shrink-0 text-[7px] text-gray-400">{row.time}</span>
+        {["general", "resources"].map((ch) => (
+          <div key={ch} className="flex items-center gap-1.5">
+            <span className="text-[9px] font-semibold text-gray-400">#</span>
+            <span className="flex-1 text-[8px] text-gray-700">{ch}</span>
+            <span className="size-[6px] rounded-full bg-emerald-400" />
           </div>
         ))}
       </div>
@@ -483,8 +465,8 @@ function ActivityCard() {
   );
 }
 
-// Card 5 – bottom-right: setup checklist. Two items done, the third shows a
-// blinking cursor — the clearest signal that generation is actively happening.
+// Card 5 – bottom-right: publish checklist. Two items complete, "Going live"
+// is still in progress with a blinking cursor.
 function ChecklistCard() {
   return (
     <div className="flex h-full flex-col justify-between p-2.5">
@@ -492,7 +474,7 @@ function ChecklistCard() {
         Setup
       </span>
       <div className="flex flex-col gap-[5px]">
-        {["Profile complete", "Module 1 ready"].map((item) => (
+        {["Draft saved", "Page ready"].map((item) => (
           <div key={item} className="flex items-center gap-1.5">
             <CheckDot />
             <span className="text-[8px] text-gray-700">{item}</span>
@@ -506,12 +488,7 @@ function ChecklistCard() {
               aria-hidden
               className="ml-px inline-block h-[9px] w-[1.5px] translate-y-[1px] rounded-[1px] bg-[#343DE5]"
               animate={{ opacity: [1, 1, 0, 0] }}
-              transition={{
-                duration: 1,
-                repeat: Infinity,
-                times: [0, 0.45, 0.5, 0.95],
-                ease: "linear",
-              }}
+              transition={{ duration: 1, repeat: Infinity, times: [0, 0.45, 0.5, 0.95], ease: "linear" }}
             />
           </span>
         </div>

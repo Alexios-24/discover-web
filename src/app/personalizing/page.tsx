@@ -11,19 +11,19 @@ const DURATION_MS = 3800;
 const EASE = [0.22, 0.85, 0.25, 1] as const;
 
 // ── Discover flow floating photo cards ───────────────────────────────────────
-// x/y are offsets (px) from viewport center; sizes and rotations from Figma node 2948:29350.
+// x/y: px offsets from viewport centre. initialY: entry slide direction (neg=from above).
 
 const LEARN_CARDS = [
   { src: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=320&h=200&auto=format&fit=crop&q=65",
-    w: 143, h: 80,  x: -95,  y: -210, rotate: -7.8,  delay: 0.08 },
+    w: 143, h: 80,  x: -115, y: -245, rotate: -7.8,  delay: 0.08, initialY: -20 },
   { src: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=320&h=200&auto=format&fit=crop&q=65",
-    w: 129, h: 72,  x: -342, y: -16,  rotate: -9.25, delay: 0.12 },
+    w: 129, h: 72,  x: -400, y:  -20, rotate: -9.25, delay: 0.12, initialY: -15 },
   { src: "https://images.unsplash.com/photo-1590602847861-f357a9332bbc?w=320&h=200&auto=format&fit=crop&q=65",
-    w: 129, h: 72,  x:  262, y: -59,  rotate: 14.04, delay: 0.16 },
+    w: 129, h: 72,  x:  310, y:  -75, rotate: 14.04, delay: 0.16, initialY: -18 },
   { src: "https://images.unsplash.com/photo-1593062096033-9a26b09da705?w=320&h=200&auto=format&fit=crop&q=65",
-    w: 107, h: 60,  x: -231, y:  290, rotate: -14.26,delay: 0.20 },
+    w: 107, h: 60,  x: -275, y:  290, rotate: -14.26,delay: 0.20, initialY:  20 },
   { src: "https://images.unsplash.com/photo-1455390582262-044cdead277a?w=320&h=200&auto=format&fit=crop&q=65",
-    w: 129, h: 72,  x:  283, y:  271, rotate: 11.16, delay: 0.24 },
+    w: 129, h: 72,  x:  335, y:  271, rotate: 11.16, delay: 0.24, initialY:  20 },
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -103,23 +103,23 @@ function CreatePersonalizing({
 }) {
   return (
     <div className="relative flex-1 overflow-hidden">
-      {/* Top-left: course name + description form (Figma: image 42) */}
-      <CreateFloatingPanel left="24.04%" top="25.39%" rotation={-9.67} delay={0.08}>
+      {/* Top-left: course name + description form */}
+      <CreateFloatingPanel left="16%" top="17%" rotation={-9.67} delay={0.08} initialY={-20}>
         <CourseFormCard />
       </CreateFloatingPanel>
 
-      {/* Top-right: community channels list (Figma: image 43) */}
-      <CreateFloatingPanel left="61.24%" top="29.60%" rotation={6.79} delay={0.14}>
+      {/* Top-right: community channels list */}
+      <CreateFloatingPanel left="67%" top="21%" rotation={6.79} delay={0.14} initialY={-20}>
         <ChannelsCard />
       </CreateFloatingPanel>
 
-      {/* Bottom-left: lesson status dropdown (Figma: Dropdown) */}
-      <CreateFloatingPanel left="26.86%" top="65%" rotation={-7.69} delay={0.20}>
+      {/* Bottom-left: lesson status dropdown */}
+      <CreateFloatingPanel left="19%" top="71%" rotation={-7.69} delay={0.20} initialY={20}>
         <StatusDropdownCard />
       </CreateFloatingPanel>
 
-      {/* Bottom-right: lesson thumbnail upload (Figma: image 44) */}
-      <CreateFloatingPanel left="59.64%" top="63.60%" rotation={14.21} delay={0.26}>
+      {/* Bottom-right: lesson thumbnail upload */}
+      <CreateFloatingPanel left="65%" top="68%" rotation={14.21} delay={0.26} initialY={20}>
         <ThumbnailCard />
       </CreateFloatingPanel>
 
@@ -236,33 +236,44 @@ function CreateOrb() {
   );
 }
 
-// Wrapper: fade+scale in, then gentle vertical bob
+// Wrapper: directional slide-in + fade, then subtle organic drift (y+x).
+// Outer handles entry; inner handles the continuous float so they don't conflict.
 function CreateFloatingPanel({
   children,
   left,
   top,
   rotation,
   delay,
+  initialY,
 }: {
   children: ReactNode;
   left: string;
   top: string;
   rotation: number;
   delay: number;
+  initialY: number;
 }) {
   return (
     <motion.div
       className="absolute"
       style={{ left, top, rotate: rotation }}
-      initial={{ opacity: 0, scale: 0.88 }}
-      animate={{ opacity: 1, scale: 1, y: [0, -5, 0] }}
+      initial={{ opacity: 0, scale: 0.9, y: initialY }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
       transition={{
-        opacity: { duration: 0.42, delay },
-        scale:   { duration: 0.55, ease: EASE, delay },
-        y:       { duration: 5 + delay * 4, repeat: Infinity, ease: "easeInOut", delay: delay + 0.55 },
+        opacity: { duration: 0.55, ease: "easeOut", delay },
+        scale:   { duration: 0.65, ease: EASE, delay },
+        y:       { duration: 0.65, ease: EASE, delay },
       }}
     >
-      {children}
+      <motion.div
+        animate={{ y: [0, -3, 0], x: [0, 2, 0] }}
+        transition={{
+          y: { duration: 5 + delay * 3, repeat: Infinity, ease: "easeInOut", delay: delay + 0.9 },
+          x: { duration: 7 + delay * 2, repeat: Infinity, ease: "easeInOut", delay: delay + 1.5 },
+        }}
+      >
+        {children}
+      </motion.div>
     </motion.div>
   );
 }
@@ -597,7 +608,8 @@ function LearnOrb() {
   );
 }
 
-// Individual floating photo card — positioned by pixel offset from viewport centre
+// Individual floating photo card — positioned by pixel offset from viewport centre.
+// Outer handles entry; inner handles the continuous float so they don't conflict.
 function LearnFloatingCard({
   src,
   w,
@@ -606,6 +618,7 @@ function LearnFloatingCard({
   y,
   rotate,
   delay,
+  initialY,
 }: {
   src: string;
   w: number;
@@ -614,26 +627,38 @@ function LearnFloatingCard({
   y: number;
   rotate: number;
   delay: number;
+  initialY: number;
 }) {
   return (
     <motion.div
-      className="absolute overflow-hidden rounded-xl shadow-[0_18px_40px_rgba(16,24,40,0.16)] ring-1 ring-black/5"
+      className="absolute"
       style={{
         left: `calc(50% + ${x - w / 2}px)`,
         top: `calc(50% + ${y - h / 2}px)`,
-        width: w,
-        height: h,
         rotate,
       }}
-      initial={{ opacity: 0, scale: 0.85 }}
-      animate={{ opacity: 1, scale: 1, y: [0, -6, 0] }}
+      initial={{ opacity: 0, scale: 0.88, y: initialY }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
       transition={{
-        opacity: { duration: 0.45, delay },
-        scale:   { duration: 0.55, ease: EASE, delay },
-        y:       { duration: 5 + delay * 4, repeat: Infinity, ease: "easeInOut", delay: delay + 0.55 },
+        opacity: { duration: 0.55, ease: "easeOut", delay },
+        scale:   { duration: 0.65, ease: EASE, delay },
+        y:       { duration: 0.65, ease: EASE, delay },
       }}
     >
-      <img src={src} alt="" className="size-full object-cover" draggable={false} />
+      <motion.div
+        animate={{ y: [0, -3, 0], x: [0, 1.5, 0] }}
+        transition={{
+          y: { duration: 5 + delay * 3, repeat: Infinity, ease: "easeInOut", delay: delay + 0.9 },
+          x: { duration: 7 + delay * 2, repeat: Infinity, ease: "easeInOut", delay: delay + 1.5 },
+        }}
+      >
+        <div
+          className="overflow-hidden rounded-xl shadow-[0_18px_40px_rgba(16,24,40,0.16)] ring-1 ring-black/5"
+          style={{ width: w, height: h }}
+        >
+          <img src={src} alt="" className="size-full object-cover" draggable={false} />
+        </div>
+      </motion.div>
     </motion.div>
   );
 }

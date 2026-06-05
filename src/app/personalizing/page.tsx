@@ -135,20 +135,23 @@ function CreatePersonalizing({
           <h1 className="font-montserrat text-[40px] font-bold leading-normal tracking-[-0.5px] text-[#101828]">
             Personalizing your workspace
           </h1>
-          {/* Figma node 2957:43904 — 354 × 28 clipping container, cycling text */}
+          {/* Figma node 2957:43904 — 354 × 28 clip window, slot-machine scroll */}
           <div className="h-7 w-[354px] overflow-hidden">
-            <AnimatePresence mode="wait">
-              <motion.p
-                key={phraseIndex}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.3, ease: EASE }}
-                className="text-center text-[18px] leading-7 text-[#475467]"
-              >
-                {phrases[phraseIndex]}
-              </motion.p>
-            </AnimatePresence>
+            <motion.div
+              className="flex flex-col"
+              style={{ gap: 16 }}
+              animate={{ y: -(phraseIndex * 44) }}
+              transition={{ duration: 0.45, ease: EASE }}
+            >
+              {phrases.map((phrase, i) => (
+                <p
+                  key={i}
+                  className="shrink-0 text-center text-[18px] leading-7 text-[#475467]"
+                >
+                  {phrase}
+                </p>
+              ))}
+            </motion.div>
           </div>
         </div>
       </div>
@@ -190,15 +193,16 @@ function CreateOrb() {
       >
         <svg className="size-full" viewBox="0 0 172 172" aria-hidden>
           <defs>
-            {/* Bright head → transparent tail along the arc direction */}
+            {/* Bright leading edge → transparent tail */}
             <linearGradient
               id="create-arc-grad"
               gradientUnits="userSpaceOnUse"
-              x1="172" y1="86"
-              x2="86"  y2="172"
+              x1="172" y1="0"
+              x2="0"   y2="172"
             >
-              <stop offset="0%"   stopColor="#343DE5" stopOpacity="1" />
-              <stop offset="65%"  stopColor="#343DE5" stopOpacity="0.35" />
+              <stop offset="0%"   stopColor="#7B83F5" stopOpacity="1" />
+              <stop offset="30%"  stopColor="#5B63F5" stopOpacity="0.9" />
+              <stop offset="60%"  stopColor="#343DE5" stopOpacity="0.45" />
               <stop offset="100%" stopColor="#343DE5" stopOpacity="0" />
             </linearGradient>
           </defs>

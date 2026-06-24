@@ -9,6 +9,7 @@ import { TrendingSection } from "@/components/landing/trending-section";
 import { TopPicksSection } from "@/components/landing/top-picks-section";
 import { CreatorsSection } from "@/components/landing/creators-section";
 import { FeaturedProducts } from "@/components/landing/featured-products";
+import { RisingCreatorsSection } from "@/components/landing/rising-creators-section";
 import { BrowseAllSection } from "@/components/landing/browse-all-section";
 import { NumbersSection } from "@/components/landing/numbers-section";
 import { LandingFooter } from "@/components/landing/footer";
@@ -41,6 +42,7 @@ export default function LandingPage() {
         <CreatorsSection />
         <FeaturedProducts />
         <BrowseAllSection />
+        <RisingCreatorsSection />
         <NumbersSection />
         <LandingFooter />
         <VariantSwitcher />

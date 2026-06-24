@@ -1,32 +1,172 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useState, type ReactNode } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
-import { BookOpen } from "lucide-react";
 import { AppHeader } from "@/components/sections/app-header";
-import { RocketIcon } from "@/components/icons/ghl-icons";
+import { BookIcon, RocketIcon, type GhlIconComponent } from "@/components/icons/ghl-icons";
 
 const DURATION_MS = 3800;
 const EASE = [0.22, 0.85, 0.25, 1] as const;
 
-// ── Discover flow floating photo cards ───────────────────────────────────────
-// x/y: px offsets from viewport centre. initialY: entry slide direction (neg=from above).
+type PersonalizingMode = "create" | "learn";
 
-const LEARN_CARDS = [
-  { src: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=320&h=200&auto=format&fit=crop&q=65",
-    w: 143, h: 80,  x: -115, y: -245, rotate: -7.8,  delay: 0.08, initialY: -20 },
-  { src: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=320&h=200&auto=format&fit=crop&q=65",
-    w: 129, h: 72,  x: -400, y:  -20, rotate: -9.25, delay: 0.12, initialY: -15 },
-  { src: "https://images.unsplash.com/photo-1590602847861-f357a9332bbc?w=320&h=200&auto=format&fit=crop&q=65",
-    w: 129, h: 72,  x:  310, y:  -75, rotate: 14.04, delay: 0.16, initialY: -18 },
-  { src: "https://images.unsplash.com/photo-1593062096033-9a26b09da705?w=320&h=200&auto=format&fit=crop&q=65",
-    w: 107, h: 60,  x: -275, y:  290, rotate: -14.26,delay: 0.20, initialY:  20 },
-  { src: "https://images.unsplash.com/photo-1455390582262-044cdead277a?w=320&h=200&auto=format&fit=crop&q=65",
-    w: 129, h: 72,  x:  335, y:  271, rotate: 11.16, delay: 0.24, initialY:  20 },
+interface FigmaFrame {
+  width: number;
+  height: number;
+  maxWidth: string;
+  center: {
+    x: number;
+    y: number;
+    width: number;
+  };
+}
+
+interface FigmaFloatingAsset {
+  src: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  scale?: number;
+  transparentOffsetX: number;
+  transparentOffsetY: number;
+  delay: number;
+  initialY: number;
+}
+
+const ASSET_BASE = "/onboarding-personalizing";
+
+// Figma nodes:
+// - Launch/create flow: 3010:30175, 735.88 x 564.71
+// - Discover/learn flow: 3010:30176, 1182 x 571
+const FIGMA_FRAMES = {
+  create: {
+    width: 735.88,
+    height: 564.71,
+    maxWidth: "min(86vw, 735.88px, calc((100vh - 116px) * 1.303))",
+    center: { x: 58.82, y: 95.97, width: 630 },
+  },
+  learn: {
+    width: 1182,
+    height: 571,
+    maxWidth: "min(90vw, 1182px, calc((100vh - 116px) * 2.07))",
+    center: { x: 283, y: 152.75, width: 630 },
+  },
+} satisfies Record<PersonalizingMode, FigmaFrame>;
+
+// The PNGs are Figma-rendered individual nodes at 2x. width/height are the CSS
+// size of each exported image, while transparentOffset* aligns the visible node
+// bounds back to the frame coordinates from the Figma payload.
+const LAUNCH_FLOATING_ASSETS: FigmaFloatingAsset[] = [
+  {
+    src: `${ASSET_BASE}/launch-course-card.png`,
+    x: 0,
+    y: 0,
+    width: 312,
+    height: 268.5,
+    transparentOffsetX: 40,
+    transparentOffsetY: 28,
+    delay: 0.08,
+    initialY: -20,
+  },
+  {
+    src: `${ASSET_BASE}/launch-channels-card.png`,
+    x: 535.68,
+    y: 40.43,
+    width: 210.5,
+    height: 217.5,
+    transparentOffsetX: 39.5,
+    transparentOffsetY: 27.5,
+    delay: 0.14,
+    initialY: -20,
+  },
+  {
+    src: `${ASSET_BASE}/launch-status-dropdown.png`,
+    x: 40.62,
+    y: 379.97,
+    width: 253,
+    height: 232.5,
+    transparentOffsetX: 40,
+    transparentOffsetY: 28,
+    delay: 0.2,
+    initialY: 20,
+  },
+  {
+    src: `${ASSET_BASE}/launch-thumbnail-card.png`,
+    x: 512.56,
+    y: 366.79,
+    width: 299.5,
+    height: 274,
+    transparentOffsetX: 40,
+    transparentOffsetY: 28,
+    delay: 0.26,
+    initialY: 20,
+  },
 ];
 
-// ─────────────────────────────────────────────────────────────────────────────
+const DISCOVER_FLOATING_ASSETS: FigmaFloatingAsset[] = [
+  {
+    src: `${ASSET_BASE}/discover-card-top.png`,
+    x: 465,
+    y: 9.8,
+    width: 151.5,
+    height: 97,
+    scale: 1.75,
+    transparentOffsetX: 1,
+    transparentOffsetY: 9.5,
+    delay: 0.08,
+    initialY: -20,
+  },
+  {
+    src: `${ASSET_BASE}/discover-card-left.png`,
+    x: 233.76,
+    y: 202.61,
+    width: 137.5,
+    height: 89.5,
+    scale: 1.75,
+    transparentOffsetX: 1,
+    transparentOffsetY: 10,
+    delay: 0.12,
+    initialY: -15,
+  },
+  {
+    src: `${ASSET_BASE}/discover-card-right.png`,
+    x: 827.31,
+    y: 156.64,
+    width: 139,
+    height: 99.5,
+    scale: 1.75,
+    transparentOffsetX: 8.5,
+    transparentOffsetY: 1.5,
+    delay: 0.16,
+    initialY: -18,
+  },
+  {
+    src: `${ASSET_BASE}/discover-card-bottom-left.png`,
+    x: 339.2,
+    y: 495.17,
+    width: 117,
+    height: 81.5,
+    scale: 1.75,
+    transparentOffsetX: 1.5,
+    transparentOffsetY: 8.5,
+    delay: 0.2,
+    initialY: 20,
+  },
+  {
+    src: `${ASSET_BASE}/discover-card-bottom-right.png`,
+    x: 844.03,
+    y: 468.59,
+    width: 137.5,
+    height: 94.5,
+    scale: 1.75,
+    transparentOffsetX: 5.5,
+    transparentOffsetY: 1,
+    delay: 0.24,
+    initialY: 20,
+  },
+];
 
 function PersonalizingScreen() {
   const router = useRouter();
@@ -34,6 +174,7 @@ function PersonalizingScreen() {
   const intent = searchParams.get("intent") === "learn" ? "learn" : "create";
   const choice = searchParams.get("choice");
   const domainsParam = searchParams.get("domains") ?? "";
+  const fromHandoff = searchParams.get("handoff") === "1";
 
   const phrases = useMemo(
     () =>
@@ -70,11 +211,19 @@ function PersonalizingScreen() {
 
   return (
     <main className="relative flex min-h-screen flex-col bg-white text-gray-900">
-      <AppHeader variant={intent === "learn" ? "full" : "minimal"} />
+      <AppHeader variant="minimal" />
       {intent === "create" ? (
-        <CreatePersonalizing phrases={phrases} phraseIndex={phraseIndex} />
+        <CreatePersonalizing
+          phrases={phrases}
+          phraseIndex={phraseIndex}
+          fromHandoff={fromHandoff}
+        />
       ) : (
-        <LearnPersonalizing phrases={phrases} phraseIndex={phraseIndex} />
+        <LearnPersonalizing
+          phrases={phrases}
+          phraseIndex={phraseIndex}
+          fromHandoff={fromHandoff}
+        />
       )}
     </main>
   );
@@ -88,438 +237,229 @@ export default function PersonalizingPage() {
   );
 }
 
-// ── Create flow — Figma node 2940:30669 ───────────────────────────────────────
-//
-// Full-screen white canvas. Four floating UI panels assembled around a centered
-// orb with a spinning gradient arc stroke. Panel positions are percentage-based
-// offsets derived from the 1440 × 960 Figma artboard.
-
 function CreatePersonalizing({
   phrases,
   phraseIndex,
+  fromHandoff,
 }: {
   phrases: string[];
   phraseIndex: number;
+  fromHandoff: boolean;
 }) {
   return (
-    <div className="relative flex-1 overflow-hidden">
-      {/* Top-left: course name + description form */}
-      <CreateFloatingPanel left="16%" top="17%" rotation={-9.67} delay={0.08} initialY={-20}>
-        <CourseFormCard />
-      </CreateFloatingPanel>
-
-      {/* Top-right: community channels list */}
-      <CreateFloatingPanel left="67%" top="21%" rotation={6.79} delay={0.14} initialY={-20}>
-        <ChannelsCard />
-      </CreateFloatingPanel>
-
-      {/* Bottom-left: lesson status dropdown */}
-      <CreateFloatingPanel left="19%" top="71%" rotation={-7.69} delay={0.20} initialY={20}>
-        <StatusDropdownCard />
-      </CreateFloatingPanel>
-
-      {/* Bottom-right: lesson thumbnail upload */}
-      <CreateFloatingPanel left="65%" top="68%" rotation={14.21} delay={0.26} initialY={20}>
-        <ThumbnailCard />
-      </CreateFloatingPanel>
-
-      {/* Centre: orb + heading + cycling subtitle */}
-      <div className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-6">
-        <CreateOrb />
-        <div className="flex flex-col items-center gap-2 text-center">
-          <h1 className="font-montserrat text-[40px] font-bold leading-normal tracking-[-0.5px] text-[#101828]">
-            Personalizing your workspace
-          </h1>
-          {/* Figma node 2957:43904 — 354 × 28 clip window, slot-machine scroll */}
-          <div className="h-7 w-[354px] overflow-hidden">
-            <motion.div
-              className="flex flex-col"
-              style={{ gap: 16 }}
-              animate={{ y: -(phraseIndex * 44) }}
-              transition={{ duration: 0.45, ease: EASE }}
-            >
-              {phrases.map((phrase, i) => (
-                <p
-                  key={i}
-                  className="shrink-0 text-center text-[18px] leading-7 text-[#475467]"
-                >
-                  {phrase}
-                </p>
-              ))}
-            </motion.div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <PersonalizingStage
+      mode="create"
+      phrases={phrases}
+      phraseIndex={phraseIndex}
+      fromHandoff={fromHandoff}
+    />
   );
 }
-
-// Orb: faint track ring + spinning gradient arc + filled blue circle + GHL rocket
-function CreateOrb() {
-  const R = 81;
-  const C = 2 * Math.PI * R; // ≈ 508.9
-  const arcLen = +(C * 0.78).toFixed(1); // ~396.9 — 78 % filled
-  const gapLen = +(C - arcLen).toFixed(1);
-
-  return (
-    <div
-      className="relative flex items-center justify-center"
-      style={{ width: 172, height: 172 }}
-    >
-      {/* Faint track circle */}
-      <svg
-        className="absolute inset-0 size-full"
-        viewBox="0 0 172 172"
-        aria-hidden
-      >
-        <circle
-          cx="86" cy="86" r={R}
-          fill="none"
-          stroke="rgba(52,61,229,0.14)"
-          strokeWidth="2"
-        />
-      </svg>
-
-      {/* Spinning gradient arc — gives the sense that something is happening */}
-      <motion.div
-        className="absolute inset-0"
-        animate={{ rotate: 360 }}
-        transition={{ duration: 2.4, repeat: Infinity, ease: "linear" }}
-      >
-        <svg className="size-full" viewBox="0 0 172 172" aria-hidden>
-          <defs>
-            {/* Bright leading edge → transparent tail */}
-            <linearGradient
-              id="create-arc-grad"
-              gradientUnits="userSpaceOnUse"
-              x1="172" y1="0"
-              x2="0"   y2="172"
-            >
-              <stop offset="0%"   stopColor="#7B83F5" stopOpacity="1" />
-              <stop offset="30%"  stopColor="#5B63F5" stopOpacity="0.9" />
-              <stop offset="60%"  stopColor="#343DE5" stopOpacity="0.45" />
-              <stop offset="100%" stopColor="#343DE5" stopOpacity="0" />
-            </linearGradient>
-          </defs>
-          <circle
-            cx="86" cy="86" r={R}
-            fill="none"
-            stroke="url(#create-arc-grad)"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeDasharray={`${arcLen} ${gapLen}`}
-          />
-        </svg>
-      </motion.div>
-
-      {/* Inner filled circle */}
-      <div
-        className="relative z-10 flex items-center justify-center rounded-full text-white"
-        style={{
-          width: 120,
-          height: 120,
-          background: "linear-gradient(160deg, #5B63F5 0%, #343DE5 60%, #2831D3 100%)",
-          boxShadow:
-            "0 20px 44px rgba(52,61,229,0.42), inset 0 2px 6px rgba(255,255,255,0.45), inset 0 -12px 22px rgba(0,0,0,0.18)",
-        }}
-      >
-        {/* Specular highlight */}
-        <span
-          aria-hidden
-          className="absolute left-1/2 top-[14%] h-1/4 w-1/2 -translate-x-1/2 rounded-full bg-white/40 blur-md"
-        />
-        <span className="relative">
-          <RocketIcon size={48} />
-        </span>
-      </div>
-    </div>
-  );
-}
-
-// Wrapper: directional slide-in + fade, then subtle organic drift (y+x).
-// Outer handles entry; inner handles the continuous float so they don't conflict.
-function CreateFloatingPanel({
-  children,
-  left,
-  top,
-  rotation,
-  delay,
-  initialY,
-}: {
-  children: ReactNode;
-  left: string;
-  top: string;
-  rotation: number;
-  delay: number;
-  initialY: number;
-}) {
-  return (
-    <motion.div
-      className="absolute"
-      style={{ left, top, rotate: rotation }}
-      initial={{ opacity: 0, scale: 0.9, y: initialY }}
-      animate={{ opacity: 1, scale: 1, y: 0 }}
-      transition={{
-        opacity: { duration: 0.55, ease: "easeOut", delay },
-        scale:   { duration: 0.65, ease: EASE, delay },
-        y:       { duration: 0.65, ease: EASE, delay },
-      }}
-    >
-      <motion.div
-        animate={{ y: [0, -3, 0], x: [0, 2, 0] }}
-        transition={{
-          y: { duration: 5 + delay * 3, repeat: Infinity, ease: "easeInOut", delay: delay + 0.9 },
-          x: { duration: 7 + delay * 2, repeat: Infinity, ease: "easeInOut", delay: delay + 1.5 },
-        }}
-      >
-        {children}
-      </motion.div>
-    </motion.div>
-  );
-}
-
-// ── Panel cards ───────────────────────────────────────────────────────────────
-
-// Panel 1 — Course name + description form (212 × 159 from Figma)
-function CourseFormCard() {
-  return (
-    <div
-      className="rounded-2xl border border-[#eaecf0] bg-white p-4 shadow-[0_12px_50px_-12px_rgba(16,24,40,0.12)]"
-      style={{ width: 212 }}
-    >
-      <div className="mb-3">
-        <p className="mb-1 text-[11px] font-medium text-[#344054]">Course name</p>
-        <div className="rounded-md border border-[#d0d5dd] px-3 py-[5px]">
-          <span className="text-[11.5px] text-[#101828]">F1 enthusiasts</span>
-        </div>
-      </div>
-      <div>
-        <p className="mb-1 text-[11px] font-medium text-[#344054]">Description</p>
-        <div
-          className="relative rounded-md border border-[#d0d5dd] px-3 py-2"
-          style={{ height: 68 }}
-        >
-          <p className="text-[10px] leading-relaxed text-[#98a2b3]">
-            Tell people what your community is about
-          </p>
-          <span className="absolute bottom-2 right-2 text-[9.5px] text-[#98a2b3]">
-            0 / 200
-          </span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// Panel 2 — Community channels list (120 × 128 from Figma)
-function ChannelsCard() {
-  const channels: { emoji: string; label: string; active?: boolean }[] = [
-    { emoji: "🏠", label: "Home",             active: true },
-    { emoji: "📖", label: "Introduction" },
-    { emoji: "🚩", label: "Resources" },
-    { emoji: "❤️", label: "Health & vitality" },
-  ];
-
-  return (
-    <div
-      className="rounded-2xl border border-[#eaecf0] bg-white p-3 shadow-[0_12px_50px_-12px_rgba(16,24,40,0.12)]"
-      style={{ width: 120 }}
-    >
-      <p className="mb-2 text-[10px] font-semibold text-[#343DE5]">Channels</p>
-      <div className="flex flex-col gap-[3px]">
-        {channels.map((ch) => (
-          <div
-            key={ch.label}
-            className={`flex items-center gap-1.5 rounded-md px-1.5 py-[3px] ${
-              ch.active ? "bg-[#f5f5f5]" : ""
-            }`}
-          >
-            <span className="text-[11px] leading-none">{ch.emoji}</span>
-            <span
-              className={`truncate text-[9.5px] leading-[14px] ${
-                ch.active ? "font-semibold text-[#101828]" : "text-[#475467]"
-              }`}
-            >
-              {ch.label}
-            </span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// Panel 3 — Lesson status dropdown: Draft / Publish / Lock / Drip (160px wide)
-// Colors from Figma: Draft #475467, Publish #039855, Lock #f79009, Drip #343DE5
-function StatusDropdownCard() {
-  const items = [
-    { icon: "file",          label: "Draft",   color: "#475467", bg: undefined,  check: false },
-    { icon: "check-circle",  label: "Publish", color: "#039855", bg: undefined,  check: false },
-    { icon: "lock",          label: "Lock",    color: "#f79009", bg: undefined,  check: false },
-    { icon: "clock",         label: "Drip",    color: "#343DE5", bg: "#eff4ff",  check: true  },
-  ] as const;
-
-  return (
-    <div
-      className="overflow-hidden rounded-2xl border border-[#eaecf0] bg-white shadow-[0_12px_50px_-12px_rgba(16,24,40,0.12)]"
-      style={{ width: 160 }}
-    >
-      {items.map((item) => (
-        <div
-          key={item.label}
-          className="flex items-center gap-2 px-2 py-[7px]"
-          style={{ backgroundColor: item.bg }}
-        >
-          <span className="flex size-[14px] shrink-0 items-center justify-center">
-            <DropdownIcon name={item.icon} color={item.color} />
-          </span>
-          <span
-            className="flex-1 text-[13px] font-semibold leading-[18px]"
-            style={{ color: item.color }}
-          >
-            {item.label}
-          </span>
-          {item.check && (
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
-              <path
-                d="M3 8.5 6.5 12 13 5"
-                stroke={item.color}
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          )}
-        </div>
-      ))}
-    </div>
-  );
-}
-
-type DropdownIconName = "file" | "check-circle" | "lock" | "clock";
-
-function DropdownIcon({ name, color }: { name: DropdownIconName; color: string }) {
-  if (name === "file") return (
-    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
-      <path
-        d="M8 1.5H4a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V5M8 1.5 11.5 5M8 1.5V5h3.5"
-        stroke={color} strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"
-      />
-    </svg>
-  );
-  if (name === "check-circle") return (
-    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
-      <circle cx="7" cy="7" r="5.5" stroke={color} strokeWidth="1.2" />
-      <path
-        d="M4.5 7 6.5 9 9.5 5"
-        stroke={color} strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"
-      />
-    </svg>
-  );
-  if (name === "lock") return (
-    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
-      <rect x="3" y="6.5" width="8" height="6" rx="1" stroke={color} strokeWidth="1.2" />
-      <path d="M5 6.5V4.5a2 2 0 0 1 4 0v2" stroke={color} strokeWidth="1.2" strokeLinecap="round" />
-    </svg>
-  );
-  return (
-    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
-      <circle cx="7" cy="7" r="5.5" stroke={color} strokeWidth="1.2" />
-      <path
-        d="M7 4.5V7l2 2"
-        stroke={color} strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-// Panel 4 — Lesson thumbnail upload card (~191 × 156 from Figma)
-function ThumbnailCard() {
-  return (
-    <div
-      className="overflow-hidden rounded-2xl border border-[#eaecf0] bg-white shadow-[0_12px_50px_-12px_rgba(16,24,40,0.12)]"
-      style={{ width: 191 }}
-    >
-      {/* Tabs */}
-      <div className="flex items-center gap-1.5 px-2.5 pb-2 pt-2.5">
-        <span className="rounded-full bg-[#343DE5] px-2 py-[2px] text-[8.5px] font-semibold text-white">
-          Lesson thumbnail
-        </span>
-        <span className="rounded-full bg-[#f2f4f7] px-2 py-[2px] text-[8.5px] font-medium text-[#475467]">
-          Media thumbnail
-        </span>
-      </div>
-
-      {/* Dark photo — mimics the studio/microphone shot in Figma */}
-      <div
-        className="relative mx-2.5 overflow-hidden rounded-lg"
-        style={{
-          height: 90,
-          background:
-            "linear-gradient(145deg, #1a1a2e 0%, #16213e 35%, #0f3460 65%, #1c1c3a 100%)",
-        }}
-      >
-        {/* Faint mic silhouette for texture */}
-        <svg
-          className="absolute inset-0 m-auto opacity-[0.15]"
-          width="28" height="42"
-          viewBox="0 0 28 42"
-          fill="white"
-          aria-hidden
-        >
-          <rect x="8" y="0" width="12" height="24" rx="6" />
-          <path d="M2 18c0 6.627 5.373 12 12 12s12-5.373 12-12" stroke="white" strokeWidth="2" fill="none" />
-          <rect x="13" y="30" width="2" height="7" />
-          <rect x="8" y="37" width="12" height="2" rx="1" />
-        </svg>
-      </div>
-
-      {/* Caption */}
-      <p className="px-2.5 py-2 text-[8.5px] leading-4 text-[#667085]">
-        Recommended dimensions of 1280×720
-      </p>
-    </div>
-  );
-}
-
-// ── Learn flow — Figma node 2948:29350 ───────────────────────────────────────
-//
-// White canvas. Five floating photo cards scattered around a centred orb.
-// No progress bar. Slot-machine subtitle matches create-flow behaviour.
 
 function LearnPersonalizing({
   phrases,
   phraseIndex,
+  fromHandoff,
 }: {
   phrases: string[];
   phraseIndex: number;
+  fromHandoff: boolean;
 }) {
   return (
-    <div className="relative flex-1 overflow-hidden">
-      {/* Scattered floating photo cards */}
-      {LEARN_CARDS.map((card, i) => (
-        <LearnFloatingCard key={i} {...card} />
-      ))}
+    <PersonalizingStage
+      mode="learn"
+      phrases={phrases}
+      phraseIndex={phraseIndex}
+      fromHandoff={fromHandoff}
+    />
+  );
+}
 
-      {/* Centre: orb + heading + slot-machine subtitle */}
-      <div className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-6">
-        <LearnOrb />
-        <div className="flex flex-col items-center gap-2 text-center">
-          <h1 className="font-montserrat text-[40px] font-bold leading-normal tracking-[-0.5px] text-[#101828]">
-            Personalizing your experience
+function PersonalizingStage({
+  mode,
+  phrases,
+  phraseIndex,
+  fromHandoff,
+}: {
+  mode: PersonalizingMode;
+  phrases: string[];
+  phraseIndex: number;
+  fromHandoff: boolean;
+}) {
+  const frame = FIGMA_FRAMES[mode];
+  const assets =
+    mode === "create" ? LAUNCH_FLOATING_ASSETS : DISCOVER_FLOATING_ASSETS;
+  const Glyph = mode === "create" ? RocketIcon : BookIcon;
+
+  return (
+    <div className="relative flex flex-1 items-center justify-center overflow-hidden px-4 py-10 max-md:py-8">
+      <div
+        className="relative min-w-[300px]"
+        style={{
+          width: frame.maxWidth,
+          aspectRatio: `${frame.width} / ${frame.height}`,
+          containerType: "inline-size",
+        }}
+      >
+        {assets.map((asset) => (
+          <FigmaFloatingAsset
+            key={asset.src}
+            asset={asset}
+            frame={frame}
+          />
+        ))}
+
+        <CentralPersonalizingContent
+          frame={frame}
+          glyph={Glyph}
+          heading={
+            mode === "create"
+              ? "Personalizing your workspace"
+              : "Personalizing your experience"
+          }
+          phrases={phrases}
+          phraseIndex={phraseIndex}
+          gradientId={`${mode}-arc-grad`}
+          fromHandoff={fromHandoff}
+        />
+      </div>
+    </div>
+  );
+}
+
+function FigmaFloatingAsset({
+  asset,
+  frame,
+}: {
+  asset: FigmaFloatingAsset;
+  frame: FigmaFrame;
+}) {
+  const scale = asset.scale ?? 1;
+  const scaledWidth = asset.width * scale;
+  const scaledHeight = asset.height * scale;
+  const visibleCenterX = asset.x + asset.width / 2;
+  const visibleCenterY = asset.y + asset.height / 2;
+  const horizontalDirection = visibleCenterX < frame.width / 2 ? -1 : 1;
+  const verticalDirection = visibleCenterY < frame.height / 2 ? -1 : 1;
+
+  return (
+    <motion.div
+      className="absolute max-sm:hidden"
+      style={{
+        left: `${
+          ((asset.x - asset.transparentOffsetX - (scaledWidth - asset.width) / 2) /
+            frame.width) *
+          100
+        }%`,
+        top: `${
+          ((asset.y - asset.transparentOffsetY - (scaledHeight - asset.height) / 2) /
+            frame.height) *
+          100
+        }%`,
+        width: `${(scaledWidth / frame.width) * 100}%`,
+      }}
+      initial={{ opacity: 0, scale: 0.9, y: asset.initialY }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      transition={{
+        opacity: { duration: 0.55, ease: "easeOut", delay: asset.delay },
+        scale: { duration: 0.65, ease: EASE, delay: asset.delay },
+        y: { duration: 0.65, ease: EASE, delay: asset.delay },
+      }}
+    >
+      <motion.img
+        src={asset.src}
+        alt=""
+        aria-hidden="true"
+        draggable={false}
+        className="block h-auto w-full select-none will-change-transform"
+        animate={{
+          x: [0, horizontalDirection * 16, 0],
+          y: [0, verticalDirection * 18, 0],
+          rotate: [0, horizontalDirection * 2.4, 0],
+          scale: [1, 1.04, 1],
+        }}
+        transition={{
+          duration: 2.8 + asset.delay * 3,
+          repeat: Infinity,
+          ease: "easeInOut",
+          delay: asset.delay + 0.35,
+          times: [0, 0.5, 1],
+        }}
+      />
+    </motion.div>
+  );
+}
+
+function CentralPersonalizingContent({
+  frame,
+  glyph,
+  heading,
+  phrases,
+  phraseIndex,
+  gradientId,
+  fromHandoff,
+}: {
+  frame: FigmaFrame;
+  glyph: GhlIconComponent;
+  heading: string;
+  phrases: string[];
+  phraseIndex: number;
+  gradientId: string;
+  fromHandoff: boolean;
+}) {
+  return (
+    <div
+      className="absolute z-10 flex flex-col items-center text-center max-sm:!left-1/2 max-sm:!top-1/2 max-sm:!w-[90vw] max-sm:-translate-x-1/2 max-sm:-translate-y-1/2"
+      style={{
+        left: `${(frame.center.x / frame.width) * 100}%`,
+        top: `${(frame.center.y / frame.height) * 100}%`,
+        width: `${(frame.center.width / frame.width) * 100}%`,
+        gap: `clamp(18px, ${(24 / frame.width) * 100}cqw, 24px)`,
+      }}
+    >
+      <motion.div
+        className="flex w-full flex-col items-center text-center"
+        style={{
+          gap: `clamp(18px, ${(24 / frame.width) * 100}cqw, 24px)`,
+        }}
+        initial={fromHandoff ? { opacity: 0.94, scale: 0.995 } : false}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.36, ease: EASE }}
+      >
+        <PersonalizingOrb
+          glyph={glyph}
+          gradientId={gradientId}
+          frameWidth={frame.width}
+        />
+        <div className="flex w-full flex-col items-center gap-2">
+          <h1
+            className="whitespace-nowrap font-montserrat font-bold leading-normal text-[#101828] max-sm:whitespace-normal"
+            style={{
+              fontSize: `clamp(28px, ${(40 / frame.width) * 100}cqw, 40px)`,
+            }}
+          >
+            {heading}
           </h1>
-          {/* Figma node 2957:43946 — 354 × 28 clip window, slot-machine scroll */}
-          <div className="h-7 w-[354px] overflow-hidden">
+          <div
+            className="overflow-hidden bg-white"
+            style={{
+              width: `clamp(280px, ${(354 / frame.width) * 100}cqw, 354px)`,
+              height: `clamp(24px, ${(28 / frame.width) * 100}cqw, 28px)`,
+            }}
+          >
             <motion.div
               className="flex flex-col"
               style={{ gap: 16 }}
               animate={{ y: -(phraseIndex * 44) }}
               transition={{ duration: 0.45, ease: EASE }}
             >
-              {phrases.map((phrase, i) => (
+              {phrases.map((phrase) => (
                 <p
-                  key={i}
-                  className="shrink-0 text-center text-[18px] leading-7 text-[#475467]"
+                  key={phrase}
+                  className="shrink-0 text-center leading-7 text-[#475467]"
+                  style={{
+                    fontSize: `clamp(15px, ${(18 / frame.width) * 100}cqw, 18px)`,
+                  }}
                 >
                   {phrase}
                 </p>
@@ -527,13 +467,20 @@ function LearnPersonalizing({
             </motion.div>
           </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }
 
-// Orb for the discover / learn flow — same visual as create flow but with a book icon
-function LearnOrb() {
+function PersonalizingOrb({
+  glyph: Glyph,
+  gradientId,
+  frameWidth,
+}: {
+  glyph: GhlIconComponent;
+  gradientId: string;
+  frameWidth: number;
+}) {
   const R = 81;
   const C = 2 * Math.PI * R;
   const arcLen = +(C * 0.78).toFixed(1);
@@ -542,9 +489,11 @@ function LearnOrb() {
   return (
     <div
       className="relative flex items-center justify-center"
-      style={{ width: 172, height: 172 }}
+      style={{
+        width: `clamp(132px, ${(171.5 / frameWidth) * 100}cqw, 171.5px)`,
+        aspectRatio: "1 / 1",
+      }}
     >
-      {/* Faint track circle */}
       <svg className="absolute inset-0 size-full" viewBox="0 0 172 172" aria-hidden>
         <circle
           cx="86" cy="86" r={R}
@@ -563,7 +512,7 @@ function LearnOrb() {
         <svg className="size-full" viewBox="0 0 172 172" aria-hidden>
           <defs>
             <linearGradient
-              id="learn-arc-grad"
+              id={gradientId}
               gradientUnits="userSpaceOnUse"
               x1="172" y1="0"
               x2="0"   y2="172"
@@ -577,7 +526,7 @@ function LearnOrb() {
           <circle
             cx="86" cy="86" r={R}
             fill="none"
-            stroke="url(#learn-arc-grad)"
+            stroke={`url(#${gradientId})`}
             strokeWidth="2"
             strokeLinecap="round"
             strokeDasharray={`${arcLen} ${gapLen}`}
@@ -585,12 +534,11 @@ function LearnOrb() {
         </svg>
       </motion.div>
 
-      {/* Inner filled circle */}
       <div
         className="relative z-10 flex items-center justify-center rounded-full text-white"
         style={{
-          width: 120,
-          height: 120,
+          width: "69.97%",
+          aspectRatio: "1 / 1",
           background: "linear-gradient(160deg, #5B63F5 0%, #343DE5 60%, #2831D3 100%)",
           boxShadow:
             "0 20px 44px rgba(52,61,229,0.42), inset 0 2px 6px rgba(255,255,255,0.45), inset 0 -12px 22px rgba(0,0,0,0.18)",
@@ -601,64 +549,9 @@ function LearnOrb() {
           className="absolute left-1/2 top-[14%] h-1/4 w-1/2 -translate-x-1/2 rounded-full bg-white/40 blur-md"
         />
         <span className="relative">
-          <BookOpen size={48} strokeWidth={1.85} />
+          <Glyph size={48} />
         </span>
       </div>
     </div>
-  );
-}
-
-// Individual floating photo card — positioned by pixel offset from viewport centre.
-// Outer handles entry; inner handles the continuous float so they don't conflict.
-function LearnFloatingCard({
-  src,
-  w,
-  h,
-  x,
-  y,
-  rotate,
-  delay,
-  initialY,
-}: {
-  src: string;
-  w: number;
-  h: number;
-  x: number;
-  y: number;
-  rotate: number;
-  delay: number;
-  initialY: number;
-}) {
-  return (
-    <motion.div
-      className="absolute"
-      style={{
-        left: `calc(50% + ${x - w / 2}px)`,
-        top: `calc(50% + ${y - h / 2}px)`,
-        rotate,
-      }}
-      initial={{ opacity: 0, scale: 0.88, y: initialY }}
-      animate={{ opacity: 1, scale: 1, y: 0 }}
-      transition={{
-        opacity: { duration: 0.55, ease: "easeOut", delay },
-        scale:   { duration: 0.65, ease: EASE, delay },
-        y:       { duration: 0.65, ease: EASE, delay },
-      }}
-    >
-      <motion.div
-        animate={{ y: [0, -3, 0], x: [0, 1.5, 0] }}
-        transition={{
-          y: { duration: 5 + delay * 3, repeat: Infinity, ease: "easeInOut", delay: delay + 0.9 },
-          x: { duration: 7 + delay * 2, repeat: Infinity, ease: "easeInOut", delay: delay + 1.5 },
-        }}
-      >
-        <div
-          className="overflow-hidden rounded-xl shadow-[0_18px_40px_rgba(16,24,40,0.16)] ring-1 ring-black/5"
-          style={{ width: w, height: h }}
-        >
-          <img src={src} alt="" className="size-full object-cover" draggable={false} />
-        </div>
-      </motion.div>
-    </motion.div>
   );
 }

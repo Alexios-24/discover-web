@@ -1,70 +1,71 @@
 "use client";
 
-import { Layers, Palette, Plus, Sparkles, Users } from "lucide-react";
-import { cn } from "@/lib/utils";
+import {
+  AddBoxIcon,
+  ColorsIcon,
+  GraduationFilledIcon,
+  StarIcon,
+  UsersFilledIcon,
+} from "@/components/icons/ghl-icons";
 
-// Left icon rail for the logged-in shell — Figma node 2942:30536 ("Left Side
+// Left icon rail for the signed-in shell — Figma node 2942:28627 ("Left Side
 // Nav"): 52px wide, white, 1px right border (#eaecf0), full height. A Kollab
 // mark sits in a 60px slot up top, four 48px icon tabs follow (each separated
 // by a hairline divider), then a flexible spacer pushes an "add" tab to the
-// bottom. Hidden below lg (the rail is a desktop affordance).
-
-const NAV_ICONS = [
-  { icon: Sparkles, label: "For you", active: true },
-  { icon: Users, label: "Communities", active: false },
-  { icon: Layers, label: "Courses", active: false },
-  { icon: Palette, label: "Creators", active: false },
-];
+// bottom. Hidden below lg (desktop-only affordance).
 
 function RailDivider() {
-  return <div className="h-px w-full bg-gray-200" />;
+  return <div className="h-px w-full bg-[#eaecf0]" />;
 }
+
+const NAV_ITEMS = [
+  { Icon: StarIcon, label: "Discover" },
+  { Icon: UsersFilledIcon, label: "Communities" },
+  { Icon: GraduationFilledIcon, label: "Courses" },
+  { Icon: ColorsIcon, label: "Creators" },
+] as const;
 
 export function AppSidebar() {
   return (
-    <aside className="sticky top-0 hidden h-screen w-[52px] shrink-0 flex-col items-stretch self-start border-r border-gray-200 bg-white lg:flex">
-      {/* Brand mark */}
-      <div className="flex h-[60px] items-center justify-center">
+    <aside className="sticky top-0 hidden h-screen w-[52px] shrink-0 flex-col items-stretch self-start border-r border-[#eaecf0] bg-white lg:flex">
+      {/* Kollab mark — 60px slot, centered */}
+      <div className="flex h-[60px] items-center justify-center rounded-bl-[4px] rounded-tl-[4px]">
         <img
           src="/kollab-mark.png"
           alt="Kollab"
-          width={48}
-          height={48}
+          width={24}
+          height={24}
           className="size-6 select-none object-contain"
           draggable={false}
         />
       </div>
       <RailDivider />
 
-      {NAV_ICONS.map(({ icon: Icon, label, active }, index) => (
+      {/* Main nav tabs — four 48px icon slots */}
+      {NAV_ITEMS.map(({ Icon, label }, i) => (
         <div key={label} className="flex flex-col">
           <button
             type="button"
             aria-label={label}
-            aria-current={active ? "page" : undefined}
-            className={cn(
-              "flex h-12 items-center justify-center transition-colors",
-              active
-                ? "text-indigo-600"
-                : "text-gray-400 hover:text-gray-700",
-            )}
+            className="flex h-12 items-center justify-center rounded-bl-[4px] rounded-tl-[4px] text-[#343DE5] transition-colors hover:bg-indigo-50"
           >
-            <Icon size={24} strokeWidth={1.85} />
+            <Icon size={24} />
           </button>
-          {index < NAV_ICONS.length - 1 ? <RailDivider /> : null}
+          {i < NAV_ITEMS.length - 1 && <RailDivider />}
         </div>
       ))}
 
+      {/* Spacer pushes create tab to bottom */}
       <div className="flex-1" />
+
+      {/* Create / add tab — divider at top, 48px button below */}
       <RailDivider />
       <button
         type="button"
         aria-label="Create"
-        className="flex h-12 items-center justify-center text-gray-400 transition-colors hover:text-gray-700"
+        className="flex h-12 items-center justify-center rounded-bl-[4px] rounded-tl-[4px] text-[#343DE5] transition-colors hover:bg-indigo-50"
       >
-        <span className="flex size-6 items-center justify-center rounded-[5px] border-[1.75px] border-current">
-          <Plus size={14} strokeWidth={2.5} />
-        </span>
+        <AddBoxIcon size={24} />
       </button>
     </aside>
   );

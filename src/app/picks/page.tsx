@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { AppHeader } from "@/components/sections/app-header";
+import { AppShell } from "@/components/sections/app-shell";
 import { DiscoverCard } from "@/components/ui/discover-card";
 import { TOP_PICKS_LANDING } from "@/lib/data";
 
@@ -11,11 +11,10 @@ import { TOP_PICKS_LANDING } from "@/lib/data";
 // the full logged-in Discover (Figma node 2942:28623).
 export default function PicksPage() {
   return (
-    <main className="min-h-screen w-full bg-white">
-      <AppHeader variant="minimal" />
+    <AppShell>
       <div className="mx-auto w-full max-w-[1440px] px-[54px] py-6 max-md:px-4">
         {/* Hero */}
-        <div className="flex flex-col items-center gap-1 py-6 text-center">
+        <div className="flex flex-col items-center gap-1 px-[54px] py-6 text-center max-md:px-0">
           <h1 className="font-montserrat text-[34px] font-bold leading-tight text-gray-900 sm:text-[40px]">
             Top picks based on your interests
           </h1>
@@ -42,6 +41,6 @@ export default function PicksPage() {
           </Link>
         </div>
       </div>
-    </main>
+    </AppShell>
   );
 }

@@ -8,15 +8,11 @@ import {
   useMemo,
   useRef,
   useState,
-  type ChangeEvent,
-  type ClipboardEvent,
   type FormEvent,
-  type KeyboardEvent,
   type ReactNode,
   type Ref,
 } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { RefreshCw } from "lucide-react";
 import {
   ArrowLeftIcon,
   ArrowRightIcon,
@@ -47,7 +43,6 @@ import {
 type Intent = "create" | "learn";
 type BuildChoice = "course" | "community" | "both";
 type LearnChoice = "courses" | "communities" | "creators" | "all";
-type AccountStage = "form" | "otp";
 type DomainValue =
   | "finance"
   | "travel"
@@ -63,10 +58,6 @@ type DomainValue =
   | "teaching";
 
 type GhlIconName = keyof typeof GHL_ICON_MAP;
-
-const OTP_LENGTH = 6;
-
-const createEmptyOtpDigits = () => Array<string>(OTP_LENGTH).fill("");
 
 interface Choice<T extends string> {
   value: T;
@@ -190,41 +181,6 @@ const stepMotion = {
   transition: { duration: 0.32, ease: [0.22, 0.85, 0.25, 1] as const },
 };
 
-const optionListMotion = {
-  initial: "hidden",
-  animate: "visible",
-  variants: {
-    hidden: {},
-    visible: {
-      transition: {
-        delayChildren: 0.08,
-        staggerChildren: 0.07,
-      },
-    },
-  },
-};
-
-const optionCardMotion = {
-  variants: {
-    hidden: {
-      opacity: 0,
-      y: 16,
-      scale: 0.98,
-      filter: "blur(4px)",
-    },
-    visible: {
-      opacity: 1,
-      y: 0,
-      scale: 1,
-      filter: "blur(0px)",
-      transition: {
-        duration: 0.46,
-        ease: [0.22, 0.85, 0.25, 1] as const,
-      },
-    },
-  },
-};
-
 // --- Subtle, asset-free sound cues via Web Audio API ---
 let sharedAudioContext: AudioContext | null = null;
 
@@ -309,101 +265,6 @@ export default function OnboardingPage() {
 
 type OrbVariant = "kollab" | 1 | 2 | 3;
 type OrbCenterGlyph = "kollab" | "rocket" | "book";
-type HandoffGlyph = Exclude<OrbCenterGlyph, "kollab">;
-
-interface HandoffRect {
-  left: number;
-  top: number;
-  width: number;
-  height: number;
-}
-
-interface HandoffState {
-  glyph: HandoffGlyph;
-  from: HandoffRect;
-  to: HandoffRect;
-}
-
-const HANDOFF_DURATION_MS = 1120;
-const PERSONALIZING_HEADER_HEIGHT = 60;
-const PERSONALIZING_ORB_SIZE = 171.5;
-const PERSONALIZING_CORE_RATIO = 120 / PERSONALIZING_ORB_SIZE;
-
-const PERSONALIZING_TARGETS = {
-  create: {
-    width: 735.88,
-    height: 564.71,
-    maxWidth: 735.88,
-    viewportWidthRatio: 0.86,
-    viewportHeightRatio: 1.303,
-    center: { x: 58.82, y: 95.97, width: 630 },
-  },
-  learn: {
-    width: 1182,
-    height: 571,
-    maxWidth: 1182,
-    viewportWidthRatio: 0.9,
-    viewportHeightRatio: 2.07,
-    center: { x: 283, y: 152.75, width: 630 },
-  },
-} satisfies Record<Intent, {
-  width: number;
-  height: number;
-  maxWidth: number;
-  viewportWidthRatio: number;
-  viewportHeightRatio: number;
-  center: { x: number; y: number; width: number };
-}>;
-
-function rectFromDomRect(rect: DOMRect): HandoffRect {
-  return {
-    left: rect.left,
-    top: rect.top,
-    width: rect.width,
-    height: rect.height,
-  };
-}
-
-function getPersonalizingOrbTarget(intent: Intent): HandoffRect {
-  const viewportWidth = window.innerWidth;
-  const viewportHeight = window.innerHeight;
-
-  if (viewportWidth < 640) {
-    const size = Math.min(150, Math.max(132, viewportWidth * 0.42));
-    return {
-      left: viewportWidth / 2 - size / 2,
-      top: viewportHeight / 2 - size / 2,
-      width: size,
-      height: size,
-    };
-  }
-
-  const target = PERSONALIZING_TARGETS[intent];
-  const frameWidth = Math.min(
-    viewportWidth * target.viewportWidthRatio,
-    target.maxWidth,
-    Math.max(320, (viewportHeight - 116) * target.viewportHeightRatio),
-  );
-  const frameHeight = (frameWidth / target.width) * target.height;
-  const frameLeft = (viewportWidth - frameWidth) / 2;
-  const stageHeight = viewportHeight - PERSONALIZING_HEADER_HEIGHT;
-  const frameTop =
-    PERSONALIZING_HEADER_HEIGHT + Math.max(0, (stageHeight - frameHeight) / 2);
-  const orbSize = Math.min(
-    PERSONALIZING_ORB_SIZE,
-    Math.max(132, (PERSONALIZING_ORB_SIZE / target.width) * frameWidth),
-  );
-  const contentLeft = frameLeft + (target.center.x / target.width) * frameWidth;
-  const contentTop = frameTop + (target.center.y / target.height) * frameHeight;
-  const contentWidth = (target.center.width / target.width) * frameWidth;
-
-  return {
-    left: contentLeft + (contentWidth - orbSize) / 2,
-    top: contentTop,
-    width: orbSize,
-    height: orbSize,
-  };
-}
 
 function OnboardingFlow() {
   const router = useRouter();
@@ -427,10 +288,7 @@ function OnboardingFlow() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [accountStage, setAccountStage] = useState<AccountStage>("form");
-  const [otpDigits, setOtpDigits] = useState<string[]>(createEmptyOtpDigits);
   const [complete, setComplete] = useState(false);
-  const [handoff, setHandoff] = useState<HandoffState | null>(null);
 
   const selectedDomains = useMemo(
     () => domains
@@ -446,7 +304,6 @@ function OnboardingFlow() {
     email.includes("@") &&
     email.includes(".") &&
     password.length >= 8;
-  const canVerifyOtp = otpDigits.every((digit) => digit.length === 1);
 
   const visibleStep = complete ? 4 : step;
   const currentPath = intent === "learn" ? "learn" : "create";
@@ -455,8 +312,6 @@ function OnboardingFlow() {
   // single-select category step so we can cancel it on re-select, navigation,
   // or unmount and never advance twice / set state after unmount.
   const autoAdvanceTimeout = useRef<number | null>(null);
-  const handoffTimeout = useRef<number | null>(null);
-  const handoffOriginRef = useRef<HTMLDivElement | null>(null);
 
   const clearAutoAdvance = () => {
     if (autoAdvanceTimeout.current !== null) {
@@ -465,20 +320,7 @@ function OnboardingFlow() {
     }
   };
 
-  const clearHandoffTimeout = () => {
-    if (handoffTimeout.current !== null) {
-      window.clearTimeout(handoffTimeout.current);
-      handoffTimeout.current = null;
-    }
-  };
-
-  useEffect(
-    () => () => {
-      clearAutoAdvance();
-      clearHandoffTimeout();
-    },
-    [],
-  );
+  useEffect(() => clearAutoAdvance, []);
 
   // Going back to a destination step presents that step fresh: it clears the
   // destination step's OWN selection plus everything captured after it, so the
@@ -494,8 +336,6 @@ function OnboardingFlow() {
       setEmail("");
       setPassword("");
       setShowPassword(false);
-      setAccountStage("form");
-      setOtpDigits(createEmptyOtpDigits());
     }
     if (destination <= 2) {
       setDomains([]);
@@ -510,19 +350,11 @@ function OnboardingFlow() {
   };
 
   const goBack = () => {
-    if (handoff) return;
-
     clearAutoAdvance();
 
     if (complete) {
       setComplete(false);
       setStep(3);
-      return;
-    }
-
-    if (step === 3 && accountStage === "otp") {
-      setOtpDigits(createEmptyOtpDigits());
-      setAccountStage("form");
       return;
     }
 
@@ -561,13 +393,16 @@ function OnboardingFlow() {
     advance(2);
   };
 
-  // Learner path: multi-select with no category cap. The updated Figma flow
-  // lets users pick any number of interests, continue once at least one is
-  // selected, or skip the category step entirely.
+  // Learner path: multi-select capped at 3 (Figma 2916:65429 says "up to 3"),
+  // and Continue is gated on selecting the full 3 (min-3 rule), so the learner
+  // confirms exactly 3 categories before advancing.
   const toggleDomain = (value: DomainValue) => {
     setDomains((current) => {
       if (current.includes(value)) {
         return current.filter((item) => item !== value);
+      }
+      if (current.length >= 3) {
+        return current;
       }
       return [...current, value];
     });
@@ -585,71 +420,39 @@ function OnboardingFlow() {
     }, 300);
   };
 
-  // Learner path only (the create path auto-advances on single-select).
+  // Learner path only (the create path auto-advances on single-select). Up to 3
+  // categories, no minimum: the learner can continue once at least one is picked.
   const continueFromDomains = () => {
     if (domains.length === 0) return;
     advance(3);
   };
 
-  const skipDomains = () => {
-    setDomains([]);
-    advance(3);
-  };
-
   // Shared login logic used by both the email form and Google sign-in.
   const finishLogin = () => {
-    if (handoff) return;
-
     playCompleteChime();
+    try {
+      window.localStorage.setItem("kollabLoggedIn", "1");
+    } catch {
+      // Storage can be unavailable (private mode); non-fatal.
+    }
     const domainQuery = domains.length ? `&domains=${domains.join(",")}` : "";
-    const isLearnIntent = intent === "learn";
-    const targetIntent: Intent = isLearnIntent ? "learn" : "create";
-    const glyph = isLearnIntent ? "book" : "rocket";
-    const href = isLearnIntent
-      ? `/personalizing?intent=learn${domainQuery}&handoff=1`
-      : `/personalizing?intent=create&choice=${
-          buildChoice ?? "course"
-        }${domainQuery}&handoff=1`;
-    const sourceRect = handoffOriginRef.current?.getBoundingClientRect();
-    const fallbackSize = 120;
-    const from = sourceRect
-      ? rectFromDomRect(sourceRect)
-      : {
-          left: window.innerWidth * 0.85 - fallbackSize / 2,
-          top: window.innerHeight * 0.5 - fallbackSize / 2,
-          width: fallbackSize,
-          height: fallbackSize,
-        };
-    const to = getPersonalizingOrbTarget(targetIntent);
-
-    setHandoff({ glyph, from, to });
-    handoffTimeout.current = window.setTimeout(() => {
-      handoffTimeout.current = null;
-      router.replace(href);
-    }, HANDOFF_DURATION_MS);
+    if (intent === "learn") {
+      router.replace(`/personalizing?intent=learn${domainQuery}`);
+    } else {
+      router.replace(
+        `/personalizing?intent=create&choice=${buildChoice ?? "course"}${domainQuery}`,
+      );
+    }
   };
 
-  // On account creation we hand off to the full-screen personalizing animation.
-  // We replace (not push) the onboarding entry so the browser Back button never
-  // returns into the account form.
+  // On account creation we mark the session as logged in and hand off to the
+  // full-screen personalizing animation. We replace (not push) the onboarding
+  // entry so the browser Back button never returns into the account form.
   // Create → /personalizing → /workspace; Learn → /personalizing → /picks.
   const submitAccount = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!canCreateAccount) return;
-    playAdvanceChime();
-    setOtpDigits(createEmptyOtpDigits());
-    setAccountStage("otp");
-  };
-
-  const submitOtp = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (!canVerifyOtp) return;
     finishLogin();
-  };
-
-  const resendOtp = () => {
-    playAdvanceChime();
-    setOtpDigits(createEmptyOtpDigits());
   };
 
   const handleGoogleSignIn = () => {
@@ -665,13 +468,7 @@ function OnboardingFlow() {
         <div className="flex flex-1 flex-col overflow-y-auto px-5 py-10 sm:px-10 lg:px-[72px] xl:pl-0 xl:pr-[30vw]">
           <div
             className={`mx-auto my-auto w-full ${
-              step === 3 && !complete
-                ? "max-w-[483px]"
-                : step === 1 && intent === "learn"
-                  ? "max-w-[736px] -translate-y-8"
-                  : step <= 1 && !complete
-                    ? "max-w-[666px] -translate-y-8"
-                  : "max-w-[640px] -translate-y-8"
+              step === 3 && !complete ? "max-w-[483px]" : "max-w-[640px] -translate-y-8"
             }`}
           >
               <AnimatePresence mode="wait">
@@ -685,13 +482,13 @@ function OnboardingFlow() {
                   <motion.div key="intent" {...stepMotion}>
                     <div className="mb-8">
                       <h1 className="font-montserrat text-[32px] font-bold leading-[38px] tracking-[-0.5px] text-gray-900 sm:whitespace-nowrap sm:text-[40px] sm:leading-[46px]">
-                        Where would you like to begin?
+                        What do you want to do first?
                       </h1>
                       <p className="mt-3 max-w-[520px] text-[18px] leading-7 text-[#475467]">
                         You can always do both later.
                       </p>
                     </div>
-                    <OptionList columns={2}>
+                    <OptionList>
                       {intentChoices.map((choice) => (
                         <OptionCard
                           key={choice.value}
@@ -711,7 +508,7 @@ function OnboardingFlow() {
                         Kollab will tune the recommendations for you.
                       </p>
                     </div>
-                    <OptionList columns={3}>
+                    <OptionList>
                       {learnChoices.map((choice) => (
                         <OptionCard
                           key={choice.value}
@@ -731,7 +528,7 @@ function OnboardingFlow() {
                         You can build more or both later. Create unlimited products.
                       </p>
                     </div>
-                    <OptionList columns={2}>
+                    <OptionList>
                       {buildChoices.map((choice) => (
                         <OptionCard
                           key={choice.value}
@@ -743,6 +540,10 @@ function OnboardingFlow() {
                   </motion.div>
                 ) : step === 2 ? (
                   <motion.div key="domain" {...stepMotion}>
+                    {/* Learner step 3 copy matches Figma node 2916:65429
+                        ("Pick your interests" / "Choose up to 3 categories…").
+                        The create/launch step keeps its own heading. Both use
+                        the same Montserrat 40px / 18px #475467 heading block. */}
                     <div className="mb-8">
                       <h1 className="font-montserrat text-[32px] font-bold leading-[38px] tracking-[-0.5px] text-gray-900 sm:whitespace-nowrap sm:text-[40px] sm:leading-[46px]">
                         {currentPath === "learn"
@@ -751,7 +552,7 @@ function OnboardingFlow() {
                       </h1>
                       <p className="mt-3 text-[18px] leading-7 text-[#475467]">
                         {currentPath === "learn"
-                          ? "Choose categories to personalize your experience."
+                          ? "Choose up to 3 categories to personalize your experience."
                           : "Choose a category to personalize your workspace."}
                       </p>
                     </div>
@@ -764,17 +565,6 @@ function OnboardingFlow() {
                           : selectCreateDomain
                       }
                       onContinue={continueFromDomains}
-                      onSkip={skipDomains}
-                    />
-                  </motion.div>
-                ) : accountStage === "otp" ? (
-                  <motion.div key="otp" {...stepMotion}>
-                    <OtpStep
-                      digits={otpDigits}
-                      canSubmit={canVerifyOtp}
-                      onDigitsChange={setOtpDigits}
-                      onSubmit={submitOtp}
-                      onResend={resendOtp}
                     />
                   </motion.div>
                 ) : (
@@ -818,8 +608,6 @@ function OnboardingFlow() {
         selectedDomains={selectedDomains}
         complete={complete}
         variant={orbVariant}
-        handoffOriginRef={handoffOriginRef}
-        hideCore={Boolean(handoff)}
         centerGlyph={
           intent === "create" && (step === 1 || step === 2 || step === 3)
             ? "rocket"
@@ -828,10 +616,6 @@ function OnboardingFlow() {
               : "kollab"
         }
       />
-
-      <AnimatePresence>
-        {handoff ? <OnboardingHandoffOrb handoff={handoff} /> : null}
-      </AnimatePresence>
     </main>
   );
 }
@@ -869,158 +653,6 @@ function Header({ step }: { step: number }) {
   );
 }
 
-function OnboardingHandoffOrb({ handoff }: { handoff: HandoffState }) {
-  const iconName: GhlIconName = handoff.glyph === "book" ? "book" : "rocket";
-  const iconStartScale = Math.min(1, handoff.from.width / 120);
-
-  return (
-    <motion.div
-      aria-hidden="true"
-      className="pointer-events-none fixed inset-0 z-[80] overflow-hidden"
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.18 }}
-    >
-      <motion.div
-        className="absolute inset-0 bg-white"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: [0, 0.01, 0.62, 1] }}
-        transition={{
-          duration: HANDOFF_DURATION_MS / 1000,
-          ease: "easeOut",
-          times: [0, 0.18, 0.84, 1],
-        }}
-      />
-
-      <motion.div
-        data-onboarding-handoff-orb
-        className="fixed will-change-[left,top,width,height]"
-        initial={{
-          left: handoff.from.left,
-          top: handoff.from.top,
-          width: handoff.from.width,
-          height: handoff.from.height,
-          opacity: 1,
-        }}
-        animate={{
-          left: [handoff.from.left, handoff.from.left, handoff.to.left],
-          top: [handoff.from.top, handoff.from.top, handoff.to.top],
-          width: [handoff.from.width, handoff.from.width, handoff.to.width],
-          height: [handoff.from.height, handoff.from.height, handoff.to.height],
-          opacity: 1,
-        }}
-        transition={{
-          duration: HANDOFF_DURATION_MS / 1000,
-          ease: [0.16, 1, 0.3, 1],
-          times: [0, 0.14, 1],
-        }}
-      >
-        <motion.div
-          className="absolute inset-0"
-          initial={{ opacity: 0, rotate: -34 }}
-          animate={{ opacity: [0, 0, 1], rotate: [-34, -34, 132] }}
-          transition={{
-            duration: HANDOFF_DURATION_MS / 1000,
-            ease: [0.16, 1, 0.3, 1],
-            times: [0, 0.18, 1],
-          }}
-        >
-          <svg className="size-full" viewBox="0 0 172 172" aria-hidden="true">
-            <circle
-              cx="86"
-              cy="86"
-              r="81"
-              fill="none"
-              stroke="rgba(52,61,229,0.14)"
-              strokeWidth="2"
-            />
-            <circle
-              cx="86"
-              cy="86"
-              r="81"
-              fill="none"
-              stroke="url(#onboarding-handoff-arc)"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeDasharray="397.1 111.8"
-            />
-            <defs>
-              <linearGradient
-                id="onboarding-handoff-arc"
-                x1="172"
-                y1="0"
-                x2="0"
-                y2="172"
-                gradientUnits="userSpaceOnUse"
-              >
-                <stop offset="0%" stopColor="#7B83F5" />
-                <stop offset="34%" stopColor="#5B63F5" stopOpacity="0.92" />
-                <stop offset="68%" stopColor="#343DE5" stopOpacity="0.44" />
-                <stop offset="100%" stopColor="#343DE5" stopOpacity="0" />
-              </linearGradient>
-            </defs>
-          </svg>
-        </motion.div>
-
-        <div className="relative flex size-full items-center justify-center">
-          <motion.span
-            className="absolute inset-0 rounded-full"
-            initial={{ scale: 1 }}
-            animate={{ scale: [1, 1, PERSONALIZING_CORE_RATIO] }}
-            transition={{
-              duration: HANDOFF_DURATION_MS / 1000,
-              ease: [0.16, 1, 0.3, 1],
-              times: [0, 0.14, 1],
-            }}
-          >
-            <motion.span
-              className="absolute inset-0 rounded-full bg-white/[0.05]"
-              style={{
-                boxShadow:
-                  "0 0 50px 12px #151D8E, inset 0 0 12px 3px rgba(255,255,255,0.50)",
-              }}
-              initial={{ opacity: 1 }}
-              animate={{ opacity: [1, 1, 0] }}
-              transition={{
-                duration: HANDOFF_DURATION_MS / 1000,
-                ease: "easeOut",
-                times: [0, 0.22, 1],
-              }}
-            />
-            <motion.span
-              className="absolute inset-0 rounded-full"
-              style={{
-                background:
-                  "linear-gradient(160deg, #5B63F5 0%, #343DE5 60%, #2831D3 100%)",
-                boxShadow:
-                  "0 20px 44px rgba(52,61,229,0.42), inset 0 2px 6px rgba(255,255,255,0.45), inset 0 -12px 22px rgba(0,0,0,0.18)",
-              }}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: [0, 0, 1] }}
-              transition={{
-                duration: HANDOFF_DURATION_MS / 1000,
-                ease: "easeOut",
-                times: [0, 0.22, 1],
-              }}
-            />
-          </motion.span>
-          <motion.span
-            className="relative z-10 text-white"
-            initial={{ scale: iconStartScale }}
-            animate={{ scale: [iconStartScale, iconStartScale, 0.94] }}
-            transition={{
-              duration: HANDOFF_DURATION_MS / 1000,
-              ease: [0.16, 1, 0.3, 1],
-              times: [0, 0.14, 1],
-            }}
-          >
-            <GhlIcon name={iconName} size={52} />
-          </motion.span>
-        </div>
-      </motion.div>
-    </motion.div>
-  );
-}
-
 function BackControl({ onBack }: { onBack: () => void }) {
   return (
     <div className="absolute left-1/2 top-20 z-30 w-full max-w-[1440px] -translate-x-1/2 px-[54px] max-md:px-4">
@@ -1036,27 +668,8 @@ function BackControl({ onBack }: { onBack: () => void }) {
   );
 }
 
-function OptionList({
-  children,
-  columns = 1,
-}: {
-  children: ReactNode;
-  columns?: 1 | 2 | 3;
-}) {
-  return (
-    <motion.div
-      {...optionListMotion}
-      className={
-        columns === 3
-          ? "grid gap-4 md:grid-cols-3"
-          : columns === 2
-            ? "grid gap-4 md:grid-cols-2"
-            : "grid gap-4"
-      }
-    >
-      {children}
-    </motion.div>
-  );
+function OptionList({ children }: { children: ReactNode }) {
+  return <div className="grid gap-4">{children}</div>;
 }
 
 function OptionCard<T extends string>({
@@ -1067,34 +680,30 @@ function OptionCard<T extends string>({
   onSelect: () => void;
 }) {
   return (
-    <motion.button
-      {...optionCardMotion}
-      whileTap={{ scale: 0.99 }}
+    <button
       type="button"
       onClick={onSelect}
-      className="group relative flex w-full rounded-[16px] border border-[#eaecf0] bg-white p-4 text-left transition-colors duration-200 hover:border-[#c1c2f9] hover:bg-[#f7f7fe] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-indigo-100 active:scale-[0.99]"
+      className="group flex h-20 w-full max-w-[625px] items-center gap-4 rounded-[16px] border border-[#eaecf0] bg-white p-4 text-left transition-all duration-200 hover:border-[#c1c2f9] hover:bg-[#f7f7fe] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-indigo-100 active:scale-[0.99]"
     >
-      <span className="flex min-w-0 flex-1 flex-col justify-center gap-4">
-        <span className="flex size-11 shrink-0 items-center justify-center rounded-[8px] bg-[#f2f4f7] text-[#475467] transition-colors duration-200 group-hover:bg-[#343DE5] group-hover:text-white">
-          <GhlIcon name={choice.icon} size={28} />
-        </span>
+      <span className="flex size-11 shrink-0 items-center justify-center rounded-[8px] bg-[#f2f4f7] text-gray-700">
+        <GhlIcon name={choice.icon} size={28} />
+      </span>
 
-        <span className="flex min-w-0 flex-col justify-center gap-1">
-          <span className="block text-[16px] font-semibold leading-6 text-[#101828]">
-            {choice.title}
-          </span>
-          <span className="block text-[14px] leading-5 text-[#475467]">
-            {choice.description}
-          </span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-[16px] font-semibold leading-6 text-[#101828]">
+          {choice.title}
+        </span>
+        <span className="mt-0.5 block text-[14px] leading-5 text-[#475467]">
+          {choice.description}
         </span>
       </span>
 
       <GhlIcon
         name="arrowRight"
         size={16}
-        className="absolute right-4 top-4 text-[#475467] transition-colors duration-200 group-hover:text-[#343DE5]"
+        className="shrink-0 text-gray-400"
       />
-    </motion.button>
+    </button>
   );
 }
 
@@ -1103,18 +712,18 @@ function DomainGrid({
   selected,
   onSelect,
   onContinue,
-  onSkip,
 }: {
   mode: "create" | "learn";
   selected: DomainValue[];
   onSelect: (value: DomainValue) => void;
   onContinue: () => void;
-  onSkip: () => void;
 }) {
   // Create/launch path is single-select with no max-block and no Continue CTA;
-  // learner path is uncapped and adds a Skip action. Continue is enabled once
-  // at least one category is selected.
+  // learner path keeps the multi-select capped at 3 (Figma "up to 3") and gates
+  // Up to 3 categories with no minimum: Continue is enabled once at least one
+  // is selected; selecting is capped at 3.
   const isCreate = mode === "create";
+  const maxSelected = !isCreate && selected.length >= 3;
   const canContinue = selected.length >= 1;
 
   return (
@@ -1126,17 +735,21 @@ function DomainGrid({
       <div className="flex flex-wrap gap-4">
         {domainChoices.map((choice) => {
           const isSelected = selected.includes(choice.value);
+          const isMaxBlocked = maxSelected && !isSelected;
 
           return (
             <button
               key={choice.value}
               type="button"
               aria-pressed={isSelected}
+              disabled={isMaxBlocked}
               onClick={() => onSelect(choice.value)}
               className={`flex w-full flex-col items-center justify-center gap-3 rounded-[16px] border p-4 text-left transition-all duration-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-indigo-100 active:scale-[0.99] sm:w-[172px] ${
                 isSelected
                   ? "border-[#343DE5] bg-[#eff0fd]"
-                  : "border-[#eaecf0] bg-white hover:border-[#c1c2f9] hover:bg-[#f7f7fe]"
+                  : isMaxBlocked
+                    ? "cursor-not-allowed border-[#eaecf0] bg-white opacity-50"
+                    : "border-[#eaecf0] bg-white hover:border-[#c1c2f9] hover:bg-[#f7f7fe]"
               }`}
             >
               <span className="flex w-full items-center gap-2">
@@ -1160,16 +773,11 @@ function DomainGrid({
         })}
       </div>
       {!isCreate ? (
-        // Figma node 2916:65536: Skip sits left, Continue sits right. Continue
-        // remains disabled until at least one category is selected.
-        <div className="mt-6 flex items-center justify-between">
-          <button
-            type="button"
-            onClick={onSkip}
-            className="inline-flex shrink-0 items-center justify-center rounded-lg border border-[#f9fafb] bg-[#f9fafb] px-4 py-2.5 text-[16px] font-semibold leading-6 text-[#344054] shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] transition-all duration-150 hover:border-[#eaecf0] hover:bg-[#f2f4f7] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-gray-100 active:scale-[0.97]"
-          >
-            Skip
-          </button>
+        // Figma node 2916:65429: the Continue CTA is right-aligned with no
+        // helper line beside it (the "Choose up to 3…" copy lives in the
+        // heading subtext). Disabled until the min-3 rule is met; the disabled
+        // fill is the design's #b2ccff light-blue with white label + arrow.
+        <div className="mt-6 flex items-center justify-end">
           <button
             type="button"
             onClick={onContinue}
@@ -1192,153 +800,6 @@ function formatDomainSelection(selected: DomainChoice[]) {
     return `${selected[0].label}, ${selected[1].label}`;
   }
   return `${selected[0].label}, ${selected[1].label} +${selected.length - 2}`;
-}
-
-function OtpStep({
-  digits,
-  canSubmit,
-  onDigitsChange,
-  onSubmit,
-  onResend,
-}: {
-  digits: string[];
-  canSubmit: boolean;
-  onDigitsChange: (digits: string[]) => void;
-  onSubmit: (event: FormEvent<HTMLFormElement>) => void;
-  onResend: () => void;
-}) {
-  const otpInputRefs = useRef<Array<HTMLInputElement | null>>([]);
-
-  useEffect(() => {
-    otpInputRefs.current[0]?.focus();
-  }, []);
-
-  const focusDigit = (index: number) => {
-    otpInputRefs.current[index]?.focus();
-  };
-
-  const setDigitsFromValue = (index: number, rawValue: string) => {
-    const value = rawValue.replace(/\D/g, "");
-    const nextDigits = [...digits];
-
-    if (!value) {
-      nextDigits[index] = "";
-      onDigitsChange(nextDigits);
-      return;
-    }
-
-    const incomingDigits = value.slice(0, OTP_LENGTH - index).split("");
-    incomingDigits.forEach((digit, offset) => {
-      nextDigits[index + offset] = digit;
-    });
-    onDigitsChange(nextDigits);
-
-    const nextIndex = Math.min(index + incomingDigits.length, OTP_LENGTH - 1);
-    focusDigit(nextIndex);
-  };
-
-  const handleDigitChange = (
-    index: number,
-    event: ChangeEvent<HTMLInputElement>,
-  ) => {
-    setDigitsFromValue(index, event.target.value);
-  };
-
-  const handleDigitKeyDown = (
-    index: number,
-    event: KeyboardEvent<HTMLInputElement>,
-  ) => {
-    if (event.key === "ArrowLeft" && index > 0) {
-      event.preventDefault();
-      focusDigit(index - 1);
-      return;
-    }
-
-    if (event.key === "ArrowRight" && index < OTP_LENGTH - 1) {
-      event.preventDefault();
-      focusDigit(index + 1);
-      return;
-    }
-
-    if (event.key === "Backspace" && !digits[index] && index > 0) {
-      event.preventDefault();
-      const nextDigits = [...digits];
-      nextDigits[index - 1] = "";
-      onDigitsChange(nextDigits);
-      focusDigit(index - 1);
-    }
-  };
-
-  const handlePaste = (event: ClipboardEvent<HTMLInputElement>) => {
-    const pastedDigits = event.clipboardData
-      .getData("text")
-      .replace(/\D/g, "")
-      .slice(0, OTP_LENGTH);
-
-    if (!pastedDigits) return;
-
-    event.preventDefault();
-    const nextDigits = createEmptyOtpDigits();
-    pastedDigits.split("").forEach((digit, index) => {
-      nextDigits[index] = digit;
-    });
-    onDigitsChange(nextDigits);
-    focusDigit(Math.min(pastedDigits.length, OTP_LENGTH - 1));
-  };
-
-  return (
-    <div className="w-full max-w-[483px]">
-      <div className="mb-8">
-        <h1 className="font-montserrat text-[32px] font-bold leading-[38px] tracking-[-0.5px] text-[#101828] sm:whitespace-nowrap sm:text-[40px] sm:leading-[46px]">
-          Check your inbox
-        </h1>
-        <p className="mt-3 text-[18px] leading-7 text-[#475467]">
-          Enter the 6 digit secure code sent to your email.
-        </p>
-      </div>
-
-      <form onSubmit={onSubmit} className="flex flex-col gap-4">
-        <div className="grid grid-cols-6 gap-3" aria-label="Secure code">
-          {Array.from({ length: OTP_LENGTH }, (_, index) => (
-            <input
-              key={index}
-              ref={(node) => {
-                otpInputRefs.current[index] = node;
-              }}
-              type="text"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              autoComplete={index === 0 ? "one-time-code" : "off"}
-              maxLength={1}
-              value={digits[index] ?? ""}
-              onChange={(event) => handleDigitChange(index, event)}
-              onKeyDown={(event) => handleDigitKeyDown(index, event)}
-              onPaste={handlePaste}
-              aria-label={`Digit ${index + 1}`}
-              className="h-14 min-w-0 rounded-lg border border-[#d0d5dd] bg-white text-center text-[24px] font-semibold leading-8 text-[#101828] shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] outline-none transition-all duration-150 placeholder:text-[#667085] focus:border-[#343DE5] focus:ring-4 focus:ring-indigo-100 max-[430px]:h-12 max-[430px]:text-[20px]"
-            />
-          ))}
-        </div>
-
-        <button
-          type="submit"
-          disabled={!canSubmit}
-          className="flex h-11 w-full items-center justify-center rounded-lg border border-[#343DE5] bg-[#343DE5] px-4 py-2.5 text-[16px] font-semibold leading-6 text-white shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] transition-all duration-150 hover:border-[#2831D3] hover:bg-[#2831D3] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-indigo-100 active:scale-[0.97] disabled:cursor-not-allowed disabled:border-[#b2ccff] disabled:bg-[#b2ccff] disabled:shadow-none disabled:hover:border-[#b2ccff] disabled:hover:bg-[#b2ccff] disabled:active:scale-100"
-        >
-          Verify and continue
-        </button>
-
-        <button
-          type="button"
-          onClick={onResend}
-          className="mx-auto inline-flex h-[30px] items-center justify-center gap-2 rounded-md px-2 text-[13px] font-semibold leading-[18px] text-[#344054] transition-colors duration-150 hover:bg-[#f2f4f7] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-gray-100 active:scale-[0.97]"
-        >
-          <RefreshCw aria-hidden="true" size={16} strokeWidth={2} />
-          Resend code
-        </button>
-      </form>
-    </div>
-  );
 }
 
 function AccountForm({
@@ -1567,8 +1028,6 @@ function ExperiencePanel({
   selectedDomains,
   complete,
   variant,
-  handoffOriginRef,
-  hideCore,
   centerGlyph,
 }: {
   intent: Intent | null;
@@ -1578,8 +1037,6 @@ function ExperiencePanel({
   selectedDomains: DomainChoice[];
   complete: boolean;
   variant: OrbVariant;
-  handoffOriginRef: Ref<HTMLDivElement>;
-  hideCore: boolean;
   centerGlyph: OrbCenterGlyph;
 }) {
   const isLearner = intent === "learn";
@@ -1651,8 +1108,6 @@ function ExperiencePanel({
             accent={accent}
             activePillar={activePillar}
             centerGlyph={centerGlyph}
-            coreRef={handoffOriginRef}
-            hideCore={hideCore}
           />
         )}
 
@@ -1775,14 +1230,10 @@ function KollabConstellation({
   accent,
   activePillar,
   centerGlyph = "kollab",
-  coreRef,
-  hideCore = false,
 }: {
   accent: string;
   activePillar: PillarKey | null;
   centerGlyph?: OrbCenterGlyph;
-  coreRef?: Ref<HTMLDivElement>;
-  hideCore?: boolean;
 }) {
   const radius = 125;
   const nodeSize = KOLLAB_PILLAR_NODE_SIZE;
@@ -1846,14 +1297,7 @@ function KollabConstellation({
         })}
       </motion.div>
 
-      <motion.div
-        ref={coreRef}
-        data-onboarding-handoff-origin
-        animate={{ opacity: hideCore ? 0 : 1 }}
-        transition={{ duration: 0.12, ease: "easeOut" }}
-      >
-        <KollabMarkCore size={120} glyph={centerGlyph} />
-      </motion.div>
+      <KollabMarkCore size={120} glyph={centerGlyph} />
     </motion.div>
   );
 }

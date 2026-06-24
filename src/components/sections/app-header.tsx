@@ -2,16 +2,22 @@
 
 import Link from "next/link";
 import { ChevronDown, Languages, Plus } from "lucide-react";
-import { RocketIcon } from "@/components/icons/ghl-icons";
 
 // Logged-in top header. Two states from Figma (file lSuVFjWScTgFMplHt0JsQK):
-//  - "full"    → node 2942:28654 (logo + upgrade pill + language select +
-//                "Create" + avatar). Used on the full logged-in Discover shell.
+//  - "full"    → node 2261:21409 (logo + nav + language select + "Create" + avatar).
+//                Used on the logged-in Discover, the top-picks landing, and the
+//                discover/learn personalizing screen (node 2948:29350).
 //  - "minimal" → node 2948:29182 ("Create flow": logo + avatar only). Used on the
-//                personalizing screens, generated picks (2942:30174), and the
-//                course workspace result (2940:31039).
+//                create personalizing screen (2940:30669) and the course
+//                workspace result (2940:31039).
 // Markup mirrors the logged-out top-header layout (h-60, px-54, shadow xs) so the
-// two headers line up pixel-for-pixel; only the logged-in content differs.
+// two headers line up pixel-for-pixel; only the right side and nav differ.
+
+const NAV_ITEMS = [
+  { label: "Discover", href: "/discover?app=1" },
+  { label: "Features", href: "/" },
+  { label: "Pricing", href: "/" },
+];
 
 // Stable demo avatar (matches the "Katherine Moss" portrait used across the
 // logged-in mockups).
@@ -26,8 +32,8 @@ export function AppHeader({
   return (
     <header className="sticky top-0 z-50 w-full bg-white shadow-xs">
       <div className="mx-auto flex h-[60px] w-full max-w-[1440px] items-center gap-6 px-[54px] py-2 max-md:gap-3 max-md:px-4">
-        {/* Logo + logged-in upgrade prompt */}
-        <div className="flex min-w-0 flex-1 items-center gap-2">
+        {/* Logo + nav */}
+        <div className="flex min-w-0 flex-1 items-center gap-6">
           <a
             href="/"
             aria-label="Kollab home"
@@ -44,18 +50,17 @@ export function AppHeader({
           </a>
 
           {variant === "full" ? (
-            <div className="flex items-center gap-2 max-md:hidden">
-              <span className="text-[14px] font-normal leading-5 text-[#d0d5dd]">
-                |
-              </span>
-              <Link
-                href="/"
-                className="inline-flex items-center gap-1 rounded-[8px] bg-[#eff0fd] px-2 py-1 text-[14px] font-semibold leading-5 text-[#343DE5] transition-colors hover:bg-[#e1e3fb]"
-              >
-                <RocketIcon size={14} />
-                Unlock pro features
-              </Link>
-            </div>
+            <nav className="flex items-center gap-1 max-lg:hidden">
+              {NAV_ITEMS.map((item) => (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  className="rounded-md px-[14px] py-2 text-[15px] font-medium leading-5 text-gray-700 transition-colors hover:bg-gray-50"
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </nav>
           ) : null}
         </div>
 

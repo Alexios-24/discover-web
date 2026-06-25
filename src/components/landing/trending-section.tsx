@@ -358,7 +358,7 @@ export function TrendingSection() {
     <section className="w-full py-16 bg-white overflow-hidden max-md:py-10">
       <div className="max-w-[1440px] mx-auto px-[54px] mb-8 max-md:px-4 max-md:mb-5">
         <h2 className="font-montserrat font-bold text-[40px] leading-normal text-[#101828] text-center w-full max-md:text-[24px] max-md:leading-[32px]">
-          Featured
+          Featured products
         </h2>
       </div>
 

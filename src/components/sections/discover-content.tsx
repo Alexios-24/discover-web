@@ -17,7 +17,6 @@ import {
   hasActiveFilters,
   type FilterState,
 } from "./filters-panel";
-import { TopPicks } from "./top-picks";
 import { TrendingNow } from "./trending-now";
 import { CreatorsYouMightLike } from "./creators";
 import { BrowseProducts } from "./browse-products";
@@ -300,7 +299,6 @@ export function DiscoverContent() {
             </>
           ) : (
             <>
-              <TopPicks />
               <TrendingNow />
               <CreatorsYouMightLike />
               <BrowseProducts />

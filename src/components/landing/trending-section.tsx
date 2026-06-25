@@ -170,7 +170,7 @@ function Card({ card }: { card: TrendingCard }) {
       onMouseMove={handleMove}
       onMouseLeave={handleLeave}
       style={{ perspective: "1200px" }}
-      className="relative w-[600px] h-[337.5px] shrink-0 cursor-pointer group max-lg:w-[420px] max-lg:h-[236px] max-md:w-[300px] max-md:h-[169px]"
+      className="relative w-[440px] h-[247.5px] shrink-0 cursor-pointer group max-lg:w-[320px] max-lg:h-[180px] max-md:w-[240px] max-md:h-[135px]"
     >
       <motion.div
         style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
@@ -184,14 +184,14 @@ function Card({ card }: { card: TrendingCard }) {
         />
 
         <div
-          className="absolute left-0 right-0 bottom-0 flex items-center gap-[7.697px] p-4 max-md:p-3 max-md:gap-2"
+          className="absolute left-0 right-0 bottom-0 flex items-center gap-2 p-3 max-md:p-2.5 max-md:gap-2"
           style={{ background: gradient }}
         >
           <div
-            className="flex-1 min-w-0 flex flex-col gap-2 justify-center max-md:gap-1"
+            className="flex-1 min-w-0 flex flex-col gap-1.5 justify-center max-md:gap-1"
             style={{ transform: "translateZ(30px)" }}
           >
-            <h3 className="font-inter text-[24px] leading-[32px] font-semibold text-white max-md:text-[16px] max-md:leading-[20px]">
+            <h3 className="font-inter text-[18px] leading-[24px] font-semibold text-white max-md:text-[15px] max-md:leading-[20px]">
               {card.title}
             </h3>
             <div className="flex items-center gap-2 w-full max-md:gap-1.5">
@@ -202,13 +202,13 @@ function Card({ card }: { card: TrendingCard }) {
                 </span>
               </span>
               <span className="size-[6px] rounded-full bg-white/60 shrink-0 max-md:size-[4px]" />
-              <span className="font-inter text-[16px] leading-6 text-[#EAECF0] truncate max-md:text-[12px] max-md:leading-4">
+              <span className="font-inter text-[14px] leading-5 text-[#EAECF0] truncate max-md:text-[12px] max-md:leading-4">
                 {card.members}
               </span>
             </div>
           </div>
           <button
-            className="shrink-0 bg-white border border-[#D0D5DD] rounded-[8px] px-[14px] py-2 font-inter text-[14px] leading-5 font-semibold text-[#344054] shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] hover:bg-gray-50 transition-colors max-md:px-2.5 max-md:py-1.5 max-md:text-[12px] max-md:leading-4 max-md:rounded-[6px]"
+            className="shrink-0 bg-white border border-[#D0D5DD] rounded-[8px] px-3 py-1.5 font-inter text-[13px] leading-5 font-semibold text-[#344054] shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] opacity-0 translate-y-1 transition-all duration-200 ease-out hover:bg-gray-50 group-hover:opacity-100 group-hover:translate-y-0 focus-visible:opacity-100 focus-visible:translate-y-0 max-md:opacity-100 max-md:translate-y-0 max-md:px-2.5 max-md:py-1.5 max-md:text-[12px] max-md:leading-4 max-md:rounded-[6px]"
             style={{ transform: "translateZ(30px)" }}
           >
             Join now
@@ -358,7 +358,7 @@ export function TrendingSection() {
     <section className="w-full py-16 bg-white overflow-hidden max-md:py-10">
       <div className="max-w-[1440px] mx-auto px-[54px] mb-8 max-md:px-4 max-md:mb-5">
         <h2 className="font-montserrat font-bold text-[40px] leading-normal text-[#101828] text-center w-full max-md:text-[24px] max-md:leading-[32px]">
-          Trending now
+          Featured
         </h2>
       </div>
 

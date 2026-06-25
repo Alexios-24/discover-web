@@ -1,34 +1,4 @@
 // Stable Unsplash images that exist
-export const TOP_PICKS = [
-  {
-    image: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800&auto=format&fit=crop&q=70",
-    title: "Churned users psychology",
-    creator: "Olivia Rhye",
-    creatorAvatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&auto=format&fit=crop&q=60",
-    members: "27.4K",
-    type: "Community" as const,
-    pricing: "Free",
-  },
-  {
-    image: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&auto=format&fit=crop&q=70",
-    title: "F1 enthusiasts",
-    creator: "Phoenix Baker",
-    creatorAvatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&h=80&auto=format&fit=crop&q=60",
-    members: "27.4K",
-    type: "Community" as const,
-    pricing: "$99/month",
-  },
-  {
-    image: "https://images.unsplash.com/photo-1590602847861-f357a9332bbc?w=800&auto=format&fit=crop&q=70",
-    title: "Podcasting fundamentals",
-    creator: "Lana",
-    creatorAvatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&h=80&auto=format&fit=crop&q=60",
-    members: "27.4K",
-    type: "Course" as const,
-    pricing: "Free",
-  },
-];
-
 // Personalized "Top picks based on your interests" grid — Figma node
 // 2942:30174 (the post-personalization landing for the learn/discover flow).
 export const TOP_PICKS_LANDING = [

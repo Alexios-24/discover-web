@@ -22,11 +22,24 @@ import {
 function HeroSwitch() {
   const { variant } = useVariant();
 
+  // Swapped: V1 shows the V2 hero, V2 shows the V1 hero.
   if (variant === "v2") {
-    return <LandingHeroV2 />;
+    return <LandingHero />;
   }
 
-  return <LandingHero />;
+  return <LandingHeroV2 />;
+}
+
+// The lower "Featured products" mosaic is hidden in V1 (only the top
+// "Featured products" carousel remains); V2 keeps it.
+function FeaturedProductsSwitch() {
+  const { variant } = useVariant();
+
+  if (variant === "v1") {
+    return null;
+  }
+
+  return <FeaturedProducts />;
 }
 
 export default function LandingPage() {
@@ -40,7 +53,7 @@ export default function LandingPage() {
         <TrendingSection />
         <TopPicksSection />
         <CreatorsSection />
-        <FeaturedProducts />
+        <FeaturedProductsSwitch />
         <BrowseAllSection />
         <RisingCreatorsSection />
         <NumbersSection />

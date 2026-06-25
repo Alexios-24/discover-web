@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { useLayoutEffect, useRef, useState } from "react";
 
 const FOOTER_LINKS: { label: string; items: { label: string; href: string }[] }[] = [
   {
@@ -42,12 +41,6 @@ const FOOTER_LINKS: { label: string; items: { label: string; href: string }[] }[
   },
 ];
 
-const MARQUEE_WORDS = [
-  { text: "Communities", color: "#818CF8" },
-  { text: "Courses", color: "#2ED3B7" },
-  { text: "Creators", color: "#F670C7" },
-];
-
 export function LandingFooter() {
   return (
     <footer className="relative w-full bg-black text-white overflow-hidden">
@@ -63,27 +56,6 @@ export function LandingFooter() {
       />
 
       <div className="relative flex flex-col gap-[72px] py-[54px] max-md:gap-12 max-md:py-10">
-        {/* Product scroll section — outlined marquee — full width edge-to-edge */}
-        <div className="w-full overflow-hidden">
-          <div
-            className="flex items-center gap-[40px] whitespace-nowrap will-change-transform max-md:gap-6"
-            style={{ animation: "marquee-x 22s linear infinite" }}
-          >
-            {[...Array(4)].flatMap((_, copy) =>
-              MARQUEE_WORDS.map((w, i) => (
-                <span key={`${copy}-${i}`} className="inline-flex items-center gap-[40px] shrink-0">
-                  <OutlinedWord text={w.text} color={w.color} />
-                  <span
-                    className="inline-block w-4 h-4 rounded-full border-[1.5px]"
-                    style={{ borderColor: "rgba(255,255,255,0.35)" }}
-                    aria-hidden
-                  />
-                </span>
-              )),
-            )}
-          </div>
-        </div>
-
         {/* Main content — aligned with top header (max-w-1440 + 54px horizontal padding) */}
         <div className="max-w-[1440px] mx-auto px-[54px] w-full flex flex-col gap-[40px] max-md:px-4 max-md:gap-8">
           {/* Columns row */}
@@ -176,59 +148,6 @@ export function LandingFooter() {
         </div>
       </div>
     </footer>
-  );
-}
-
-function OutlinedWord({ text, color }: { text: string; color: string }) {
-  // SVG text with stroke renders outline cleanly. -webkit-text-stroke splits the
-  // stroke half inside / half outside the glyph, which makes Montserrat Bold look
-  // chipped at corners. SVG strokes follow the path properly. We measure the text
-  // bbox after mount to size the SVG width exactly to its content.
-  const textRef = useRef<SVGTextElement>(null);
-  const [width, setWidth] = useState(text.length * 50);
-  const [fontSize, setFontSize] = useState(72);
-
-  useLayoutEffect(() => {
-    const compute = () => {
-      setFontSize(window.innerWidth < 768 ? 44 : 72);
-    };
-    compute();
-    window.addEventListener("resize", compute);
-    return () => window.removeEventListener("resize", compute);
-  }, []);
-
-  useLayoutEffect(() => {
-    if (!textRef.current) return;
-    const bbox = textRef.current.getBBox();
-    setWidth(Math.ceil(bbox.width + 4));
-  }, [text, fontSize]);
-
-  return (
-    <svg
-      width={width}
-      height={Math.ceil(fontSize * (80 / 72))}
-      className="block shrink-0 overflow-visible"
-      shapeRendering="geometricPrecision"
-      aria-label={text}
-    >
-      <text
-        ref={textRef}
-        x="0"
-        y={Math.ceil(fontSize * (64 / 72))}
-        fill="none"
-        stroke={color}
-        strokeWidth="1.5"
-        strokeLinejoin="round"
-        strokeLinecap="round"
-        strokeMiterlimit="2"
-        fontFamily="var(--font-montserrat), Montserrat, sans-serif"
-        fontWeight="700"
-        fontSize={fontSize}
-        style={{ paintOrder: "stroke" }}
-      >
-        {text}
-      </text>
-    </svg>
   );
 }
 

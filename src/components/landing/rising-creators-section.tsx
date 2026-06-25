@@ -124,6 +124,7 @@ const CREATORS: RisingCreator[] = [
 interface Dims {
   card: number;
   spacing: number;
+  panStep: number;
   visible: number;
   height: number;
 }
@@ -131,9 +132,10 @@ interface Dims {
 function useDims(): Dims {
   const [dims, setDims] = useState<Dims>({
     card: 240,
-    spacing: 134,
+    spacing: 96,
+    panStep: 110,
     visible: 6,
-    height: 360,
+    height: 293,
   });
 
   useEffect(() => {
@@ -158,12 +160,15 @@ function useDims(): Dims {
         // Gap between adjacent card centres; also the unit that maps one
         // drag-step / arrow press to one index. Tight so the cards overlap
         // into a closely-stacked fan like the reference.
-        spacing: Math.round(card * 0.46),
+        spacing: Math.round(card * 0.4),
+        // Preserve the original pan sensitivity while allowing the visual
+        // card spacing to tighten independently.
+        panStep: Math.round(card * 0.46),
         visible,
         // Cards are slightly portrait and vertically center-aligned; the
         // Y-rotation keeps their height constant, so the tallest element is
         // the full-size centre card. Leave room for its shadow.
-        height: Math.round(card * 1.38),
+        height: Math.round(card * 1.22),
       });
     };
     compute();
@@ -176,7 +181,7 @@ function useDims(): Dims {
 
 export function RisingCreatorsSection() {
   const dims = useDims();
-  const { card, spacing, visible, height } = dims;
+  const { card, spacing, panStep, visible, height } = dims;
   const len = CREATORS.length;
   const reduceMotion = useReducedMotion();
 
@@ -237,13 +242,13 @@ export function RisingCreatorsSection() {
 
   const onPan = (_e: unknown, info: PanInfo) => {
     // No clamping: the deck scrolls endlessly in either direction.
-    position.set(dragStart.current - info.offset.x / spacing);
+    position.set(dragStart.current - info.offset.x / panStep);
   };
 
   const onPanEnd = (_e: unknown, info: PanInfo) => {
     dragRef.current = false;
     const projected =
-      dragStart.current - (info.offset.x + info.velocity.x * 0.18) / spacing;
+      dragStart.current - (info.offset.x + info.velocity.x * 0.18) / panStep;
     goTo(Math.round(projected));
   };
 
@@ -261,7 +266,7 @@ export function RisingCreatorsSection() {
   const activeIndex = ((Math.round(pos) % len) + len) % len;
 
   return (
-    <section className="w-full bg-white pt-16 pb-24 overflow-hidden max-md:pt-12 max-md:pb-14">
+    <section className="w-full bg-white pt-16 pb-16 overflow-hidden max-md:pt-12 max-md:pb-10">
       <div className="mx-auto flex max-w-[1440px] flex-col items-center gap-4 px-[54px] text-center max-md:gap-3 max-md:px-4">
         <h2 className="font-montserrat font-bold text-[40px] leading-normal text-[#101828] max-md:text-[24px] max-md:leading-[32px]">
           Rising creators to watch
@@ -307,7 +312,6 @@ export function RisingCreatorsSection() {
             // only gently so the side cards stay tall rather than becoming
             // slivers.
             const x = Math.sign(o) * spacing * Math.pow(abs, 0.8);
-            const y = 0;
             const scale = Math.max(0.42, Math.pow(0.85, abs));
             // Tilt ramps in across the first step (so dragging eases the centre
             // card open), then holds at the full fan angle for all side cards.
@@ -341,7 +345,7 @@ export function RisingCreatorsSection() {
                   height: Math.round(card * 1.06),
                   zIndex,
                   opacity,
-                  transform: `translate(-50%, -50%) translateX(${x}px) translateY(${y}px) translateZ(${z}px) rotateY(${tilt}deg) scale(${scale})`,
+                  transform: `translate(-50%, -50%) translateX(${x}px) translateZ(${z}px) rotateY(${tilt}deg) scale(${scale})`,
                   transformOrigin: "center center",
                   transformStyle: "preserve-3d",
                   cursor: isActive ? "grab" : "pointer",
@@ -384,7 +388,7 @@ export function RisingCreatorsSection() {
         </div>
       </motion.div>
 
-      <div className="mt-10 flex w-full justify-center max-md:mt-6">
+      <div className="mt-4 flex w-full justify-center max-md:mt-3">
         <Link
           href="/discover"
           className="flex items-center gap-2 rounded-[8px] border border-[#F9FAFB] bg-[#F2F4F7] px-3.5 py-2 transition-colors hover:bg-[#E4E7EC]"

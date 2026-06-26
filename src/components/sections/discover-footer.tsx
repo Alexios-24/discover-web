@@ -11,8 +11,8 @@ const FOOTER_LINKS = [
 // gray-300 top border, 54px horizontal padding, Kollab logo left, legal links right.
 export function DiscoverFooter() {
   return (
-    <footer className="w-full border-t border-[#d0d5dd] bg-white px-[54px] py-6 max-md:px-4">
-      <div className="mx-auto flex w-full max-w-[1600px] items-center justify-between gap-6 max-md:flex-col max-md:items-start">
+    <footer className="w-full border-t border-[#d0d5dd] bg-white">
+      <div className="mx-auto flex w-full max-w-[1440px] items-center justify-between gap-6 px-[54px] py-6 max-md:flex-col max-md:items-start max-md:px-4">
         <Link href="/" aria-label="Kollab home" className="inline-flex h-[41px] items-center">
           <Image
             src="/kollab-logo-light.png"

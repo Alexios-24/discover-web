@@ -6,7 +6,6 @@ import { TopHeader } from "@/components/sections/top-header";
 import { AppShell } from "@/components/sections/app-shell";
 import { DiscoverHero } from "@/components/sections/hero";
 import { DiscoverContent } from "@/components/sections/discover-content";
-import { DiscoverFooter } from "@/components/sections/discover-footer";
 
 // The Discover page renders in two shells:
 //  - logged-out (default): the public top-header (Figma logged-out state).
@@ -43,7 +42,6 @@ function DiscoverInner() {
         <div className="mx-auto max-w-[1440px]">
           <DiscoverContent />
         </div>
-        <DiscoverFooter />
       </AppShell>
     );
   }
@@ -57,7 +55,6 @@ function DiscoverInner() {
       <div className="mx-auto max-w-[1440px]">
         <DiscoverContent />
       </div>
-      <DiscoverFooter />
     </main>
   );
 }

@@ -8,7 +8,11 @@ import { BROWSE_PRODUCTS } from "@/lib/data";
 const PAGE_SIZE = 6;
 const LOAD_DELAY_MS = 800;
 
-export function BrowseProducts() {
+export function BrowseProducts({
+  onExhaustedChange,
+}: {
+  onExhaustedChange?: (isExhausted: boolean) => void;
+}) {
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [isLoading, setIsLoading] = useState(false);
   const sentinelRef = useRef<HTMLDivElement>(null);
@@ -43,6 +47,10 @@ export function BrowseProducts() {
   }, [loadMore]);
 
   const visibleProducts = BROWSE_PRODUCTS.slice(0, visibleCount);
+
+  useEffect(() => {
+    onExhaustedChange?.(!hasMore);
+  }, [hasMore, onExhaustedChange]);
 
   return (
     <section className="w-full">

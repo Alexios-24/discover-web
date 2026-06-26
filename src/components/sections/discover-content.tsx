@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   ArrowDownUp,
@@ -21,6 +21,7 @@ import { TrendingNow } from "./trending-now";
 import { CreatorsYouMightLike } from "./creators";
 import { BrowseProducts } from "./browse-products";
 import { FilteredResults } from "./filtered-results";
+import { DiscoverFooter } from "./discover-footer";
 import { BottomDrawer } from "@/components/ui/bottom-drawer";
 
 const PRODUCT_TABS = ["All", "Communities", "Courses", "Creators"];
@@ -191,6 +192,7 @@ export function DiscoverContent() {
   const [sort, setSort] = useState<SortOption>(DEFAULT_SORT);
   const [filtersDrawerOpen, setFiltersDrawerOpen] = useState(false);
   const [sortDrawerOpen, setSortDrawerOpen] = useState(false);
+  const [showDiscoverFooter, setShowDiscoverFooter] = useState(false);
 
   const searchParams = useSearchParams();
   const query = searchParams?.get("q") ?? "";
@@ -199,37 +201,45 @@ export function DiscoverContent() {
   const isActive = hasActiveFilters(filters);
   const activeFilterCount = getActiveFilterCount(filters);
   const tags = isActive ? getFilterTags(filters, setFilters) : [];
+  const handleBrowseExhaustedChange = useCallback((isExhausted: boolean) => {
+    setShowDiscoverFooter(isExhausted);
+  }, []);
+
+  useEffect(() => {
+    setShowDiscoverFooter(false);
+  }, [hasQuery, isActive]);
 
   return (
-    <div className="flex gap-[54px] items-start pt-6 px-[54px] pb-9 max-lg:gap-6 max-lg:px-6 max-md:px-4 max-md:pt-6 max-md:pb-6">
-      {/* Sidebar filters — hidden only on mobile (below md) */}
-      <div className="max-md:hidden sticky top-[84px] self-start">
-        <FiltersPanel filters={filters} onFiltersChange={setFilters} />
-      </div>
-      <div className="flex-1 min-w-0 flex flex-col gap-6 items-start max-md:gap-4">
-        {/* Product type switcher + Sort */}
-        <div className="flex items-center justify-between w-full sticky top-[60px] z-40 bg-white py-3 relative max-lg:flex-wrap max-lg:justify-start max-lg:gap-x-4 max-lg:gap-y-3 max-md:flex-col max-md:items-stretch max-md:gap-4 max-md:py-2">
-          <div className="absolute inset-y-0 -right-[54px] w-[54px] bg-white max-lg:hidden" />
-          <div className="bg-gray-100 flex items-center justify-center max-md:justify-between overflow-hidden p-1 rounded-xl w-[406px] max-md:w-full">
-            {PRODUCT_TABS.map((tab) => {
-              const isTabActive = activeTab === tab;
-              return (
-                <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className={cn(
-                    "flex items-center justify-center py-1.5 text-[14px] leading-5 font-medium text-gray-900 whitespace-nowrap transition-colors rounded-[20px] max-md:rounded-lg",
-                    tab === "All"
-                      ? "px-6"
-                      : "md:flex-1 md:min-w-0 px-3",
-                    isTabActive && "bg-white shadow-xs md:rounded-lg",
-                  )}
-                >
-                  {tab}
-                </button>
-              );
-            })}
-          </div>
+    <>
+      <div className="flex gap-[54px] items-start pt-6 px-[54px] pb-9 max-lg:gap-6 max-lg:px-6 max-md:px-4 max-md:pt-6 max-md:pb-6">
+        {/* Sidebar filters — hidden only on mobile (below md) */}
+        <div className="max-md:hidden sticky top-[84px] self-start">
+          <FiltersPanel filters={filters} onFiltersChange={setFilters} />
+        </div>
+        <div className="flex-1 min-w-0 flex flex-col gap-6 items-start max-md:gap-4">
+          {/* Product type switcher + Sort */}
+          <div className="flex items-center justify-between w-full sticky top-[60px] z-40 bg-white py-3 relative max-lg:flex-wrap max-lg:justify-start max-lg:gap-x-4 max-lg:gap-y-3 max-md:flex-col max-md:items-stretch max-md:gap-4 max-md:py-2">
+            <div className="absolute inset-y-0 -right-[54px] w-[54px] bg-white max-lg:hidden" />
+            <div className="bg-gray-100 flex items-center justify-center max-md:justify-between overflow-hidden p-1 rounded-xl w-[406px] max-md:w-full">
+              {PRODUCT_TABS.map((tab) => {
+                const isTabActive = activeTab === tab;
+                return (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    className={cn(
+                      "flex items-center justify-center py-1.5 text-[14px] leading-5 font-medium text-gray-900 whitespace-nowrap transition-colors rounded-[20px] max-md:rounded-lg",
+                      tab === "All"
+                        ? "px-6"
+                        : "md:flex-1 md:min-w-0 px-3",
+                      isTabActive && "bg-white shadow-xs md:rounded-lg",
+                    )}
+                  >
+                    {tab}
+                  </button>
+                );
+              })}
+            </div>
 
           {/* Desktop sort dropdown — hidden on mobile */}
           <button className="flex flex-col items-start w-[165px] shrink-0 cursor-pointer max-lg:ml-auto max-md:hidden">
@@ -277,7 +287,7 @@ export function DiscoverContent() {
                   ))}
                 </div>
               )}
-              <BrowseProducts />
+              <BrowseProducts onExhaustedChange={handleBrowseExhaustedChange} />
             </div>
           ) : isActive ? (
             <>
@@ -301,7 +311,7 @@ export function DiscoverContent() {
             <>
               <TrendingNow />
               <CreatorsYouMightLike />
-              <BrowseProducts />
+              <BrowseProducts onExhaustedChange={handleBrowseExhaustedChange} />
             </>
           )}
         </div>
@@ -369,7 +379,9 @@ export function DiscoverContent() {
             );
           })}
         </div>
-      </BottomDrawer>
-    </div>
+        </BottomDrawer>
+      </div>
+      {showDiscoverFooter ? <DiscoverFooter /> : null}
+    </>
   );
 }

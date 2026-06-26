@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { AppShell } from "@/components/sections/app-shell";
+import { DiscoverFooter } from "@/components/sections/discover-footer";
 import { DiscoverCard } from "@/components/ui/discover-card";
 import { TOP_PICKS_LANDING } from "@/lib/data";
 
@@ -41,6 +42,7 @@ export default function PicksPage() {
           </Link>
         </div>
       </div>
+      <DiscoverFooter />
     </AppShell>
   );
 }

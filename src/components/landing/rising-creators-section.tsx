@@ -268,7 +268,7 @@ export function RisingCreatorsSection() {
   return (
     <section className="w-full bg-white pt-16 pb-16 overflow-hidden max-md:pt-12 max-md:pb-10">
       <div className="mx-auto flex max-w-[1440px] flex-col items-center gap-4 px-[54px] text-center max-md:gap-3 max-md:px-4">
-        <h2 className="font-montserrat font-semibold text-[40px] leading-normal text-[#101828] max-md:text-[24px] max-md:leading-[32px]">
+        <h2 className="font-montserrat font-semibold text-[36px] leading-normal text-[#101828] max-md:text-[24px] max-md:leading-[32px]">
           Rising creators to watch
         </h2>
       </div>

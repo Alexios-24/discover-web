@@ -52,7 +52,7 @@ export function NumbersSection() {
   return (
     <section className="w-full py-16 bg-white max-md:py-10">
       <div className="flex flex-col gap-8 items-center w-full max-md:gap-5">
-        <h2 className="font-montserrat font-bold text-[40px] leading-normal text-[#101828] text-center w-full max-md:text-[24px] max-md:leading-[32px] max-md:px-4">
+        <h2 className="font-montserrat font-bold text-[36px] leading-normal text-[#101828] text-center w-full max-md:text-[24px] max-md:leading-[32px] max-md:px-4">
           Numbers that compound
         </h2>
 

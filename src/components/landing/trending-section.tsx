@@ -357,7 +357,7 @@ export function TrendingSection() {
   return (
     <section className="w-full bg-white pt-32 pb-16 overflow-hidden max-md:pt-16 max-md:pb-10">
       <div className="max-w-[1440px] mx-auto px-[54px] mb-8 max-md:px-4 max-md:mb-5">
-        <h2 className="font-montserrat font-semibold text-[40px] leading-normal text-[#101828] text-center w-full max-md:text-[24px] max-md:leading-[32px]">
+        <h2 className="font-montserrat font-semibold text-[36px] leading-normal text-[#101828] text-center w-full max-md:text-[24px] max-md:leading-[32px]">
           Featured products
         </h2>
       </div>

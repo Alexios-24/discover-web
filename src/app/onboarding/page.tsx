@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
+  Fragment,
   Suspense,
   useEffect,
   useMemo,
@@ -47,7 +48,10 @@ import {
 type Intent = "create" | "learn";
 type BuildChoice = "course" | "community" | "both";
 type LearnChoice = "courses" | "communities" | "creators" | "all";
-type AccountStage = "form" | "otp";
+// The flow now signs the user up FIRST, then runs the onboarding steps:
+//   account (signup form) → verify (OTP, email signups only) → onboarding.
+type Phase = "account" | "verify" | "onboarding";
+type SignupMethod = "email" | "google";
 type DomainValue =
   | "finance"
   | "travel"
@@ -65,6 +69,10 @@ type DomainValue =
 type GhlIconName = keyof typeof GHL_ICON_MAP;
 
 const OTP_LENGTH = 6;
+
+// Onboarding (post-signup) is three steps: intent → build/learn choice →
+// categories. The header renders one progress dot per step.
+const ONBOARDING_STEPS = 3;
 
 const createEmptyOtpDigits = () => Array<string>(OTP_LENGTH).fill("");
 
@@ -418,6 +426,8 @@ function OnboardingFlow() {
           ? 3
           : "kollab";
 
+  const [phase, setPhase] = useState<Phase>("account");
+  const [signupMethod, setSignupMethod] = useState<SignupMethod | null>(null);
   const [step, setStep] = useState(0);
   const [intent, setIntent] = useState<Intent | null>(null);
   const [buildChoice, setBuildChoice] = useState<BuildChoice | null>(null);
@@ -427,9 +437,7 @@ function OnboardingFlow() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [accountStage, setAccountStage] = useState<AccountStage>("form");
   const [otpDigits, setOtpDigits] = useState<string[]>(createEmptyOtpDigits);
-  const [complete, setComplete] = useState(false);
   const [handoff, setHandoff] = useState<HandoffState | null>(null);
 
   const selectedDomains = useMemo(
@@ -448,7 +456,6 @@ function OnboardingFlow() {
     password.length >= 8;
   const canVerifyOtp = otpDigits.every((digit) => digit.length === 1);
 
-  const visibleStep = complete ? 4 : step;
   const currentPath = intent === "learn" ? "learn" : "create";
 
   // Tracks the pending auto-advance timer used by the create/launch path's
@@ -489,14 +496,6 @@ function OnboardingFlow() {
   // by steps with index >= destination. Decrementing by one keeps multi-level
   // back presses correct: each press resets the step it returns to.
   const resetFromStep = (destination: number) => {
-    if (destination <= 3) {
-      setName("");
-      setEmail("");
-      setPassword("");
-      setShowPassword(false);
-      setAccountStage("form");
-      setOtpDigits(createEmptyOtpDigits());
-    }
     if (destination <= 2) {
       setDomains([]);
     }
@@ -514,22 +513,24 @@ function OnboardingFlow() {
 
     clearAutoAdvance();
 
-    if (complete) {
-      setComplete(false);
-      setStep(3);
+    if (phase === "onboarding") {
+      if (step > 0) {
+        const destination = step - 1;
+        resetFromStep(destination);
+        setStep(destination);
+        return;
+      }
+      // Step 0 is the first onboarding screen; stepping back returns to the
+      // pre-onboarding auth screen the user came through — the OTP screen for
+      // email signups, the signup form for Google.
+      resetFromStep(0);
+      setPhase(signupMethod === "email" ? "verify" : "account");
       return;
     }
 
-    if (step === 3 && accountStage === "otp") {
+    if (phase === "verify") {
       setOtpDigits(createEmptyOtpDigits());
-      setAccountStage("form");
-      return;
-    }
-
-    if (step > 0) {
-      const destination = step - 1;
-      resetFromStep(destination);
-      setStep(destination);
+      setPhase("account");
       return;
     }
 
@@ -581,23 +582,25 @@ function OnboardingFlow() {
     clearAutoAdvance();
     autoAdvanceTimeout.current = window.setTimeout(() => {
       autoAdvanceTimeout.current = null;
-      advance(3);
+      finishOnboarding();
     }, 300);
   };
 
   // Learner path only (the create path auto-advances on single-select).
   const continueFromDomains = () => {
     if (domains.length === 0) return;
-    advance(3);
+    finishOnboarding();
   };
 
   const skipDomains = () => {
     setDomains([]);
-    advance(3);
+    finishOnboarding();
   };
 
-  // Shared login logic used by both the email form and Google sign-in.
-  const finishLogin = () => {
+  // Final onboarding handoff: once the user finishes the category step we play
+  // the completion chime and run the full-screen orb → personalizing
+  // transition. The account already exists at this point (created up front).
+  const finishOnboarding = () => {
     if (handoff) return;
 
     playCompleteChime();
@@ -629,22 +632,28 @@ function OnboardingFlow() {
     }, HANDOFF_DURATION_MS);
   };
 
-  // On account creation we hand off to the full-screen personalizing animation.
-  // We replace (not push) the onboarding entry so the browser Back button never
-  // returns into the account form.
-  // Create → /personalizing → /workspace; Learn → /personalizing → /picks.
+  // Signup now happens before onboarding. Email signups go to the OTP screen
+  // first; Google sign-in skips OTP. Both land on the onboarding steps once the
+  // account is "created".
+  const enterOnboarding = () => {
+    setStep(0);
+    setPhase("onboarding");
+  };
+
   const submitAccount = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!canCreateAccount) return;
     playAdvanceChime();
+    setSignupMethod("email");
     setOtpDigits(createEmptyOtpDigits());
-    setAccountStage("otp");
+    setPhase("verify");
   };
 
   const submitOtp = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!canVerifyOtp) return;
-    finishLogin();
+    playAdvanceChime();
+    enterOnboarding();
   };
 
   const resendOtp = () => {
@@ -653,34 +662,76 @@ function OnboardingFlow() {
   };
 
   const handleGoogleSignIn = () => {
-    finishLogin();
+    setSignupMethod("google");
+    enterOnboarding();
   };
+
+  // The orb / "Personalizing your space" panel only belongs to the onboarding
+  // steps. The signup and OTP screens are centered, full-width, panel-free.
+  const showExperiencePanel = phase === "onboarding";
 
   return (
     <main className="relative min-h-screen w-full overflow-x-hidden bg-[#f7f8fb] text-gray-900">
       <section className="relative flex min-h-screen flex-col bg-white">
-        <Header step={visibleStep} />
+        <Header phase={phase} step={step} totalSteps={ONBOARDING_STEPS} />
         <BackControl onBack={goBack} />
 
-        <div className="flex flex-1 flex-col overflow-y-auto px-5 py-10 sm:px-10 lg:px-[72px] xl:pl-0 xl:pr-[30vw]">
+        <div
+          className={`flex flex-1 flex-col overflow-y-auto px-5 py-10 sm:px-10 lg:px-[72px] ${
+            showExperiencePanel ? "xl:pl-0 xl:pr-[30vw]" : ""
+          }`}
+        >
           <div
             className={`mx-auto my-auto w-full ${
-              step === 3 && !complete
+              phase === "account" || phase === "verify"
                 ? "max-w-[483px]"
                 : step === 1 && intent === "learn"
                   ? "max-w-[736px] -translate-y-8"
-                  : step <= 1 && !complete
+                  : step <= 1
                     ? "max-w-[666px] -translate-y-8"
-                  : "max-w-[640px] -translate-y-8"
+                    : "max-w-[640px] -translate-y-8"
             }`}
           >
               <AnimatePresence mode="wait">
-                {complete ? (
-                  <CompletionStep
-                    key="complete"
-                    intent={intent}
-                    domain={domainPreviewLabel}
-                  />
+                {phase === "account" ? (
+                  <motion.div key="account" {...stepMotion}>
+                    {/* Signup is the first screen after "Get started" (Figma
+                        node 3799:120572). Centered single column, no orb panel,
+                        no progress dots — just the heading + account form. */}
+                    <div className="mx-auto w-full max-w-[483px]">
+                      <div className="mb-8 flex flex-col items-center gap-2 text-center">
+                        <h1 className="font-montserrat text-[32px] font-bold leading-[38px] tracking-[-0.5px] text-[#101828] sm:text-[40px] sm:leading-[48px]">
+                          Create your account
+                        </h1>
+                        <p className="text-[18px] leading-7 text-[#475467]">
+                          A few quick details and you are in.
+                        </p>
+                      </div>
+                      <AccountForm
+                        name={name}
+                        email={email}
+                        password={password}
+                        showPassword={showPassword}
+                        canSubmit={canCreateAccount}
+                        onNameChange={setName}
+                        onEmailChange={setEmail}
+                        onPasswordChange={setPassword}
+                        onTogglePassword={() => setShowPassword((value) => !value)}
+                        onSubmit={submitAccount}
+                        onGoogleSignIn={handleGoogleSignIn}
+                      />
+                    </div>
+                  </motion.div>
+                ) : phase === "verify" ? (
+                  <motion.div key="otp" {...stepMotion}>
+                    <OtpStep
+                      digits={otpDigits}
+                      canSubmit={canVerifyOtp}
+                      onDigitsChange={setOtpDigits}
+                      onSubmit={submitOtp}
+                      onResend={resendOtp}
+                    />
+                  </motion.div>
                 ) : step === 0 ? (
                   <motion.div key="intent" {...stepMotion}>
                     <div className="mb-8">
@@ -741,7 +792,7 @@ function OnboardingFlow() {
                       ))}
                     </OptionList>
                   </motion.div>
-                ) : step === 2 ? (
+                ) : (
                   <motion.div key="domain" {...stepMotion}>
                     <div className="mb-8">
                       <h1 className="font-montserrat text-[32px] font-bold leading-[38px] tracking-[-0.5px] text-gray-900 sm:whitespace-nowrap sm:text-[40px] sm:leading-[46px]">
@@ -767,67 +818,32 @@ function OnboardingFlow() {
                       onSkip={skipDomains}
                     />
                   </motion.div>
-                ) : accountStage === "otp" ? (
-                  <motion.div key="otp" {...stepMotion}>
-                    <OtpStep
-                      digits={otpDigits}
-                      canSubmit={canVerifyOtp}
-                      onDigitsChange={setOtpDigits}
-                      onSubmit={submitOtp}
-                      onResend={resendOtp}
-                    />
-                  </motion.div>
-                ) : (
-                  <motion.div key="account" {...stepMotion}>
-                    {/* Account step only: heading + form share one column
-                        matching the Figma "Finish your setup" section
-                        (node 2942:30818 = 483px wide, 32px heading→form gap).
-                        Other steps keep the shared 640px wrapper above. */}
-                    <div className="w-full max-w-[483px]">
-                      <div className="mb-8">
-                        <h1 className="font-montserrat text-[32px] font-bold leading-[38px] tracking-[-0.5px] text-gray-900 sm:whitespace-nowrap sm:text-[40px] sm:leading-[46px]">
-                          Finish your setup
-                        </h1>
-                      </div>
-                      <AccountForm
-                        name={name}
-                        email={email}
-                        password={password}
-                        showPassword={showPassword}
-                        canSubmit={canCreateAccount}
-                        onNameChange={setName}
-                        onEmailChange={setEmail}
-                        onPasswordChange={setPassword}
-                        onTogglePassword={() => setShowPassword((value) => !value)}
-                        onSubmit={submitAccount}
-                        onGoogleSignIn={handleGoogleSignIn}
-                      />
-                    </div>
-                  </motion.div>
                 )}
               </AnimatePresence>
           </div>
         </div>
       </section>
 
-      <ExperiencePanel
-        intent={intent}
-        buildChoice={buildChoice}
-        learnChoice={learnChoice}
-        domain={domainPreviewLabel}
-        selectedDomains={selectedDomains}
-        complete={complete}
-        variant={orbVariant}
-        handoffOriginRef={handoffOriginRef}
-        hideCore={Boolean(handoff)}
-        centerGlyph={
-          intent === "create" && (step === 1 || step === 2 || step === 3)
-            ? "rocket"
-            : intent === "learn" && (step === 1 || step === 2 || step === 3)
-              ? "book"
-              : "kollab"
-        }
-      />
+      {showExperiencePanel ? (
+        <ExperiencePanel
+          intent={intent}
+          buildChoice={buildChoice}
+          learnChoice={learnChoice}
+          domain={domainPreviewLabel}
+          selectedDomains={selectedDomains}
+          complete={false}
+          variant={orbVariant}
+          handoffOriginRef={handoffOriginRef}
+          hideCore={Boolean(handoff)}
+          centerGlyph={
+            intent === "create" && (step === 1 || step === 2)
+              ? "rocket"
+              : intent === "learn" && (step === 1 || step === 2)
+                ? "book"
+                : "kollab"
+          }
+        />
+      ) : null}
 
       <AnimatePresence>
         {handoff ? <OnboardingHandoffOrb handoff={handoff} /> : null}
@@ -836,7 +852,15 @@ function OnboardingFlow() {
   );
 }
 
-function Header({ step }: { step: number }) {
+function Header({
+  phase,
+  step,
+  totalSteps,
+}: {
+  phase: Phase;
+  step: number;
+  totalSteps: number;
+}) {
   return (
     <header className="sticky top-0 z-40 h-[60px] border-b border-gray-200 bg-white/90 backdrop-blur-xl">
       <div className="relative mx-auto flex h-full w-full max-w-[1440px] items-center px-[54px] max-md:px-4">
@@ -851,19 +875,21 @@ function Header({ step }: { step: number }) {
           />
         </Link>
 
-        <div className="absolute left-1/2 flex -translate-x-1/2 items-center gap-1.5">
-          {[0, 1, 2, 3].map((index) => (
-            <span
-              key={index}
-              aria-label={`Step ${index + 1}`}
-              className={`h-[3px] rounded-full transition-all duration-200 ${
-                index <= Math.min(step, 3)
-                  ? "w-5 bg-[#343DE5]"
-                  : "w-1.5 bg-gray-200"
-              }`}
-            />
-          ))}
-        </div>
+        {/* Progress dots belong to the onboarding steps only (Figma node
+            2890:36689). The signup/OTP screens show no progress. */}
+        {phase === "onboarding" ? (
+          <div className="absolute left-1/2 flex -translate-x-1/2 items-center gap-1.5">
+            {Array.from({ length: totalSteps }, (_, index) => (
+              <span
+                key={index}
+                aria-label={`Step ${index + 1}`}
+                className={`h-2 rounded-full transition-all duration-200 ${
+                  index <= step ? "w-5 bg-[#343DE5]" : "w-2 bg-gray-300"
+                }`}
+              />
+            ))}
+          </div>
+        ) : null}
       </div>
     </header>
   );
@@ -1287,36 +1313,50 @@ function OtpStep({
   };
 
   return (
-    <div className="w-full max-w-[483px]">
-      <div className="mb-8">
-        <h1 className="font-montserrat text-[32px] font-bold leading-[38px] tracking-[-0.5px] text-[#101828] sm:whitespace-nowrap sm:text-[40px] sm:leading-[46px]">
+    <div className="mx-auto w-full max-w-[483px]">
+      <div className="mb-8 flex flex-col items-center gap-2 text-center">
+        <h1 className="font-montserrat text-[32px] font-bold leading-[38px] tracking-[-0.5px] text-[#101828] sm:text-[40px] sm:leading-[48px]">
           Check your inbox
         </h1>
-        <p className="mt-3 text-[18px] leading-7 text-[#475467]">
+        <p className="text-[18px] leading-7 text-[#475467]">
           Enter the 6 digit secure code sent to your email.
         </p>
       </div>
 
       <form onSubmit={onSubmit} className="flex flex-col gap-4">
-        <div className="grid grid-cols-6 gap-3" aria-label="Secure code">
+        <div
+          className="flex items-center justify-center gap-2 sm:gap-3"
+          aria-label="Secure code"
+        >
           {Array.from({ length: OTP_LENGTH }, (_, index) => (
-            <input
-              key={index}
-              ref={(node) => {
-                otpInputRefs.current[index] = node;
-              }}
-              type="text"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              autoComplete={index === 0 ? "one-time-code" : "off"}
-              maxLength={1}
-              value={digits[index] ?? ""}
-              onChange={(event) => handleDigitChange(index, event)}
-              onKeyDown={(event) => handleDigitKeyDown(index, event)}
-              onPaste={handlePaste}
-              aria-label={`Digit ${index + 1}`}
-              className="h-14 min-w-0 rounded-lg border border-[#d0d5dd] bg-white text-center text-[24px] font-semibold leading-8 text-[#101828] shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] outline-none transition-all duration-150 placeholder:text-[#667085] focus:border-[#343DE5] focus:ring-4 focus:ring-indigo-100 max-[430px]:h-12 max-[430px]:text-[20px]"
-            />
+            <Fragment key={index}>
+              {/* Figma node 4007:82515 splits the code into two groups of
+                  three with a dash in the middle. */}
+              {index === 3 ? (
+                <span
+                  aria-hidden
+                  className="px-0.5 text-[32px] font-medium leading-none text-[#d0d5dd] sm:text-[44px]"
+                >
+                  -
+                </span>
+              ) : null}
+              <input
+                ref={(node) => {
+                  otpInputRefs.current[index] = node;
+                }}
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                autoComplete={index === 0 ? "one-time-code" : "off"}
+                maxLength={1}
+                value={digits[index] ?? ""}
+                onChange={(event) => handleDigitChange(index, event)}
+                onKeyDown={(event) => handleDigitKeyDown(index, event)}
+                onPaste={handlePaste}
+                aria-label={`Digit ${index + 1}`}
+                className="size-12 min-w-0 rounded-lg border border-[#d0d5dd] bg-white text-center text-[28px] font-semibold leading-none text-[#101828] shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] outline-none transition-all duration-150 placeholder:text-[#667085] focus:border-[#343DE5] focus:ring-4 focus:ring-indigo-100 sm:size-16 sm:text-[40px]"
+              />
+            </Fragment>
           ))}
         </div>
 
@@ -1524,38 +1564,6 @@ function GoogleGlyph({ size = 20 }: { size?: number }) {
         fill="#EA4335"
       />
     </svg>
-  );
-}
-
-function CompletionStep({
-  intent,
-  domain,
-}: {
-  intent: Intent | null;
-  domain?: string;
-}) {
-  const destination = intent === "learn" ? "feed" : "workspace";
-
-  return (
-    <motion.div key="complete" {...stepMotion}>
-      <div className="mb-7 flex size-14 items-center justify-center rounded-2xl bg-[#343DE5] text-white shadow-[0_16px_36px_rgba(52,61,229,0.22)]">
-        <GhlIcon name="check" size={26} />
-      </div>
-      <h1 className="max-w-[540px] font-montserrat text-[30px] font-bold leading-[36px] tracking-[-0.5px] text-gray-900 sm:text-[38px] sm:leading-[44px]">
-        Your {destination} is ready.
-      </h1>
-      <p className="mt-3 max-w-[500px] text-[15px] leading-7 text-gray-500">
-        Kollab is tuned around {domain ?? "your interests"} and ready to show the
-        first set of courses, communities, and creators.
-      </p>
-      <Link
-        href="/discover"
-        className="mt-8 inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-[#343DE5] px-5 text-[14px] font-semibold leading-5 text-white shadow-[0_14px_30px_rgba(52,61,229,0.22)] transition-all duration-150 hover:bg-[#2831D3] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-indigo-100 active:scale-[0.97]"
-      >
-        Continue to Discover
-        <GhlIcon name="arrowRight" size={17} />
-      </Link>
-    </motion.div>
   );
 }
 

@@ -310,7 +310,7 @@ const MOBILE_PARALLAX_CARDS: ParallaxCard[] = [
 
 function FullscreenHeader() {
   return (
-    <div className="text-center font-montserrat font-semibold text-[40px] leading-normal text-[#101828] max-md:text-[20px] max-md:leading-[normal] max-md:px-4">
+    <div className="text-center font-montserrat font-semibold text-[36px] leading-normal text-[#101828] max-md:text-[20px] max-md:leading-[normal] max-md:px-4">
       The{" "}
       <span className="relative inline-block">
         <span className="text-[#343DE5]">official</span>
@@ -331,7 +331,7 @@ export function FeaturedProducts() {
   return (
     <section className="w-full bg-white">
       <div className="text-center pt-16 pb-0 px-[54px] max-md:pt-12 max-md:px-4">
-        <h2 className="font-montserrat font-semibold text-[40px] leading-normal text-[#101828] max-md:text-[24px] max-md:leading-[32px]">
+        <h2 className="font-montserrat font-semibold text-[36px] leading-normal text-[#101828] max-md:text-[24px] max-md:leading-[32px]">
           Featured products
         </h2>
       </div>

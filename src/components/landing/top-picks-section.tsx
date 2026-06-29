@@ -143,8 +143,8 @@ export function TopPicksSection() {
   return (
     <section className="w-full pt-24 pb-36 bg-white overflow-hidden max-md:pt-14 max-md:pb-20">
       <div className="flex flex-col items-center gap-6 w-full max-md:gap-4">
-        <h2 className="font-montserrat font-semibold text-[40px] leading-normal text-[#101828] text-center w-full px-[54px] max-md:text-[24px] max-md:leading-[32px] max-md:px-4">
-          Top picks for you
+        <h2 className="font-montserrat font-semibold text-[36px] leading-normal text-[#101828] text-center w-full px-[54px] max-md:text-[24px] max-md:leading-[32px] max-md:px-4">
+          Trending now
         </h2>
 
         <div className="w-full max-w-5xl mx-auto">

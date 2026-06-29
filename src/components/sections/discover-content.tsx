@@ -303,9 +303,9 @@ export function DiscoverContent() {
                     ))}
                   </div>
                 )}
-                <FilteredResults />
+                <CreatorsYouMightLike />
               </div>
-              <CreatorsYouMightLike />
+              <FilteredResults />
             </>
           ) : (
             <>

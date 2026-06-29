@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Search } from "lucide-react";
 import { CursorTooltip } from "@/components/ui/animated-tooltip";
 
@@ -99,6 +99,7 @@ const SETS: CategorySet[] = [
 ];
 
 const LOOP = [...SETS, SETS[0]];
+const LOOP_LABELS = [...SETS.map((s) => s.label), SETS[0].label];
 const N = SETS.length;
 const CYCLE_MS = 4000;
 
@@ -189,86 +190,76 @@ function ProductCard({
 export function CategoryShowcase() {
   const [pos, setPos] = useState(0);
   const [animate, setAnimate] = useState(true);
-  const [bgColor, setBgColor] = useState(SETS[0].bg);
-  const sectionRef = useRef<HTMLDivElement>(null);
+  const [isDocumentVisible, setIsDocumentVisible] = useState(() =>
+    typeof document === "undefined" ? true : !document.hidden,
+  );
+  const [isUserPaused, setIsUserPaused] = useState(false);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  const [liveAnnouncement, setLiveAnnouncement] = useState("");
   const frameRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(STAGE_REF_W);
 
-  const scrollIndexRef = useRef(0);
-  const cooldownRef = useRef(false);
-  const finishedRef = useRef(false);
-
-  const advance = useCallback(() => {
-    setAnimate(true);
-    setPos((p) => p + 1);
-  }, []);
-
   useEffect(() => {
-    if (finishedRef.current) return;
-
-    const el = sectionRef.current;
-    if (!el) return;
-
-    const handleWheel = (e: WheelEvent) => {
-      if (finishedRef.current) return;
-      // On mobile/tablet the animated frame is hidden; never hijack scroll there.
-      if (window.innerWidth < 768) return;
-
-      const rect = el.getBoundingClientRect();
-      const inView = rect.top < window.innerHeight * 0.5 && rect.bottom > window.innerHeight * 0.5;
-      if (!inView) return;
-
-      if (e.deltaY < 15) return;
-
-      if (cooldownRef.current) {
-        e.preventDefault();
-        return;
-      }
-
-      const nextIdx = scrollIndexRef.current + 1;
-
-      if (nextIdx >= N) {
-        finishedRef.current = true;
-        return;
-      }
-
-      e.preventDefault();
-      cooldownRef.current = true;
-      scrollIndexRef.current = nextIdx;
-
-      setAnimate(true);
-      setPos(nextIdx);
-
-      setTimeout(() => {
-        cooldownRef.current = false;
-      }, 850);
+    const handleVisibilityChange = () => {
+      setIsDocumentVisible(!document.hidden);
     };
 
-    window.addEventListener("wheel", handleWheel, { passive: false });
-    return () => window.removeEventListener("wheel", handleWheel);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
   }, []);
 
   useEffect(() => {
-    if (finishedRef.current) return;
-    const id = setInterval(advance, CYCLE_MS);
-    return () => clearInterval(id);
-  }, [advance]);
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const handleMotionPreferenceChange = () => {
+      setPrefersReducedMotion(mediaQuery.matches);
+    };
+
+    handleMotionPreferenceChange();
+    mediaQuery.addEventListener("change", handleMotionPreferenceChange);
+
+    return () => {
+      mediaQuery.removeEventListener("change", handleMotionPreferenceChange);
+    };
+  }, []);
 
   useEffect(() => {
-    if (pos === N) {
-      const t = setTimeout(() => {
-        setAnimate(false);
-        setPos(0);
-        scrollIndexRef.current = 0;
-      }, 800);
-      return () => clearTimeout(t);
+    if (!isDocumentVisible) {
+      setIsUserPaused(false);
     }
-  }, [pos]);
+  }, [isDocumentVisible]);
+
+  useEffect(() => {
+    if (!isDocumentVisible || pos < N) return;
+
+    const t = setTimeout(() => {
+      setAnimate(false);
+      setPos(0);
+    }, 800);
+
+    return () => clearTimeout(t);
+  }, [isDocumentVisible, pos]);
+
+  useEffect(() => {
+    if (!isDocumentVisible || isUserPaused || prefersReducedMotion || pos >= N) {
+      return;
+    }
+
+    const nextPos = pos + 1;
+
+    const t = setTimeout(() => {
+      setAnimate(true);
+      setLiveAnnouncement(`Current category: ${SETS[nextPos % N].label}`);
+      setPos(nextPos);
+    }, CYCLE_MS);
+
+    return () => clearTimeout(t);
+  }, [isDocumentVisible, isUserPaused, pos, prefersReducedMotion]);
 
   const dataIdx = pos % N;
-  useEffect(() => {
-    setBgColor(SETS[dataIdx].bg);
-  }, [dataIdx]);
+  const bgColor = SETS[dataIdx].bg;
 
   useEffect(() => {
     const measure = () => {
@@ -286,10 +277,11 @@ export function CategoryShowcase() {
   const stageScale = containerWidth / stageW;
   const scaledFrameH = Math.round(459 * stageScale);
 
-  const tx = animate ? `0.7s ${EASE}` : "none";
+  const shouldAnimate = animate && !prefersReducedMotion;
+  const tx = shouldAnimate ? `0.7s ${EASE}` : "none";
   const bgStyle = {
     backgroundColor: bgColor,
-    transition: animate ? `background-color 0.7s ${EASE}` : "none",
+    transition: shouldAnimate ? `background-color 0.7s ${EASE}` : "none",
   };
 
   const leftY = pos * (CARD_LEFT + GAP_LEFT);
@@ -297,19 +289,21 @@ export function CategoryShowcase() {
   const rightY = pos * (CARD_RIGHT + GAP_RIGHT);
   const labelY = pos * (LABEL_H + LABEL_GAP);
 
-  const loopLabels = [...SETS.map((s) => s.label), SETS[0].label];
-
   return (
     <section
-      ref={sectionRef}
       className="w-full px-[54px] py-20 bg-white max-md:px-4 max-md:py-14"
     >
       <div className="max-w-[1332px] mx-auto flex flex-col items-center gap-8 max-md:gap-6">
         {/* Heading */}
         <div className="flex flex-col items-center text-center w-full">
-          <h2 className="font-montserrat font-semibold text-[40px] leading-normal text-[#101828] max-md:text-[28px] max-md:leading-[36px]">
+          <h2 className="font-montserrat font-semibold text-[36px] leading-normal text-[#101828] max-md:text-[28px] max-md:leading-[36px]">
             Explore categories built around your interests
           </h2>
+        </div>
+
+        {/* Screen reader live region — announces category changes to all viewports */}
+        <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+          {liveAnnouncement}
         </div>
 
         {/* Animated frame — desktop / tablet version */}
@@ -318,6 +312,10 @@ export function CategoryShowcase() {
             href="/discover"
             aria-label="See all products"
             className="block w-full max-md:hidden"
+            onMouseEnter={() => setIsUserPaused(true)}
+            onMouseLeave={() => setIsUserPaused(false)}
+            onFocus={() => setIsUserPaused(true)}
+            onBlur={() => setIsUserPaused(false)}
           >
             <div
               ref={frameRef}
@@ -340,7 +338,7 @@ export function CategoryShowcase() {
               style={{
                 gap: `${GAP_LEFT}px`,
                 transform: `translateY(-${leftY}px)`,
-                transition: animate ? `transform ${tx} 80ms` : "none",
+                transition: shouldAnimate ? `transform ${tx} 80ms` : "none",
               }}
             >
               {LOOP.map((s, i) => (
@@ -356,7 +354,7 @@ export function CategoryShowcase() {
               style={{
                 gap: `${GAP_CENTER}px`,
                 transform: `translateY(-${centerY}px)`,
-                transition: animate ? `transform ${tx} 160ms` : "none",
+                transition: shouldAnimate ? `transform ${tx} 160ms` : "none",
               }}
             >
               {LOOP.map((s, i) => (
@@ -372,7 +370,7 @@ export function CategoryShowcase() {
               style={{
                 gap: `${GAP_RIGHT}px`,
                 transform: `translateY(-${rightY}px)`,
-                transition: animate ? `transform ${tx} 240ms` : "none",
+                transition: shouldAnimate ? `transform ${tx} 240ms` : "none",
               }}
             >
               {LOOP.map((s, i) => (
@@ -393,12 +391,12 @@ export function CategoryShowcase() {
                 style={{
                   gap: `${LABEL_GAP}px`,
                   transform: `translateY(-${labelY}px)`,
-                  transition: animate ? `transform 0.6s ${EASE} 0ms` : "none",
+                  transition: shouldAnimate ? `transform 0.6s ${EASE} 0ms` : "none",
                 }}
               >
-                {loopLabels.map((label, i) => (
+                {LOOP_LABELS.map((label, i) => (
                   <span
-                    key={i}
+                    key={`${label}-${i}`}
                     className="text-[18px] leading-[28px] font-semibold text-white shrink-0 whitespace-nowrap"
                   >
                     {label}
@@ -417,6 +415,10 @@ export function CategoryShowcase() {
           href="/discover"
           aria-label="See all products"
           className="hidden max-md:block w-full"
+          onMouseEnter={() => setIsUserPaused(true)}
+          onMouseLeave={() => setIsUserPaused(false)}
+          onFocus={() => setIsUserPaused(true)}
+          onBlur={() => setIsUserPaused(false)}
         >
           <div
             className="relative w-full overflow-hidden rounded-[16px]"
@@ -436,7 +438,7 @@ export function CategoryShowcase() {
                 style={{
                   gap: `${M_GAP}px`,
                   transform: `translateY(-${pos * (M_CARD + M_GAP)}px)`,
-                  transition: animate ? `transform ${tx}` : "none",
+                  transition: shouldAnimate ? `transform ${tx}` : "none",
                 }}
               >
                 {LOOP.map((s, i) => (
@@ -464,12 +466,12 @@ export function CategoryShowcase() {
                   style={{
                     gap: `${M_LABEL_GAP}px`,
                     transform: `translateY(-${pos * (M_LABEL_H + M_LABEL_GAP)}px)`,
-                    transition: animate ? `transform 0.6s ${EASE} 0ms` : "none",
+                    transition: shouldAnimate ? `transform 0.6s ${EASE} 0ms` : "none",
                   }}
                 >
-                  {loopLabels.map((label, i) => (
+                  {LOOP_LABELS.map((label, i) => (
                     <span
-                      key={i}
+                      key={`${label}-${i}`}
                       className="text-[15px] leading-[24px] font-semibold text-white shrink-0 whitespace-nowrap"
                     >
                       {label}

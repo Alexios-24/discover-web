@@ -47,8 +47,8 @@ export default function LandingPage() {
       <main className="min-h-screen w-full font-sans bg-ink text-cream overflow-clip">
         <LandingNav />
         <HeroSwitch />
-        <CategoryShowcase />
         <TrendingSection />
+        <CategoryShowcase />
         <TopPicksSection />
         <CreatorsSection />
         <FeaturedProductsSwitch />

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ChevronDown, Languages, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 
 const NAV_LINKS = [
   { label: "Discover", href: "/discover" },
@@ -106,37 +106,6 @@ export function LandingNav() {
 
         {/* Right side */}
         <div className="flex items-center gap-2 shrink-0">
-          {/* Language switcher — hidden below lg */}
-          <button
-            className="flex items-center justify-between gap-2 w-[124px] h-9 rounded-md px-3 py-2 transition-all duration-300 max-lg:hidden"
-            style={{
-              backgroundColor: pastHero ? "#ffffff" : "transparent",
-              borderWidth: "1px",
-              borderStyle: "solid",
-              borderColor: pastHero ? "#EAECF0" : "#475467",
-              boxShadow: "0px 1px 1px 0px rgba(16,24,40,0.05)",
-            }}
-          >
-            <div className="flex items-center gap-2">
-              <Languages
-                size={20}
-                className="transition-colors duration-300"
-                style={{ color: pastHero ? "#667085" : "rgba(255,255,255,0.7)" }}
-              />
-              <span
-                className="text-[14px] leading-5 transition-colors duration-300"
-                style={{ color: pastHero ? "#101828" : "#ffffff" }}
-              >
-                English
-              </span>
-            </div>
-            <ChevronDown
-              size={16}
-              className="transition-colors duration-300"
-              style={{ color: pastHero ? "#667085" : "rgba(255,255,255,0.7)" }}
-            />
-          </button>
-
           {/* Log in — hidden below md */}
           <button
             className="border border-[#A2A4F6] rounded-md px-[14px] py-2 text-[14px] leading-5 font-semibold transition-colors duration-300 max-md:hidden"
@@ -171,13 +140,8 @@ export function LandingNav() {
               {item.label}
             </Link>
           ))}
-          <div className="h-px bg-[#EAECF0] mx-6 my-2" />
-          <button className="text-left px-6 py-3 flex items-center gap-3 text-[16px] leading-6 font-medium text-[#344054] hover:bg-gray-50 transition-colors">
-            <Languages size={20} className="text-[#667085]" />
-            <span>English</span>
-            <ChevronDown size={16} className="text-[#667085] ml-auto" />
-          </button>
-          <button className="text-left px-6 py-3 text-[16px] leading-6 font-medium text-[#343DE5] hover:bg-gray-50 transition-colors max-md:block hidden">
+          <div className="hidden h-px bg-[#EAECF0] mx-6 my-2 max-md:block" />
+          <button className="hidden text-left px-6 py-3 text-[16px] leading-6 font-medium text-[#343DE5] hover:bg-gray-50 transition-colors max-md:block">
             Log in
           </button>
           <Link

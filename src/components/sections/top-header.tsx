@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown, Languages, Menu, Search, X } from "lucide-react";
+import { Menu, Search, X } from "lucide-react";
 
 const NAV_ITEMS = [
   { label: "Discover", href: "/discover" },
@@ -122,16 +122,6 @@ export function TopHeader() {
 
         {/* Right side */}
         <div className="flex items-center gap-2 shrink-0">
-          <button className="flex items-center justify-between gap-2 w-[124px] h-9 bg-white border border-gray-200 rounded-md px-3 py-2 shadow-xs hover:bg-gray-50 transition-colors max-lg:hidden">
-            <div className="flex items-center gap-2">
-              <Languages size={20} className="text-gray-500" />
-              <span className="text-[14px] leading-5 text-gray-900">
-                English
-              </span>
-            </div>
-            <ChevronDown size={16} className="text-gray-500" />
-          </button>
-
           <button className="border border-indigo-300 rounded-md px-[14px] py-2 text-[14px] leading-5 font-semibold text-indigo-600 shadow-xs hover:bg-indigo-50 transition-colors max-md:hidden">
             Log in
           </button>
@@ -159,12 +149,7 @@ export function TopHeader() {
               {item.label}
             </Link>
           ))}
-          <div className="h-px bg-[#EAECF0] mx-6 my-2" />
-          <button className="text-left px-6 py-3 flex items-center gap-3 text-[16px] leading-6 font-medium text-[#344054] hover:bg-gray-50 transition-colors">
-            <Languages size={20} className="text-[#667085]" />
-            <span>English</span>
-            <ChevronDown size={16} className="text-[#667085] ml-auto" />
-          </button>
+          <div className="hidden h-px bg-[#EAECF0] mx-6 my-2 max-md:block" />
           <button className="hidden max-md:block text-left px-6 py-3 text-[16px] leading-6 font-medium text-indigo-600 hover:bg-gray-50 transition-colors">
             Log in
           </button>

@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronDown, Languages, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 
 // Logged-in top header. Two states from Figma (file lSuVFjWScTgFMplHt0JsQK):
-//  - "full"    → node 2261:21409 (logo + nav + language select + "Create" + avatar).
+//  - "full"    → node 2261:21409 (logo + nav + "Create" + avatar).
 //                Used on the logged-in Discover, the top-picks landing, and the
 //                discover/learn personalizing screen (node 2948:29350).
 //  - "minimal" → node 2948:29182 ("Create flow": logo + avatar only). Used on the
@@ -67,28 +67,13 @@ export function AppHeader({
         {/* Right side */}
         <div className="flex shrink-0 items-center gap-3">
           {variant === "full" ? (
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                className="flex h-9 items-center justify-between gap-2 rounded-md border border-gray-200 bg-white px-3 py-2 shadow-xs transition-colors hover:bg-gray-50 max-lg:hidden"
-              >
-                <span className="flex items-center gap-2">
-                  <Languages size={20} className="text-gray-500" />
-                  <span className="text-[14px] leading-5 text-gray-900">
-                    English
-                  </span>
-                </span>
-                <ChevronDown size={16} className="text-gray-500" />
-              </button>
-
-              <button
-                type="button"
-                className="flex items-center justify-center gap-2 rounded-md border border-indigo-600 bg-indigo-600 px-[14px] py-2 text-[14px] font-semibold leading-5 text-white shadow-xs transition-colors hover:bg-indigo-600/90 max-md:px-3"
-              >
-                <Plus size={20} className="shrink-0" />
-                Create
-              </button>
-            </div>
+            <button
+              type="button"
+              className="flex items-center justify-center gap-2 rounded-md border border-indigo-600 bg-indigo-600 px-[14px] py-2 text-[14px] font-semibold leading-5 text-white shadow-xs transition-colors hover:bg-indigo-600/90 max-md:px-3"
+            >
+              <Plus size={20} className="shrink-0" />
+              Create
+            </button>
           ) : null}
 
           <span className="block size-8 shrink-0 overflow-hidden rounded-full">

@@ -42,7 +42,6 @@ const DISCOVER_WORDS: WordDef[] = [
   { text: "creators.", color: "#36BFFA", width: 305 },
 ];
 
-const WORD_STEP_PX_DEFAULT = 94;
 const WORD_LINE_HEIGHT_DEFAULT = 80;
 const WORD_GAP_DEFAULT = 14;
 const WORD_CYCLE_MS = 2500;
@@ -81,43 +80,59 @@ function useHeadingScale(): number {
   return scale;
 }
 
-function CyclingText({ words }: { words: WordDef[] }) {
+function CyclingText({
+  words,
+  cycleStep,
+}: {
+  words: WordDef[];
+  cycleStep: number;
+}) {
   const scale = useHeadingScale();
   const lineHeight = WORD_LINE_HEIGHT_DEFAULT * scale;
   const gap = WORD_GAP_DEFAULT * scale;
   const stepPx = lineHeight + gap;
 
-  const [index, setIndex] = useState(0);
+  const [displayIndex, setDisplayIndex] = useState(0);
   const [smooth, setSmooth] = useState(true);
+  const previousStepRef = useRef(cycleStep);
   const sampleRef = useRef<HTMLSpanElement>(null);
   const [measuredWidths, setMeasuredWidths] = useState<number[]>([]);
 
   useEffect(() => {
+    previousStepRef.current = cycleStep;
     setSmooth(false);
-    setIndex(0);
+    setDisplayIndex(0);
     requestAnimationFrame(() => {
       requestAnimationFrame(() => setSmooth(true));
     });
   }, [words]);
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setIndex((prev) => prev + 1);
-    }, WORD_CYCLE_MS);
-    return () => clearInterval(timer);
-  }, [words]);
+    if (cycleStep === previousStepRef.current) return;
 
-  useEffect(() => {
-    if (index !== words.length) return;
-    const timeout = setTimeout(() => {
+    const wordCount = words.length;
+    const targetIndex = cycleStep % wordCount;
+    const previousIndex = previousStepRef.current % wordCount;
+    const wrappedToStart =
+      cycleStep > previousStepRef.current &&
+      targetIndex === 0 &&
+      previousIndex === wordCount - 1;
+
+    previousStepRef.current = cycleStep;
+    setSmooth(true);
+    setDisplayIndex(wrappedToStart ? wordCount : targetIndex);
+
+    if (!wrappedToStart) return;
+
+    const timeout = window.setTimeout(() => {
       setSmooth(false);
-      setIndex(0);
+      setDisplayIndex(0);
       requestAnimationFrame(() => {
         requestAnimationFrame(() => setSmooth(true));
       });
     }, 650);
     return () => clearTimeout(timeout);
-  }, [index, words.length]);
+  }, [cycleStep, words.length]);
 
   useEffect(() => {
     const measure = () => {
@@ -142,18 +157,18 @@ function CyclingText({ words }: { words: WordDef[] }) {
       if (widths.some((w) => w > 0)) setMeasuredWidths(widths);
     };
     requestAnimationFrame(measure);
-    document.fonts?.ready.then(measure);
+    void document.fonts?.ready.then(measure).catch(() => undefined);
     window.addEventListener("resize", measure);
     return () => window.removeEventListener("resize", measure);
   }, [words, scale]);
 
-  const word = words[index % words.length];
-  const wordIdx = index % words.length;
+  const word = words[displayIndex % words.length];
+  const wordIdx = displayIndex % words.length;
   const ease =
     "transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), width 0.6s cubic-bezier(0.4, 0, 0.2, 1)";
 
   const containerWidth =
-    measuredWidths[wordIdx] > 0
+    (measuredWidths[wordIdx] ?? 0) > 0
       ? Math.ceil(measuredWidths[wordIdx]) + 4
       : renderedWordWidth(word, scale) + 2;
 
@@ -170,7 +185,7 @@ function CyclingText({ words }: { words: WordDef[] }) {
         className="flex flex-col"
         style={{
           gap,
-          transform: `translateY(${-index * stepPx}px)`,
+          transform: `translateY(${-displayIndex * stepPx}px)`,
           transition: smooth
             ? "transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)"
             : "none",
@@ -178,7 +193,7 @@ function CyclingText({ words }: { words: WordDef[] }) {
       >
         {[...words, ...words].map((w, i) => (
           <span
-            key={i}
+            key={`${w.text}-${i < words.length ? "primary" : "loop"}`}
             ref={i === 0 ? sampleRef : undefined}
             className="shrink-0 whitespace-nowrap"
             style={{ color: w.color, lineHeight: `${lineHeight}px` }}
@@ -254,15 +269,24 @@ function StatItem({ stat, delay: d }: { stat: StatDef; delay: number }) {
 /* ============================================================== */
 type CardKind = "creator" | "community" | "course";
 
-interface FigmaCardData {
-  kind: CardKind;
+interface BaseFigmaCardData {
   cover: string;
   title: string;
   description: string;
+}
+
+interface CreatorCardData extends BaseFigmaCardData {
+  kind: "creator";
+  avatar: string;
+}
+
+interface ProductCardData extends BaseFigmaCardData {
+  kind: "community" | "course";
   bylineAvatar?: string;
   bylineName?: string;
-  avatar?: string;
 }
+
+type FigmaCardData = CreatorCardData | ProductCardData;
 
 const CARDS: FigmaCardData[] = [
   {
@@ -295,8 +319,6 @@ const CARDS: FigmaCardData[] = [
       "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&h=200&auto=format&fit=crop&q=80",
   },
 ];
-
-const CARD_CYCLE_MS = 5500;
 
 const KIND_LABEL: Record<CardKind, string> = {
   creator: "Creator",
@@ -372,7 +394,7 @@ function FigmaHeroCard({ data }: { data: FigmaCardData }) {
               }}
             >
               <img
-                src={data.avatar!}
+                src={data.avatar}
                 alt=""
                 className="w-full h-full object-cover"
               />
@@ -450,21 +472,15 @@ function FigmaHeroCard({ data }: { data: FigmaCardData }) {
   );
 }
 
-function HeroShowcase() {
-  // State is required here so Framer Motion receives new animate props on each cycle.
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
-  const shouldReduceMotion = useReducedMotion();
-
-  useEffect(() => {
-    if (isPaused || shouldReduceMotion) return;
-
-    const id = setInterval(() => {
-      setActiveIndex((p) => (p + 1) % CARDS.length);
-    }, CARD_CYCLE_MS);
-    return () => clearInterval(id);
-  }, [isPaused, shouldReduceMotion]);
-
+function HeroShowcase({
+  activeIndex,
+  onPauseChange,
+  shouldReduceMotion,
+}: {
+  activeIndex: number;
+  onPauseChange: (isPaused: boolean) => void;
+  shouldReduceMotion: boolean;
+}) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 30 }}
@@ -474,10 +490,10 @@ function HeroShowcase() {
       tabIndex={0}
       role="group"
       aria-label="Featured product preview carousel"
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
-      onFocus={() => setIsPaused(true)}
-      onBlur={() => setIsPaused(false)}
+      onMouseEnter={() => onPauseChange(true)}
+      onMouseLeave={() => onPauseChange(false)}
+      onFocus={() => onPauseChange(true)}
+      onBlur={() => onPauseChange(false)}
     >
       {/* Soft multi-color halo behind the stack */}
       <div
@@ -517,7 +533,7 @@ function HeroShowcase() {
                 filter: `blur(${pos.blur}px)`,
               }}
               transition={{
-                duration: 0.9,
+                duration: shouldReduceMotion ? 0 : 0.9,
                 ease: [0.22, 0.85, 0.25, 1],
               }}
               style={{ zIndex: 100 - rel }}
@@ -539,8 +555,25 @@ function HeroShowcase() {
 export function LandingHeroV2() {
   const [activeTab, setActiveTab] = useState<"launch" | "discover">("launch");
   const [searchValue, setSearchValue] = useState("");
+  const [heroCycleStep, setHeroCycleStep] = useState(0);
+  const [isHeroCyclePaused, setIsHeroCyclePaused] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const shouldReduceMotion = Boolean(useReducedMotion());
   const router = useRouter();
+
+  useEffect(() => {
+    setHeroCycleStep(0);
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (isHeroCyclePaused || shouldReduceMotion) return;
+
+    const id = window.setInterval(() => {
+      setHeroCycleStep((step) => step + 1);
+    }, WORD_CYCLE_MS);
+
+    return () => window.clearInterval(id);
+  }, [activeTab, isHeroCyclePaused, shouldReduceMotion]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -626,7 +659,10 @@ export function LandingHeroV2() {
                           <span className="block">Build your business</span>
                           <span className="flex items-center gap-4 max-md:gap-[6px] max-md:justify-center">
                             <span>with</span>
-                            <CyclingText words={LAUNCH_WORDS} />
+                            <CyclingText
+                              words={LAUNCH_WORDS}
+                              cycleStep={heroCycleStep}
+                            />
                           </span>
                         </>
                       ) : (
@@ -634,7 +670,10 @@ export function LandingHeroV2() {
                           <span className="block">Ready to grow?</span>
                           <span className="flex items-center gap-4 max-md:gap-[6px] max-md:justify-center">
                             <span>Discover</span>
-                            <CyclingText words={DISCOVER_WORDS} />
+                            <CyclingText
+                              words={DISCOVER_WORDS}
+                              cycleStep={heroCycleStep}
+                            />
                           </span>
                         </>
                       )}
@@ -735,7 +774,11 @@ export function LandingHeroV2() {
 
           {/* Right — Live Creator showcase */}
           <div className="col-span-12 lg:col-span-5 relative h-[620px] hidden lg:flex items-center justify-center">
-            <HeroShowcase />
+            <HeroShowcase
+              activeIndex={heroCycleStep % CARDS.length}
+              onPauseChange={setIsHeroCyclePaused}
+              shouldReduceMotion={shouldReduceMotion}
+            />
           </div>
         </div>
       </div>

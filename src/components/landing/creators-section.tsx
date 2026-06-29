@@ -279,9 +279,9 @@ export function CreatorsSection() {
   }, []);
 
   return (
-    <section className="w-full py-16 bg-white overflow-hidden max-md:py-10">
+    <section className="w-full overflow-hidden bg-[linear-gradient(180deg,#000000_0%,#0A0E5A_100%)] py-20 max-md:py-14">
       <div className="max-w-[1440px] mx-auto px-[54px] mb-8 max-md:px-4 max-md:mb-5">
-        <h2 className="font-montserrat font-semibold text-[40px] leading-normal text-[#101828] text-center w-full max-md:text-[24px] max-md:leading-[32px]">
+        <h2 className="font-montserrat font-semibold text-[40px] leading-normal text-white text-center w-full max-md:text-[24px] max-md:leading-[32px]">
           Top experts building on Kollab
         </h2>
       </div>
@@ -294,7 +294,7 @@ export function CreatorsSection() {
         onMouseLeave={() => {
           isHovering.current = false;
         }}
-        className="w-full overflow-x-auto overflow-y-hidden no-scrollbar"
+        className="w-full overflow-x-auto overflow-y-hidden px-[54px] no-scrollbar max-md:px-4"
         style={{ WebkitOverflowScrolling: "touch" }}
       >
         <div ref={trackRef} className="flex gap-6 w-max max-md:gap-3 will-change-transform">

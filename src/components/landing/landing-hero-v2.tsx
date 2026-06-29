@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { ArrowRight, Search, BadgeCheck, X } from "lucide-react";
 import { ParticleCanvas } from "@/components/landing/particle-canvas";
 
@@ -451,21 +451,33 @@ function FigmaHeroCard({ data }: { data: FigmaCardData }) {
 }
 
 function HeroShowcase() {
+  // State is required here so Framer Motion receives new animate props on each cycle.
   const [activeIndex, setActiveIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const shouldReduceMotion = useReducedMotion();
 
   useEffect(() => {
+    if (isPaused || shouldReduceMotion) return;
+
     const id = setInterval(() => {
       setActiveIndex((p) => (p + 1) % CARDS.length);
     }, CARD_CYCLE_MS);
     return () => clearInterval(id);
-  }, []);
+  }, [isPaused, shouldReduceMotion]);
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.9, delay: 0.3, ease: [0.2, 0.8, 0.2, 1] }}
-      className="relative w-[420px] h-[440px] flex items-center justify-center"
+      className="relative w-[420px] h-[440px] flex items-center justify-center rounded-[28px] outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-4 focus-visible:ring-offset-transparent"
+      tabIndex={0}
+      role="group"
+      aria-label="Featured product preview carousel"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+      onFocus={() => setIsPaused(true)}
+      onBlur={() => setIsPaused(false)}
     >
       {/* Soft multi-color halo behind the stack */}
       <div
@@ -480,8 +492,12 @@ function HeroShowcase() {
 
       {/* Gentle whole-deck float */}
       <motion.div
-        animate={{ y: [0, -6, 0] }}
-        transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
+        animate={shouldReduceMotion ? { y: 0 } : { y: [0, -6, 0] }}
+        transition={
+          shouldReduceMotion
+            ? { duration: 0 }
+            : { duration: 9, repeat: Infinity, ease: "easeInOut" }
+        }
         className="relative w-full h-full flex items-center justify-center"
       >
         {CARDS.map((card, i) => {
@@ -513,29 +529,6 @@ function HeroShowcase() {
         })}
       </motion.div>
 
-      {/* Simple dot indicators */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2">
-        {CARDS.map((c, i) => {
-          const isActive = i === activeIndex;
-          return (
-            <button
-              key={i}
-              type="button"
-              onClick={() => setActiveIndex(i)}
-              aria-label={`Show ${KIND_LABEL[c.kind]} ${c.title}`}
-              className="group p-1 -m-1"
-            >
-              <span
-                className={`block h-[3px] rounded-full transition-all duration-500 ${
-                  isActive
-                    ? "w-6 bg-white"
-                    : "w-2 bg-white/25 group-hover:bg-white/45"
-                }`}
-              />
-            </button>
-          );
-        })}
-      </div>
     </motion.div>
   );
 }

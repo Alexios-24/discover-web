@@ -23,7 +23,7 @@ export function MobileAppSection() {
           <div className="absolute left-[69.5px] top-[130.5px] z-10 flex w-[614px] flex-col max-lg:left-8 max-lg:top-10 max-lg:w-[calc(100%-64px)] max-md:left-5 max-md:top-7 max-md:w-[calc(100%-40px)]">
             <div className="flex flex-col gap-3">
               <h2
-                className="max-w-[490px] font-montserrat text-[40px] font-bold leading-[48.76px] text-[#101828] max-md:max-w-[310px] max-md:text-[30px] max-md:leading-[38px]"
+                className="max-w-[490px] font-montserrat text-[40px] font-semibold leading-[48.76px] text-[#101828] max-md:max-w-[310px] max-md:text-[30px] max-md:leading-[38px]"
               >
                 Download the app now
               </h2>
@@ -65,7 +65,7 @@ function DesktopSectionArtwork() {
 
       <div className="absolute left-[69.5px] top-[130.5px] z-10 flex w-[614px] flex-col">
         <div className="flex flex-col gap-3">
-          <h2 className="max-w-[490px] font-montserrat text-[40px] font-bold leading-[48.76px] text-[#101828]">
+          <h2 className="max-w-[490px] font-montserrat text-[40px] font-semibold leading-[48.76px] text-[#101828]">
             Download the app now
           </h2>
           <p className="max-w-[614px] text-[16px] font-medium leading-6 text-[#101828]">

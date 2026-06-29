@@ -307,7 +307,7 @@ export function CategoryShowcase() {
       <div className="max-w-[1332px] mx-auto flex flex-col items-center gap-8 max-md:gap-6">
         {/* Heading */}
         <div className="flex flex-col gap-2 items-center text-center w-full">
-          <h2 className="font-montserrat font-bold text-[40px] leading-normal text-[#101828] max-md:text-[28px] max-md:leading-[36px]">
+          <h2 className="font-montserrat font-semibold text-[40px] leading-normal text-[#101828] max-md:text-[28px] max-md:leading-[36px]">
             Explore categories built around your interests
           </h2>
           <p className="text-[20px] leading-[30px] text-[#475467] max-md:text-[15px] max-md:leading-[22px]">

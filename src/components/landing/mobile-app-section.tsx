@@ -90,7 +90,7 @@ function DesktopSectionArtwork() {
         </div>
       </div>
 
-      <div className="absolute left-[54%] top-[16.374%] z-0 h-[112.738%] w-[34.385%]">
+      <div className="absolute right-[69.5px] top-[16.374%] z-0 h-[112.738%] w-[34.385%]">
         <MockupPhoneStack />
       </div>
     </>

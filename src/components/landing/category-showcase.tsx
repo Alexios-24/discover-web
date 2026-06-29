@@ -308,10 +308,10 @@ export function CategoryShowcase() {
         {/* Heading */}
         <div className="flex flex-col gap-2 items-center text-center w-full">
           <h2 className="font-montserrat font-bold text-[40px] leading-normal text-[#101828] max-md:text-[28px] max-md:leading-[36px]">
-            Explore categories built around your interests.
+            Explore categories built around your interests
           </h2>
           <p className="text-[20px] leading-[30px] text-[#475467] max-md:text-[15px] max-md:leading-[22px]">
-            Discover communities and courses across wellness, productivity, creativity, and more.
+            Find communities and courses that match your goals.
           </p>
         </div>
 

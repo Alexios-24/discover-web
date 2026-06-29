@@ -684,7 +684,7 @@ function OnboardingFlow() {
           <div
             className={`mx-auto my-auto w-full ${
               phase === "account" || phase === "verify"
-                ? "max-w-[483px]"
+                ? "max-w-[483px] -translate-y-[30px]"
                 : step === 1 && intent === "learn"
                   ? "max-w-[736px] -translate-y-8"
                   : step <= 1

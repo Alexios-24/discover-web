@@ -3,7 +3,6 @@
 import { LandingNav } from "@/components/landing/landing-nav";
 import { LandingHero } from "@/components/landing/landing-hero";
 import { LandingHeroV2 } from "@/components/landing/landing-hero-v2";
-import { VideoShowcase } from "@/components/landing/video-showcase";
 import { CategoryShowcase } from "@/components/landing/category-showcase";
 import { TrendingSection } from "@/components/landing/trending-section";
 import { TopPicksSection } from "@/components/landing/top-picks-section";
@@ -48,7 +47,6 @@ export default function LandingPage() {
       <main className="min-h-screen w-full font-sans bg-ink text-cream overflow-clip">
         <LandingNav />
         <HeroSwitch />
-        <VideoShowcase />
         <CategoryShowcase />
         <TrendingSection />
         <TopPicksSection />

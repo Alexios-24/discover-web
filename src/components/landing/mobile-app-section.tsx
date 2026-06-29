@@ -27,7 +27,7 @@ export function MobileAppSection() {
               >
                 Download the app now
               </h2>
-              <p className="max-w-[614px] text-[16px] font-medium leading-6 text-[#101828] max-lg:max-w-[560px] max-md:text-[15px] max-md:leading-[22px]">
+              <p className="max-w-[614px] text-[16px] font-normal leading-6 text-[#101828] max-lg:max-w-[560px] max-md:text-[15px] max-md:leading-[22px]">
                 A focused app experience for members to discover spaces, continue courses,
                 and stay connected without the noise.
               </p>
@@ -68,7 +68,7 @@ function DesktopSectionArtwork() {
           <h2 className="max-w-[490px] font-montserrat text-[40px] font-semibold leading-[48.76px] text-[#101828]">
             Download the app now
           </h2>
-          <p className="max-w-[614px] text-[16px] font-medium leading-6 text-[#101828]">
+          <p className="max-w-[614px] text-[16px] font-normal leading-6 text-[#101828]">
             A focused app experience for members to discover spaces, continue courses,
             and stay connected without the noise.
           </p>

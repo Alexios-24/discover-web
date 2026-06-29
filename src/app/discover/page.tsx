@@ -35,13 +35,11 @@ function DiscoverInner() {
 
   if (loggedIn) {
     return (
-      <AppShell>
+      <AppShell enableHeroSearch>
         <div className="mx-auto max-w-[1440px]">
           <DiscoverHero />
         </div>
-        <div className="mx-auto max-w-[1440px]">
-          <DiscoverContent />
-        </div>
+        <DiscoverContent />
       </AppShell>
     );
   }
@@ -52,9 +50,7 @@ function DiscoverInner() {
       <div className="mx-auto max-w-[1440px]">
         <DiscoverHero />
       </div>
-      <div className="mx-auto max-w-[1440px]">
-        <DiscoverContent />
-      </div>
+      <DiscoverContent />
     </main>
   );
 }

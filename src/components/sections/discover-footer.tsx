@@ -7,11 +7,13 @@ const FOOTER_LINKS = [
   { label: "Cookies", href: "/cookies" },
 ] as const;
 
-// Figma node 3994:79277 ("Discover Footer"): 1440 x 89, white surface,
-// gray-300 top border, 54px horizontal padding, Kollab logo left, legal links right.
+// Figma node 3994:79315 ("Discover Footer"): white surface, gray-200 (#eaecf0)
+// top border, 54px horizontal padding, Kollab logo left, legal links right.
+// The footer is rendered full-width of the content column so the top stroke
+// reaches the screen edges even when the inner content is capped at 1440px.
 export function DiscoverFooter() {
   return (
-    <footer className="w-full border-t border-[#d0d5dd] bg-white">
+    <footer className="w-full border-t border-[#eaecf0] bg-white">
       <div className="mx-auto flex w-full max-w-[1440px] items-center justify-between gap-6 px-[54px] py-6 max-md:flex-col max-md:items-start max-md:px-4">
         <Link href="/" aria-label="Kollab home" className="inline-flex h-[41px] items-center">
           <Image

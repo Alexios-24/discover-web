@@ -211,7 +211,7 @@ export function DiscoverContent() {
 
   return (
     <>
-      <div className="flex gap-[54px] items-start pt-6 px-[54px] pb-9 max-lg:gap-6 max-lg:px-6 max-md:px-4 max-md:pt-6 max-md:pb-6">
+      <div className="mx-auto w-full max-w-[1440px] flex gap-[54px] items-start pt-6 px-[54px] pb-9 max-lg:gap-6 max-lg:px-6 max-md:px-4 max-md:pt-6 max-md:pb-6">
         {/* Sidebar filters — hidden only on mobile (below md) */}
         <div className="max-md:hidden sticky top-[84px] self-start">
           <FiltersPanel filters={filters} onFiltersChange={setFilters} />
@@ -220,7 +220,7 @@ export function DiscoverContent() {
           {/* Product type switcher + Sort */}
           <div className="flex items-center justify-between w-full sticky top-[60px] z-40 bg-white py-3 relative max-lg:flex-wrap max-lg:justify-start max-lg:gap-x-4 max-lg:gap-y-3 max-md:flex-col max-md:items-stretch max-md:gap-4 max-md:py-2">
             <div className="absolute inset-y-0 -right-[54px] w-[54px] bg-white max-lg:hidden" />
-            <div className="bg-gray-100 flex items-center justify-center max-md:justify-between overflow-hidden p-1 rounded-xl w-[406px] max-md:w-full">
+            <div className="bg-gray-100 flex items-center justify-center max-md:justify-between overflow-hidden p-1 rounded-[8px] w-[406px] max-md:w-full">
               {PRODUCT_TABS.map((tab) => {
                 const isTabActive = activeTab === tab;
                 return (
@@ -228,11 +228,11 @@ export function DiscoverContent() {
                     key={tab}
                     onClick={() => setActiveTab(tab)}
                     className={cn(
-                      "flex items-center justify-center py-1.5 text-[14px] leading-5 font-medium text-gray-900 whitespace-nowrap transition-colors rounded-[20px] max-md:rounded-lg",
+                      "flex items-center justify-center py-1.5 text-[14px] leading-5 font-medium text-gray-900 whitespace-nowrap transition-colors rounded-[8px]",
                       tab === "All"
                         ? "px-6"
                         : "md:flex-1 md:min-w-0 px-3",
-                      isTabActive && "bg-white shadow-xs md:rounded-lg",
+                      isTabActive && "bg-white shadow-xs",
                     )}
                   >
                     {tab}
@@ -243,7 +243,7 @@ export function DiscoverContent() {
 
           {/* Desktop sort dropdown — hidden on mobile */}
           <button className="flex flex-col items-start w-[165px] shrink-0 cursor-pointer max-lg:ml-auto max-md:hidden">
-            <div className="bg-white border border-gray-200 flex gap-2 h-9 items-center overflow-hidden px-3 py-2 rounded-lg shadow-xs w-full">
+            <div className="bg-white border border-gray-200 flex gap-2 h-9 items-center overflow-hidden px-3 py-2 rounded-[8px] shadow-xs w-full">
               <div className="flex flex-1 gap-2 items-center min-w-0">
                 <ArrowDownUp size={20} className="text-gray-900 shrink-0" />
                 <span className="text-[14px] leading-5 font-normal text-gray-900 whitespace-nowrap">
@@ -303,9 +303,16 @@ export function DiscoverContent() {
                     ))}
                   </div>
                 )}
-                <CreatorsYouMightLike />
+                <CreatorsYouMightLike heading="Creators" />
               </div>
-              <FilteredResults />
+              <section className="w-full">
+                <div className="flex flex-col gap-4">
+                  <h2 className="font-montserrat text-[18px] leading-normal font-semibold text-gray-900">
+                    Products
+                  </h2>
+                  <FilteredResults />
+                </div>
+              </section>
             </>
           ) : (
             <>

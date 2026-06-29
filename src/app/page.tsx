@@ -10,6 +10,7 @@ import { CreatorsSection } from "@/components/landing/creators-section";
 import { FeaturedProducts } from "@/components/landing/featured-products";
 import { RisingCreatorsSection } from "@/components/landing/rising-creators-section";
 import { BrowseAllSection } from "@/components/landing/browse-all-section";
+import { MobileAppSection } from "@/components/landing/mobile-app-section";
 import { LandingFooter } from "@/components/landing/footer";
 import {
   VariantProvider,
@@ -53,6 +54,7 @@ export default function LandingPage() {
         <FeaturedProductsSwitch />
         <BrowseAllSection />
         <RisingCreatorsSection />
+        <MobileAppSection />
         <LandingFooter />
         <VariantSwitcher />
       </main>

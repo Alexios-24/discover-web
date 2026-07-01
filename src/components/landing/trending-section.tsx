@@ -208,7 +208,7 @@ function Card({ card }: { card: TrendingCard }) {
             </div>
           </div>
           <button
-            className="shrink-0 bg-white border border-[#D0D5DD] rounded-[8px] px-3 py-1.5 font-inter text-[13px] leading-5 font-semibold text-[#344054] shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] opacity-0 translate-y-1 transition-all duration-200 ease-out hover:bg-gray-50 group-hover:opacity-100 group-hover:translate-y-0 focus-visible:opacity-100 focus-visible:translate-y-0 max-md:opacity-100 max-md:translate-y-0 max-md:px-2.5 max-md:py-1.5 max-md:text-[12px] max-md:leading-4 max-md:rounded-[6px]"
+            className="shrink-0 bg-white border border-[#D0D5DD] rounded-[8px] px-3 py-1.5 font-inter text-[13px] leading-5 font-semibold text-[#344054] shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] opacity-0 translate-y-1 transition-all duration-200 ease-out hover:bg-gray-50 group-hover:opacity-100 group-hover:translate-y-0 focus-visible:opacity-100 focus-visible:translate-y-0 max-md:hidden"
             style={{ transform: "translateZ(30px)" }}
           >
             Join now

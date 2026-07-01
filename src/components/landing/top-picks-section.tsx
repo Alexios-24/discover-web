@@ -3,6 +3,7 @@
 import { Globe } from "lucide-react";
 import { useEffect, useState } from "react";
 import { CardStack, type CardStackItem } from "@/components/ui/card-stack";
+import { useVariant } from "@/components/landing/variant-switcher";
 
 interface TopPickCard extends CardStackItem {
   pricing: string;
@@ -57,6 +58,97 @@ const CARDS: TopPickCard[] = [
     gradientTo: "#011016",
   },
 ];
+
+const V1_TRENDING_CARDS = [
+  {
+    id: "red-dead-redemption",
+    title: "Red dead redemption",
+    pricing: "Free",
+    members: "27.4K members",
+    imageSrc: "/trending/trending-red-dead-redemption.jpg",
+    gradientTo: "#1c0106",
+  },
+  {
+    id: "frontend-masters",
+    title: "Frontend masters",
+    pricing: "Free",
+    members: "27.4K members",
+    imageSrc: "/trending/trending-3.jpg",
+    gradientTo: "#011016",
+  },
+] as const;
+
+function SimpleTrendingCard({
+  card,
+}: {
+  card: (typeof V1_TRENDING_CARDS)[number];
+}) {
+  const isGlobe = card.pricing === "Free";
+
+  return (
+    <article className="group relative aspect-[1600/900] min-w-0 flex-1 overflow-hidden rounded-[16px]">
+      <img
+        src={card.imageSrc}
+        alt={card.title}
+        className="absolute inset-0 size-full object-cover"
+        draggable={false}
+        loading="eager"
+      />
+
+      <div
+        className="absolute inset-x-0 bottom-0 flex items-center gap-2 p-4"
+        style={{
+          background: `linear-gradient(to bottom, transparent 0%, ${card.gradientTo}80 47.769%, ${card.gradientTo} 100%)`,
+        }}
+      >
+        <div className="flex min-w-0 flex-1 flex-col justify-center gap-2">
+          <h3 className="truncate font-inter text-[24px] font-semibold leading-8 text-white max-md:text-[18px] max-md:leading-6">
+            {card.title}
+          </h3>
+          <div className="flex min-w-0 items-center gap-2">
+            <span className="flex h-6 min-h-6 shrink-0 items-center justify-center gap-0.5 rounded-full bg-white/25 px-2 max-md:h-5 max-md:min-h-5 max-md:px-1.5">
+              {isGlobe ? (
+                <Globe size={16} className="text-white max-md:size-3" />
+              ) : null}
+              <span className="font-inter text-[13px] font-medium leading-[18px] text-white max-md:text-[11px] max-md:leading-[14px]">
+                {card.pricing}
+              </span>
+            </span>
+            <span className="size-1.5 shrink-0 rounded-full bg-white/60 max-md:size-1" />
+            <span className="truncate font-inter text-[16px] leading-6 text-[#eaecf0] max-md:text-[12px] max-md:leading-4">
+              {card.members}
+            </span>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          className="shrink-0 rounded-[8px] border border-[#d0d5dd] bg-white px-[14px] py-2 font-inter text-[14px] font-semibold leading-5 text-[#344054] shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] transition-colors hover:bg-gray-50 max-md:hidden"
+        >
+          Join now
+        </button>
+      </div>
+    </article>
+  );
+}
+
+function SimpleTrendingSection() {
+  return (
+    <section className="w-full bg-white py-16 max-md:py-12">
+      <div className="mx-auto flex w-full max-w-[1440px] flex-col items-center gap-8 px-[54px] max-md:gap-5 max-md:px-4">
+        <h2 className="w-full text-center font-montserrat text-[36px] font-semibold leading-normal text-[#101828] max-md:text-[24px] max-md:leading-[32px]">
+          Trending now
+        </h2>
+
+        <div className="flex w-full gap-6 max-md:flex-col max-md:gap-4">
+          {V1_TRENDING_CARDS.map((card) => (
+            <SimpleTrendingCard key={card.id} card={card} />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
 
 function TopPickCardRenderer(
   item: TopPickCard,
@@ -139,7 +231,18 @@ function useCardDims(): { w: number; h: number; isMobile: boolean } {
 }
 
 export function TopPicksSection() {
+  const { variant } = useVariant();
+
+  if (variant === "v1") {
+    return <SimpleTrendingSection />;
+  }
+
+  return <StackTrendingSection />;
+}
+
+function StackTrendingSection() {
   const { w, h, isMobile } = useCardDims();
+
   return (
     <section className="w-full pt-24 pb-36 bg-white overflow-hidden max-md:pt-14 max-md:pb-20">
       <div className="flex flex-col items-center gap-6 w-full max-md:gap-4">

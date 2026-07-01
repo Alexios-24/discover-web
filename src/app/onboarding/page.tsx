@@ -25,12 +25,12 @@ import {
   BookIcon,
   CarIcon,
   CheckIcon,
+  ColorsIcon,
   CpuIcon,
   EyeIcon,
   GamepadIcon,
   GraduationIcon,
   HeartIcon,
-  ImageUserCheckIcon,
   LightbulbIcon,
   MegaphoneIcon,
   MusicIcon,
@@ -46,8 +46,8 @@ import {
 } from "@/components/icons/ghl-icons";
 
 type Intent = "create" | "learn";
-type BuildChoice = "course" | "community" | "both";
-type LearnChoice = "courses" | "communities" | "creators" | "all";
+type BuildChoice = "course" | "community";
+type LearnChoice = "courses" | "communities" | "both" | "all";
 // The flow now signs the user up FIRST, then runs the onboarding steps:
 //   account (signup form) → verify (OTP, email signups only) → onboarding.
 type Phase = "account" | "verify" | "onboarding";
@@ -70,8 +70,8 @@ type GhlIconName = keyof typeof GHL_ICON_MAP;
 
 const OTP_LENGTH = 6;
 
-// Onboarding (post-signup) is three steps: intent → build/learn choice →
-// categories. The header renders one progress dot per step.
+// Onboarding (post-signup) is three steps: intent → categories →
+// build/learn choice. The header renders one progress dot per step.
 const ONBOARDING_STEPS = 3;
 
 const createEmptyOtpDigits = () => Array<string>(OTP_LENGTH).fill("");
@@ -97,11 +97,11 @@ interface DomainChoice {
 const GHL_ICON_MAP = {
   arrowLeft: ArrowLeftIcon, // arrow-left
   arrowRight: ArrowRightIcon, // arrow-right
-  badge: ImageUserCheckIcon, // image-user-check (Creators)
   banknote: BanknoteIcon, // bank-note-01 (Finance)
   book: BookIcon, // book-closed (Discover / learn)
   car: CarIcon, // directions_car (Cars)
   check: CheckIcon, // check
+  colors: ColorsIcon, // colors (Both)
   cpu: CpuIcon, // cpu-chip-01 (Technology)
   eye: EyeIcon, // eye
   gamepad: GamepadIcon, // gaming-pad-01 (Gaming)
@@ -120,54 +120,59 @@ const GHL_ICON_MAP = {
   users: UsersIcon, // users-02 (Community)
 } satisfies Record<string, GhlIconComponent>;
 
+// Intent step copy — Figma node 2890:36684 ("What brings you to GoKollab?").
 const intentChoices: Choice<Intent>[] = [
   {
     value: "create",
-    title: "I want to create and sell",
-    description: "Build courses, grow communities, and earn on your terms.",
+    title: "Create and earn",
+    description: "Publish content, grow an audience and mentor others.",
     icon: "rocket",
   },
   {
     value: "learn",
-    title: "I want to discover and learn",
-    description: "Find courses, join communities, and level up your skills.",
+    title: "Learn and grow",
+    description: "Discover courses, join communities, and level up your skills.",
     icon: "book",
   },
 ];
 
+// Create choice copy — Figma node 2890:37530 ("What do you want to create?").
+// Two cards: Course, Community.
 const buildChoices: Choice<BuildChoice>[] = [
   {
     value: "course",
     title: "Course",
-    description: "Structured lessons, modules, quizzes and drip content.",
+    description: "Build lessons, modules, and quizzes for your learners.",
     icon: "graduation",
   },
   {
     value: "community",
     title: "Community",
-    description: "Discussions, live sessions, events and memberships.",
+    description: "Host discussions, live sessions, and memberships.",
     icon: "users",
   },
 ];
 
+// Discover choice copy — Figma node 2890:37767 ("What do you want to discover?").
+// Three cards: Course, Community, Both (replaces the former "Creators" card).
 const learnChoices: Choice<LearnChoice>[] = [
   {
     value: "courses",
     title: "Course",
-    description: "Structured lessons, modules, quizzes and drip content.",
+    description: "Structured lessons, modules, and quizzes.",
     icon: "graduation",
   },
   {
     value: "communities",
     title: "Community",
-    description: "Discussions, live sessions, events and memberships.",
+    description: "Discussions, live sessions, and memberships.",
     icon: "users",
   },
   {
-    value: "creators",
-    title: "Creators",
-    description: "Experts, builders and operators you can keep following.",
-    icon: "badge",
+    value: "both",
+    title: "Both",
+    description: "Courses and communities, tailored to you.",
+    icon: "colors",
   },
 ];
 
@@ -456,21 +461,8 @@ function OnboardingFlow() {
     password.length >= 8;
   const canVerifyOtp = otpDigits.every((digit) => digit.length === 1);
 
-  const currentPath = intent === "learn" ? "learn" : "create";
-
-  // Tracks the pending auto-advance timer used by the create/launch path's
-  // single-select category step so we can cancel it on re-select, navigation,
-  // or unmount and never advance twice / set state after unmount.
-  const autoAdvanceTimeout = useRef<number | null>(null);
   const handoffTimeout = useRef<number | null>(null);
   const handoffOriginRef = useRef<HTMLDivElement | null>(null);
-
-  const clearAutoAdvance = () => {
-    if (autoAdvanceTimeout.current !== null) {
-      window.clearTimeout(autoAdvanceTimeout.current);
-      autoAdvanceTimeout.current = null;
-    }
-  };
 
   const clearHandoffTimeout = () => {
     if (handoffTimeout.current !== null) {
@@ -481,7 +473,6 @@ function OnboardingFlow() {
 
   useEffect(
     () => () => {
-      clearAutoAdvance();
       clearHandoffTimeout();
     },
     [],
@@ -491,17 +482,17 @@ function OnboardingFlow() {
   // destination step's OWN selection plus everything captured after it, so the
   // right-side ExperiencePanel (orbit highlight, headline, category tags, center
   // glyph) returns to its default non-selected state for the step the user lands
-  // on. Each step owns one slice of state: step 0 → intent, step 1 → build/learn
-  // choice, step 2 → domains, step 3 → account fields. We clear all slices owned
-  // by steps with index >= destination. Decrementing by one keeps multi-level
-  // back presses correct: each press resets the step it returns to.
+  // on. Each step owns one slice of state: step 0 → intent, step 1 → domains
+  // (categories), step 2 → build/learn choice. We clear all slices owned by
+  // steps with index >= destination. Decrementing by one keeps multi-level back
+  // presses correct: each press resets the step it returns to.
   const resetFromStep = (destination: number) => {
     if (destination <= 2) {
-      setDomains([]);
-    }
-    if (destination <= 1) {
       setBuildChoice(null);
       setLearnChoice(null);
+    }
+    if (destination <= 1) {
+      setDomains([]);
     }
     if (destination <= 0) {
       setIntent(null);
@@ -510,8 +501,6 @@ function OnboardingFlow() {
 
   const goBack = () => {
     if (handoff) return;
-
-    clearAutoAdvance();
 
     if (phase === "onboarding") {
       if (step > 0) {
@@ -550,21 +539,9 @@ function OnboardingFlow() {
     advance(1);
   };
 
-  const selectBuildChoice = (value: BuildChoice) => {
-    setBuildChoice(value);
-    setDomains([]);
-    advance(2);
-  };
-
-  const selectLearnChoice = (value: LearnChoice) => {
-    setLearnChoice(value);
-    setDomains([]);
-    advance(2);
-  };
-
-  // Learner path: multi-select with no category cap. The updated Figma flow
-  // lets users pick any number of interests, continue once at least one is
-  // selected, or skip the category step entirely.
+  // Category step (step 1) is multi-select for both flows. The updated Figma
+  // flow lets users pick any number of interests, continue once at least one is
+  // selected, or skip the step entirely — then move on to the choice step.
   const toggleDomain = (value: DomainValue) => {
     setDomains((current) => {
       if (current.includes(value)) {
@@ -574,36 +551,38 @@ function OnboardingFlow() {
     });
   };
 
-  // Create/launch path: single-select with no Continue CTA. The picked card
-  // shows its selected state briefly, then we auto-advance. Re-selecting before
-  // the timer fires cancels the prior timer and reschedules.
-  const selectCreateDomain = (value: DomainValue) => {
-    setDomains([value]);
-    clearAutoAdvance();
-    autoAdvanceTimeout.current = window.setTimeout(() => {
-      autoAdvanceTimeout.current = null;
-      finishOnboarding();
-    }, 300);
-  };
-
-  // Learner path only (the create path auto-advances on single-select).
   const continueFromDomains = () => {
     if (domains.length === 0) return;
-    finishOnboarding();
+    advance(2);
   };
 
   const skipDomains = () => {
     setDomains([]);
+    advance(2);
+  };
+
+  // Choice step (step 2) is the final onboarding selection. Picking a card
+  // commits the choice and runs the completion handoff. setState is async, so we
+  // pass the freshly picked value straight into finishOnboarding rather than
+  // reading the still-stale state closure.
+  const selectBuildChoice = (value: BuildChoice) => {
+    setBuildChoice(value);
+    finishOnboarding({ build: value });
+  };
+
+  const selectLearnChoice = (value: LearnChoice) => {
+    setLearnChoice(value);
     finishOnboarding();
   };
 
   // Final onboarding handoff: once the user finishes the category step we play
   // the completion chime and run the full-screen orb → personalizing
   // transition. The account already exists at this point (created up front).
-  const finishOnboarding = () => {
+  const finishOnboarding = (opts?: { build?: BuildChoice }) => {
     if (handoff) return;
 
     playCompleteChime();
+    const effectiveBuild = opts?.build ?? buildChoice;
     const domainQuery = domains.length ? `&domains=${domains.join(",")}` : "";
     const isLearnIntent = intent === "learn";
     const targetIntent: Intent = isLearnIntent ? "learn" : "create";
@@ -611,7 +590,7 @@ function OnboardingFlow() {
     const href = isLearnIntent
       ? `/personalizing?intent=learn${domainQuery}&handoff=1`
       : `/personalizing?intent=create&choice=${
-          buildChoice ?? "course"
+          effectiveBuild ?? "course"
         }${domainQuery}&handoff=1`;
     const sourceRect = handoffOriginRef.current?.getBoundingClientRect();
     const fallbackSize = 120;
@@ -685,11 +664,9 @@ function OnboardingFlow() {
             className={`mx-auto my-auto w-full ${
               phase === "account" || phase === "verify"
                 ? "max-w-[483px] -translate-y-[30px]"
-                : step === 1 && intent === "learn"
-                  ? "max-w-[736px] -translate-y-8"
-                  : step <= 1
-                    ? "max-w-[666px] -translate-y-8"
-                    : "max-w-[640px] -translate-y-8"
+                : step === 0
+                  ? "max-w-[626px] -translate-y-8"
+                  : "max-w-[736px] -translate-y-8"
             }`}
           >
               <AnimatePresence mode="wait">
@@ -736,10 +713,10 @@ function OnboardingFlow() {
                   <motion.div key="intent" {...stepMotion}>
                     <div className="mb-8">
                       <h1 className="font-montserrat text-[32px] font-bold leading-[38px] tracking-[-0.5px] text-gray-900 sm:whitespace-nowrap sm:text-[40px] sm:leading-[46px]">
-                        Where would you like to begin?
+                        What brings you to GoKollab?
                       </h1>
                       <p className="mt-3 max-w-[520px] text-[18px] leading-7 text-[#475467]">
-                        You can always do both later.
+                        Helps us personalise your experience.
                       </p>
                     </div>
                     <OptionList columns={2}>
@@ -752,14 +729,35 @@ function OnboardingFlow() {
                       ))}
                     </OptionList>
                   </motion.div>
-                ) : step === 1 && intent === "learn" ? (
+                ) : step === 1 ? (
+                  <motion.div key="domain" {...stepMotion}>
+                    {/* Step 2: category selection — Figma node 2916:65429.
+                        Multi-select interests with Skip / Continue, shown for
+                        both the create and discover flows. */}
+                    <div className="mb-8">
+                      <h1 className="font-montserrat text-[32px] font-bold leading-[38px] tracking-[-0.5px] text-gray-900 sm:whitespace-nowrap sm:text-[40px] sm:leading-[46px]">
+                        What topics interest you?
+                      </h1>
+                      <p className="mt-3 text-[18px] leading-7 text-[#475467]">
+                        We&apos;ll surface relevant communities and courses.
+                      </p>
+                    </div>
+                    <DomainGrid
+                      selected={domains}
+                      onSelect={toggleDomain}
+                      onContinue={continueFromDomains}
+                      onSkip={skipDomains}
+                    />
+                  </motion.div>
+                ) : intent === "learn" ? (
                   <motion.div key="learn" {...stepMotion}>
+                    {/* Step 3 (discover): choice — Figma node 2890:37767. */}
                     <div className="mb-8">
                       <h1 className="font-montserrat text-[32px] font-bold leading-[38px] tracking-[-0.5px] text-gray-900 sm:whitespace-nowrap sm:text-[40px] sm:leading-[46px]">
                         What do you want to discover?
                       </h1>
                       <p className="mt-3 max-w-[520px] text-[18px] leading-7 text-[#475467]">
-                        Kollab will tune the recommendations for you.
+                        GoKollab will tune the recommendations for you.
                       </p>
                     </div>
                     <OptionList columns={3}>
@@ -772,14 +770,15 @@ function OnboardingFlow() {
                       ))}
                     </OptionList>
                   </motion.div>
-                ) : step === 1 ? (
+                ) : (
                   <motion.div key="build" {...stepMotion}>
+                    {/* Step 3 (create): choice — Figma node 2890:37530. */}
                     <div className="mb-8">
                       <h1 className="font-montserrat text-[32px] font-bold leading-[38px] tracking-[-0.5px] text-gray-900 sm:whitespace-nowrap sm:text-[40px] sm:leading-[46px]">
-                        What are you building first?
+                        What do you want to create?
                       </h1>
                       <p className="mt-3 max-w-[520px] text-[18px] leading-7 text-[#475467]">
-                        You can build more or both later. Create unlimited products.
+                        We&apos;ll set up the right tools to get you started.
                       </p>
                     </div>
                     <OptionList columns={2}>
@@ -791,32 +790,6 @@ function OnboardingFlow() {
                         />
                       ))}
                     </OptionList>
-                  </motion.div>
-                ) : (
-                  <motion.div key="domain" {...stepMotion}>
-                    <div className="mb-8">
-                      <h1 className="font-montserrat text-[32px] font-bold leading-[38px] tracking-[-0.5px] text-gray-900 sm:whitespace-nowrap sm:text-[40px] sm:leading-[46px]">
-                        {currentPath === "learn"
-                          ? "Pick your interests"
-                          : "What's your area of expertise?"}
-                      </h1>
-                      <p className="mt-3 text-[18px] leading-7 text-[#475467]">
-                        {currentPath === "learn"
-                          ? "Choose categories to personalize your experience."
-                          : "Choose a category to personalize your workspace."}
-                      </p>
-                    </div>
-                    <DomainGrid
-                      mode={currentPath}
-                      selected={domains}
-                      onSelect={
-                        currentPath === "learn"
-                          ? toggleDomain
-                          : selectCreateDomain
-                      }
-                      onContinue={continueFromDomains}
-                      onSkip={skipDomains}
-                    />
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -836,9 +809,9 @@ function OnboardingFlow() {
           handoffOriginRef={handoffOriginRef}
           hideCore={Boolean(handoff)}
           centerGlyph={
-            intent === "create" && (step === 1 || step === 2)
+            intent === "create" && step >= 1
               ? "rocket"
-              : intent === "learn" && (step === 1 || step === 2)
+              : intent === "learn" && step >= 1
                 ? "book"
                 : "kollab"
           }
@@ -1125,22 +1098,19 @@ function OptionCard<T extends string>({
 }
 
 function DomainGrid({
-  mode,
   selected,
   onSelect,
   onContinue,
   onSkip,
 }: {
-  mode: "create" | "learn";
   selected: DomainValue[];
   onSelect: (value: DomainValue) => void;
   onContinue: () => void;
   onSkip: () => void;
 }) {
-  // Create/launch path is single-select with no max-block and no Continue CTA;
-  // learner path is uncapped and adds a Skip action. Continue is enabled once
-  // at least one category is selected.
-  const isCreate = mode === "create";
+  // Category step is uncapped multi-select for both flows (Figma node
+  // 2916:65429). Skip sits left, Continue right; Continue is enabled once at
+  // least one category is selected.
   const canContinue = selected.length >= 1;
 
   return (
@@ -1185,10 +1155,9 @@ function DomainGrid({
           );
         })}
       </div>
-      {!isCreate ? (
-        // Figma node 2916:65536: Skip sits left, Continue sits right. Continue
-        // remains disabled until at least one category is selected.
-        <div className="mt-6 flex items-center justify-between">
+      {/* Figma node 2916:65554: Skip sits left, Continue sits right. Continue
+          remains disabled until at least one category is selected. */}
+      <div className="mt-6 flex items-center justify-between">
           <button
             type="button"
             onClick={onSkip}
@@ -1205,8 +1174,7 @@ function DomainGrid({
             Continue
             <GhlIcon name="arrowRight" size={20} />
           </button>
-        </div>
-      ) : null}
+      </div>
     </div>
   );
 }
@@ -1757,28 +1725,20 @@ function OrbCaption({
   );
 }
 
-type PillarKey = "courses" | "communities" | "creators";
-type PillarIconName = GhlIconName | "creator";
+type PillarKey = "courses" | "communities" | "both";
+type PillarIconName = GhlIconName;
 
 // Exact GHL icons from Figma (file lSuVFjWScTgFMplHt0JsQK):
 // Courses → graduation-hat-02 (2907:36912), Communities → users-02
-// (2907:36878), Creators → image-user-check (2907:36946, rendered by
-// CreatorPillarIcon via the "creator" sentinel).
-const KOLLAB_PILLARS: { key: PillarKey; icon: PillarIconName; label: string }[] = [
-  { key: "courses", icon: "graduation", label: "Courses" },
-  { key: "communities", icon: "users", label: "Communities" },
-  { key: "creators", icon: "creator", label: "Creators" },
-];
-
+// (2907:36878), Both → colors (2890:37648 orbit, three overlapping circles).
 const KOLLAB_PILLAR_NODE_SIZE = 40;
 const KOLLAB_PILLAR_ICON_SIZE = 22;
 const KOLLAB_PILLAR_RADIUS = 8;
 
-// Default Kollab-native concept: the three fixed pillars (courses,
-// communities, creators) orbit the center glyph. The orbiting set is always
-// the same KOLLAB_PILLARS and never changes with the user's flow or category
-// choice; only the pillar matching the user's selection lights up, while mode
-// drives the accent color.
+// Default Kollab-native concept: three fixed pillars (communities, courses,
+// both) sit at the static Figma positions around the center glyph. The set
+// never changes with the user's flow or category choice; only the pillar
+// matching the user's selection lights up, while mode drives the accent color.
 function KollabConstellation({
   accent,
   activePillar,
@@ -1792,22 +1752,43 @@ function KollabConstellation({
   coreRef?: Ref<HTMLDivElement>;
   hideCore?: boolean;
 }) {
-  const radius = 125;
   const nodeSize = KOLLAB_PILLAR_NODE_SIZE;
 
+  // Pillar placement is fixed to the Figma layout (node 2890:37885 / 2916:66365)
+  // on a 250px stage: communities (users) top-left, courses (graduation) at the
+  // right edge, "both" bottom. Coordinates are the icon's top-left in px.
+  const pillars: { key: PillarKey; icon: PillarIconName; left: number; top: number }[] = [
+    { key: "communities", icon: "users", left: 11.5, top: 25 },
+    { key: "courses", icon: "graduation", left: 230, top: 117 },
+    { key: "both", icon: "colors", left: 85, top: 225.52 },
+  ];
+
+  // Content bounding box: the 250px ring sits at the top-left while the courses
+  // pillar overflows the right edge (230 + 40 = 270) and the "both" pillar
+  // overflows the bottom (225.52 + 40 ≈ 266). The mb gap reproduces the Figma
+  // 40px spacing to the caption (offset by the caption's own -mt-4).
   return (
     <motion.div
-      className="relative flex size-[360px] items-center justify-center"
+      className="relative mb-10 h-[266px] w-[270px]"
       animate={{ y: [0, -10, 0] }}
       transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
     >
+      <div
+        aria-hidden
+        className="absolute left-0 top-0 size-[250px] rounded-full border border-white/10"
+        style={{
+          background:
+            "radial-gradient(circle at 50% 32%, rgba(255,255,255,0.06), rgba(255,255,255,0) 70%)",
+        }}
+      />
+
       <motion.div
         aria-hidden
-        className="absolute size-[130px] rounded-full blur-[48px]"
+        className="absolute left-[65px] top-[65px] size-[120px] rounded-full blur-[44px]"
         animate={{
           backgroundColor: accent,
           scale: [1, 1.08, 1],
-          opacity: [0.32, 0.52, 0.32],
+          opacity: [0.4, 0.62, 0.4],
         }}
         transition={{
           backgroundColor: { duration: 1.1, ease: "easeOut" },
@@ -1816,47 +1797,25 @@ function KollabConstellation({
         }}
       />
 
-      <div
-        aria-hidden
-        className="absolute size-[270px] rounded-full border border-white/10"
-      />
-
-      <motion.div
-        className="absolute inset-0"
-        animate={{ rotate: 360 }}
-        transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
-      >
-        {KOLLAB_PILLARS.map((pillar, index) => {
-          const angle = index * 120;
-          return (
-            <div
-              key={pillar.key}
-              className="absolute left-1/2 top-1/2"
-              style={{
-                marginLeft: -nodeSize / 2,
-                marginTop: -nodeSize / 2,
-                transform: `rotate(${angle}deg) translateY(-${radius}px) rotate(${-angle}deg)`,
-              }}
-            >
-              <motion.div
-                animate={{ rotate: -360 }}
-                transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
-              >
-                <PillarNode
-                  icon={pillar.icon}
-                  active={activePillar === pillar.key}
-                  accent={accent}
-                  size={nodeSize}
-                />
-              </motion.div>
-            </div>
-          );
-        })}
-      </motion.div>
+      {pillars.map((pillar) => (
+        <div
+          key={pillar.key}
+          className="absolute"
+          style={{ left: pillar.left, top: pillar.top }}
+        >
+          <PillarNode
+            icon={pillar.icon}
+            active={activePillar === pillar.key}
+            accent={accent}
+            size={nodeSize}
+          />
+        </div>
+      ))}
 
       <motion.div
         ref={coreRef}
         data-onboarding-handoff-origin
+        className="absolute left-[65px] top-[65px]"
         animate={{ opacity: hideCore ? 0 : 1 }}
         transition={{ duration: 0.12, ease: "easeOut" }}
       >
@@ -1888,11 +1847,7 @@ function PillarNode({
       }}
       transition={{ duration: 0.5, ease: [0.22, 0.85, 0.25, 1] }}
     >
-      {icon === "creator" ? (
-        <CreatorPillarIcon size={KOLLAB_PILLAR_ICON_SIZE} />
-      ) : (
-        <GhlIcon name={icon} size={KOLLAB_PILLAR_ICON_SIZE} />
-      )}
+      <GhlIcon name={icon} size={KOLLAB_PILLAR_ICON_SIZE} />
     </motion.div>
   );
 }
@@ -1943,19 +1898,6 @@ function KollabMarkCore({
       )}
     </div>
   );
-}
-
-// Creators orbit pillar uses the exact GHL image-user-check glyph
-// (Figma node 2907:36946), matching the "badge" mapping used by the Creators
-// option card so the two stay in sync.
-function CreatorPillarIcon({
-  size = 20,
-  className,
-}: {
-  size?: number;
-  className?: string;
-}) {
-  return <ImageUserCheckIcon size={size} className={className} />;
 }
 
 function OrbCore({
@@ -2226,14 +2168,13 @@ function getFocusIcon(
 
   if (intent === "learn") {
     if (learnChoice === "communities") return "users";
-    if (learnChoice === "creators") return "badge";
+    if (learnChoice === "both") return "colors";
     if (learnChoice === "all") return "sparkles";
     if (learnChoice === "courses") return "book";
     return "search";
   }
 
   if (buildChoice === "community") return "users";
-  if (buildChoice === "both") return "sparkles";
   if (buildChoice === "course") return "book";
   return "rocket";
 }
@@ -2249,7 +2190,7 @@ function getActivePillar(
   if (intent === "learn") {
     if (learnChoice === "courses") return "courses";
     if (learnChoice === "communities") return "communities";
-    if (learnChoice === "creators") return "creators";
+    if (learnChoice === "both") return "both";
     return null;
   }
 
@@ -2278,12 +2219,11 @@ function getFocusLabel(
 ) {
   if (intent === "learn") {
     if (learnChoice === "communities") return "Community discovery";
-    if (learnChoice === "creators") return "Creator discovery";
+    if (learnChoice === "both") return "Courses & communities";
     if (learnChoice === "all") return "Full discovery";
     return "Course discovery";
   }
 
   if (buildChoice === "community") return "Community launch";
-  if (buildChoice === "both") return "Course plus community";
   return "Course launch";
 }

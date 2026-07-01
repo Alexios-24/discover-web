@@ -279,7 +279,7 @@ export function CreatorsSection() {
   }, []);
 
   return (
-    <section className="w-full overflow-hidden bg-[linear-gradient(180deg,#000000_0%,#0A0E5A_100%)] pt-24 pb-20 max-md:pt-14 max-md:pb-14">
+    <section className="w-full overflow-hidden bg-[linear-gradient(180deg,#000000_0%,#0A0E5A_100%)] pt-24 pb-24 max-md:pt-14 max-md:pb-14">
       <div className="max-w-[1440px] mx-auto px-[54px] mb-8 max-md:px-4 max-md:mb-5">
         <h2 className="font-montserrat font-semibold text-[36px] leading-normal text-white text-center w-full max-md:text-[24px] max-md:leading-[32px]">
           Top experts building on Kollab

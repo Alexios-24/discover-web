@@ -29,16 +29,34 @@ function HeroSwitch() {
   return <LandingHeroV2 />;
 }
 
-// The lower "Featured products" mosaic is hidden in V1 (only the top
-// "Featured products" carousel remains); V2 keeps it.
-function FeaturedProductsSwitch() {
+function LandingSectionsSwitch() {
   const { variant } = useVariant();
 
   if (variant === "v1") {
-    return null;
+    return (
+      <>
+        <TrendingSection />
+        <BrowseAllSection />
+        <TopPicksSection />
+        <CreatorsSection />
+        <CategoryShowcase />
+        <MobileAppSection />
+      </>
+    );
   }
 
-  return <FeaturedProducts />;
+  return (
+    <>
+      <TrendingSection />
+      <CategoryShowcase />
+      <TopPicksSection />
+      <CreatorsSection />
+      <FeaturedProducts />
+      <BrowseAllSection />
+      <RisingCreatorsSection />
+      <MobileAppSection />
+    </>
+  );
 }
 
 export default function LandingPage() {
@@ -47,14 +65,7 @@ export default function LandingPage() {
       <main className="min-h-screen w-full font-sans bg-ink text-cream overflow-clip">
         <LandingNav />
         <HeroSwitch />
-        <TrendingSection />
-        <CategoryShowcase />
-        <TopPicksSection />
-        <CreatorsSection />
-        <FeaturedProductsSwitch />
-        <BrowseAllSection />
-        <RisingCreatorsSection />
-        <MobileAppSection />
+        <LandingSectionsSwitch />
         <LandingFooter />
         <VariantSwitcher />
       </main>

@@ -16,7 +16,7 @@ export default function PicksPage() {
       <div className="mx-auto w-full max-w-[1440px] px-[54px] py-6 max-md:px-4">
         {/* Hero */}
         <div className="flex flex-col items-center gap-1 px-[54px] py-6 text-center max-md:px-0">
-          <h1 className="font-montserrat text-[34px] font-bold leading-tight text-gray-900 sm:text-[40px]">
+          <h1 className="font-montserrat text-[34px] font-semibold leading-tight text-gray-900 sm:text-[40px]">
             Top picks based on your interests
           </h1>
           <p className="text-[16px] leading-6 text-gray-900">

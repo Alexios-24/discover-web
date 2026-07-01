@@ -8,7 +8,6 @@ import { Menu, Search, X } from "lucide-react";
 
 const NAV_ITEMS = [
   { label: "Discover", href: "/discover" },
-  { label: "Features", href: "/" },
   { label: "Pricing", href: "/" },
 ];
 

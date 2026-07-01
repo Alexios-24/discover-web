@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Search } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSearchParams, useRouter } from "next/navigation";
 
@@ -114,21 +114,31 @@ export function DiscoverHero() {
   const router = useRouter();
   const query = searchParams?.get("q") ?? "";
 
-  // Search-results variant — replaces the welcome hero when ?q= is present
+  // Search-results variant — replaces the welcome hero when ?q= is present.
+  // Figma node 4059:97845 (file lSuVFjWScTgFMplHt0JsQK): a left-aligned strip
+  // "Search results for "F1"  ✕ Clear search" — 12px gap between the heading and
+  // the borderless indigo clear link.
   if (query) {
+    const isApp = searchParams?.get("app") === "1";
+    const clearHref = isApp ? "/discover?app=1" : "/discover";
     return (
-      <section className="w-full px-[54px] pt-8 pb-2 flex items-center justify-between gap-6 max-md:px-4 max-md:pt-5 max-md:flex-col max-md:items-start max-md:gap-3">
-        <h1 className="font-inter text-[24px] leading-[32px] text-gray-900 max-md:text-[18px] max-md:leading-[24px]">
-          Search results for{" "}
-          <span className="font-semibold">&ldquo;{query}&rdquo;</span>
-        </h1>
-        <button
-          type="button"
-          onClick={() => router.push("/discover")}
-          className="shrink-0 border border-gray-300 rounded-lg px-[14px] py-2 text-[14px] leading-5 font-semibold text-gray-700 shadow-xs hover:bg-gray-50 transition-colors"
-        >
-          Clear search
-        </button>
+      <section className="w-full px-[54px] pt-8 pb-2 max-md:px-4 max-md:pt-5">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+          <h1 className="font-inter text-[18px] leading-[28px] text-[#101828]">
+            <span className="font-normal">Search results for </span>
+            <span className="font-semibold">&ldquo;{query}&rdquo;</span>
+          </h1>
+          <button
+            type="button"
+            onClick={() => router.push(clearHref)}
+            className="flex shrink-0 cursor-pointer items-center gap-0.5 text-[#343DE5] transition-opacity hover:opacity-80"
+          >
+            <X size={16} strokeWidth={2} className="shrink-0" />
+            <span className="font-inter text-[12px] font-semibold leading-[17px]">
+              Clear search
+            </span>
+          </button>
+        </div>
       </section>
     );
   }

@@ -103,24 +103,24 @@ function CreatePersonalizing({
 }) {
   return (
     <div className="relative flex-1 overflow-hidden">
-      {/* Top-left: course name + description form */}
-      <CreateFloatingPanel left="16%" top="17%" rotation={-9.67} delay={0.08} initialY={-20}>
-        <CourseFormCard />
+      {/* Top-left: course name + description form (Figma image 42, 212×159) */}
+      <CreateFloatingPanel left="16%" top="17%" rotation={-9.67} delay={0.08} initialY={-20} pullX={30} pullY={26}>
+        <FloatingImage src="/personalizing/create-course-form.png" w={212} h={159} />
       </CreateFloatingPanel>
 
-      {/* Top-right: community channels list */}
-      <CreateFloatingPanel left="67%" top="21%" rotation={6.79} delay={0.14} initialY={-20}>
-        <ChannelsCard />
+      {/* Top-right: community channels list (Figma image 43, 120×128) */}
+      <CreateFloatingPanel left="67%" top="21%" rotation={6.79} delay={0.14} initialY={-20} pullX={-28} pullY={28}>
+        <FloatingImage src="/personalizing/create-channels.png" w={120} h={128} />
       </CreateFloatingPanel>
 
-      {/* Bottom-left: lesson status dropdown */}
-      <CreateFloatingPanel left="19%" top="71%" rotation={-7.69} delay={0.20} initialY={20}>
+      {/* Bottom-left: lesson status dropdown (Figma vector component) */}
+      <CreateFloatingPanel left="19%" top="71%" rotation={-7.69} delay={0.20} initialY={20} pullX={30} pullY={-26}>
         <StatusDropdownCard />
       </CreateFloatingPanel>
 
-      {/* Bottom-right: lesson thumbnail upload */}
-      <CreateFloatingPanel left="65%" top="68%" rotation={14.21} delay={0.26} initialY={20}>
-        <ThumbnailCard />
+      {/* Bottom-right: lesson thumbnail upload (Figma image 44, 191×156) */}
+      <CreateFloatingPanel left="65%" top="68%" rotation={14.21} delay={0.26} initialY={20} pullX={-28} pullY={-26}>
+        <FloatingImage src="/personalizing/create-thumbnail.png" w={191} h={156} />
       </CreateFloatingPanel>
 
       {/* Centre: orb + heading + cycling subtitle */}
@@ -245,6 +245,8 @@ function CreateFloatingPanel({
   rotation,
   delay,
   initialY,
+  pullX,
+  pullY,
 }: {
   children: ReactNode;
   left: string;
@@ -252,7 +254,19 @@ function CreateFloatingPanel({
   rotation: number;
   delay: number;
   initialY: number;
+  // Vector (px) pointing toward the centre orb — the panel eases in along it, then back out.
+  pullX: number;
+  pullY: number;
 }) {
+  // Counter-rotate the inner translate so the pull is true-to-screen toward centre,
+  // not skewed by the panel's resting tilt.
+  const rad = (rotation * Math.PI) / 180;
+  const cos = Math.cos(rad);
+  const sin = Math.sin(rad);
+  const localX = pullX * cos + pullY * sin;
+  const localY = -pullX * sin + pullY * cos;
+  const drift = 7.5 + delay * 4; // gentle, slightly varied per panel
+
   return (
     <motion.div
       className="absolute"
@@ -266,10 +280,11 @@ function CreateFloatingPanel({
       }}
     >
       <motion.div
-        animate={{ y: [0, -3, 0], x: [0, 2, 0] }}
+        // Drift gently toward the centre orb, then ease away — a slow, smooth loop.
+        animate={{ x: [0, localX, 0], y: [0, localY, 0] }}
         transition={{
-          y: { duration: 5 + delay * 3, repeat: Infinity, ease: "easeInOut", delay: delay + 0.9 },
-          x: { duration: 7 + delay * 2, repeat: Infinity, ease: "easeInOut", delay: delay + 1.5 },
+          x: { duration: drift, repeat: Infinity, ease: "easeInOut", delay: delay + 0.7 },
+          y: { duration: drift, repeat: Infinity, ease: "easeInOut", delay: delay + 0.7 },
         }}
       >
         {children}
@@ -278,78 +293,24 @@ function CreateFloatingPanel({
   );
 }
 
+// Floating raster card (Figma flattened image) with soft elevation shadow.
+function FloatingImage({ src, w, h }: { src: string; w: number; h: number }) {
+  return (
+    <img
+      src={src}
+      alt=""
+      width={w}
+      height={h}
+      draggable={false}
+      className="block select-none [filter:drop-shadow(0_14px_28px_rgba(16,24,40,0.14))]"
+      style={{ width: w, height: h }}
+    />
+  );
+}
+
 // ── Panel cards ───────────────────────────────────────────────────────────────
 
-// Panel 1 — Course name + description form (212 × 159 from Figma)
-function CourseFormCard() {
-  return (
-    <div
-      className="rounded-2xl border border-[#eaecf0] bg-white p-4 shadow-[0_12px_50px_-12px_rgba(16,24,40,0.12)]"
-      style={{ width: 212 }}
-    >
-      <div className="mb-3">
-        <p className="mb-1 text-[11px] font-medium text-[#344054]">Course name</p>
-        <div className="rounded-md border border-[#d0d5dd] px-3 py-[5px]">
-          <span className="text-[11.5px] text-[#101828]">F1 enthusiasts</span>
-        </div>
-      </div>
-      <div>
-        <p className="mb-1 text-[11px] font-medium text-[#344054]">Description</p>
-        <div
-          className="relative rounded-md border border-[#d0d5dd] px-3 py-2"
-          style={{ height: 68 }}
-        >
-          <p className="text-[10px] leading-relaxed text-[#98a2b3]">
-            Tell people what your community is about
-          </p>
-          <span className="absolute bottom-2 right-2 text-[9.5px] text-[#98a2b3]">
-            0 / 200
-          </span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// Panel 2 — Community channels list (120 × 128 from Figma)
-function ChannelsCard() {
-  const channels: { emoji: string; label: string; active?: boolean }[] = [
-    { emoji: "🏠", label: "Home",             active: true },
-    { emoji: "📖", label: "Introduction" },
-    { emoji: "🚩", label: "Resources" },
-    { emoji: "❤️", label: "Health & vitality" },
-  ];
-
-  return (
-    <div
-      className="rounded-2xl border border-[#eaecf0] bg-white p-3 shadow-[0_12px_50px_-12px_rgba(16,24,40,0.12)]"
-      style={{ width: 120 }}
-    >
-      <p className="mb-2 text-[10px] font-semibold text-[#343DE5]">Channels</p>
-      <div className="flex flex-col gap-[3px]">
-        {channels.map((ch) => (
-          <div
-            key={ch.label}
-            className={`flex items-center gap-1.5 rounded-md px-1.5 py-[3px] ${
-              ch.active ? "bg-[#f5f5f5]" : ""
-            }`}
-          >
-            <span className="text-[11px] leading-none">{ch.emoji}</span>
-            <span
-              className={`truncate text-[9.5px] leading-[14px] ${
-                ch.active ? "font-semibold text-[#101828]" : "text-[#475467]"
-              }`}
-            >
-              {ch.label}
-            </span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// Panel 3 — Lesson status dropdown: Draft / Publish / Lock / Drip (160px wide)
+// Panel — Lesson status dropdown: Draft / Publish / Lock / Drip (160px wide)
 // Colors from Figma: Draft #475467, Publish #039855, Lock #f79009, Drip #343DE5
 function StatusDropdownCard() {
   const items = [
@@ -430,55 +391,6 @@ function DropdownIcon({ name, color }: { name: DropdownIconName; color: string }
         stroke={color} strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"
       />
     </svg>
-  );
-}
-
-// Panel 4 — Lesson thumbnail upload card (~191 × 156 from Figma)
-function ThumbnailCard() {
-  return (
-    <div
-      className="overflow-hidden rounded-2xl border border-[#eaecf0] bg-white shadow-[0_12px_50px_-12px_rgba(16,24,40,0.12)]"
-      style={{ width: 191 }}
-    >
-      {/* Tabs */}
-      <div className="flex items-center gap-1.5 px-2.5 pb-2 pt-2.5">
-        <span className="rounded-full bg-[#343DE5] px-2 py-[2px] text-[8.5px] font-semibold text-white">
-          Lesson thumbnail
-        </span>
-        <span className="rounded-full bg-[#f2f4f7] px-2 py-[2px] text-[8.5px] font-medium text-[#475467]">
-          Media thumbnail
-        </span>
-      </div>
-
-      {/* Dark photo — mimics the studio/microphone shot in Figma */}
-      <div
-        className="relative mx-2.5 overflow-hidden rounded-lg"
-        style={{
-          height: 90,
-          background:
-            "linear-gradient(145deg, #1a1a2e 0%, #16213e 35%, #0f3460 65%, #1c1c3a 100%)",
-        }}
-      >
-        {/* Faint mic silhouette for texture */}
-        <svg
-          className="absolute inset-0 m-auto opacity-[0.15]"
-          width="28" height="42"
-          viewBox="0 0 28 42"
-          fill="white"
-          aria-hidden
-        >
-          <rect x="8" y="0" width="12" height="24" rx="6" />
-          <path d="M2 18c0 6.627 5.373 12 12 12s12-5.373 12-12" stroke="white" strokeWidth="2" fill="none" />
-          <rect x="13" y="30" width="2" height="7" />
-          <rect x="8" y="37" width="12" height="2" rx="1" />
-        </svg>
-      </div>
-
-      {/* Caption */}
-      <p className="px-2.5 py-2 text-[8.5px] leading-4 text-[#667085]">
-        Recommended dimensions of 1280×720
-      </p>
-    </div>
   );
 }
 
@@ -629,6 +541,18 @@ function LearnFloatingCard({
   delay: number;
   initialY: number;
 }) {
+  // Pull a fraction of the way toward centre (0,0), so farther cards travel more — a
+  // subtle parallax depth. Counter-rotate so the drift stays true toward centre.
+  const PULL = 0.13;
+  const rad = (rotate * Math.PI) / 180;
+  const cos = Math.cos(rad);
+  const sin = Math.sin(rad);
+  const pullX = -x * PULL;
+  const pullY = -y * PULL;
+  const localX = pullX * cos + pullY * sin;
+  const localY = -pullX * sin + pullY * cos;
+  const drift = 7 + delay * 5;
+
   return (
     <motion.div
       className="absolute"
@@ -646,10 +570,11 @@ function LearnFloatingCard({
       }}
     >
       <motion.div
-        animate={{ y: [0, -3, 0], x: [0, 1.5, 0] }}
+        // Drift gently toward the centre orb, then ease away — a slow, smooth loop.
+        animate={{ x: [0, localX, 0], y: [0, localY, 0] }}
         transition={{
-          y: { duration: 5 + delay * 3, repeat: Infinity, ease: "easeInOut", delay: delay + 0.9 },
-          x: { duration: 7 + delay * 2, repeat: Infinity, ease: "easeInOut", delay: delay + 1.5 },
+          x: { duration: drift, repeat: Infinity, ease: "easeInOut", delay: delay + 0.7 },
+          y: { duration: drift, repeat: Infinity, ease: "easeInOut", delay: delay + 0.7 },
         }}
       >
         <div

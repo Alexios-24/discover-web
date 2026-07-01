@@ -157,10 +157,10 @@ function useDims(): Dims {
       }
       setDims({
         card,
-        // Gap between adjacent card centres; also the unit that maps one
-        // drag-step / arrow press to one index. Tight so the cards overlap
-        // into a closely-stacked fan like the reference.
-        spacing: Math.round(card * 0.4),
+        // Gap between adjacent card centres. Widened so the fan spreads across
+        // the full container width like the Circle reference rather than
+        // bunching into a narrow stack.
+        spacing: Math.round(card * 0.58),
         // Preserve the original pan sensitivity while allowing the visual
         // card spacing to tighten independently.
         panStep: Math.round(card * 0.46),
@@ -274,7 +274,7 @@ export function RisingCreatorsSection() {
       </div>
 
       <motion.div
-        className="relative mx-auto mt-1 w-full max-w-6xl cursor-grab touch-pan-y select-none outline-none active:cursor-grabbing max-md:mt-0"
+        className="relative mx-auto mt-1 w-full max-w-7xl cursor-grab touch-pan-y select-none outline-none active:cursor-grabbing max-md:mt-0"
         style={{ height }}
         onPanStart={onPanStart}
         onPan={onPan}
@@ -352,7 +352,7 @@ export function RisingCreatorsSection() {
                 }}
               >
                 <div
-                  className="relative h-full w-full overflow-hidden rounded-[26px] ring-1 ring-black/5"
+                  className="relative h-full w-full overflow-hidden rounded-[26px] ring-1 ring-black/5 transition-transform duration-300 ease-out hover:-translate-y-3 motion-reduce:transition-none motion-reduce:hover:translate-y-0"
                   style={{
                     boxShadow: isActive
                       ? "0 30px 60px -20px rgba(16,24,40,0.45)"
@@ -376,7 +376,7 @@ export function RisingCreatorsSection() {
                   <div className="absolute inset-x-0 bottom-0 flex flex-col items-center px-3 pb-4 pt-6 text-center">
                     <span
                       title={creator.name}
-                      className="block w-full truncate font-montserrat text-[18px] font-semibold leading-[22px] text-white drop-shadow-sm"
+                      className="block w-full truncate font-inter text-[18px] font-semibold leading-[22px] text-white drop-shadow-sm"
                     >
                       {creator.name}
                     </span>

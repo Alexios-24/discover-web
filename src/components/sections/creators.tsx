@@ -4,7 +4,11 @@ import { useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { CREATORS } from "@/lib/data";
 
-export function CreatorsYouMightLike() {
+export function CreatorsYouMightLike({
+  heading = "Creators you might like",
+}: {
+  heading?: string;
+} = {}) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const scrollBy = (delta: number) => {
@@ -16,7 +20,7 @@ export function CreatorsYouMightLike() {
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
           <h2 className="font-montserrat text-[18px] leading-normal font-semibold text-gray-900">
-            Creators you might like
+            {heading}
           </h2>
           <div className="flex items-center gap-1 max-md:hidden">
             <button

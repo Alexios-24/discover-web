@@ -61,7 +61,7 @@ export function BrowseAllSection() {
         {/* Filters Row — stacks below md so the tabs + tag carousel don't get cramped */}
         <div className="flex gap-3 items-center w-full max-md:flex-col max-md:items-stretch max-md:gap-3">
           {/* Product type switcher — full-width segmented control on mobile */}
-          <div className="bg-[#F2F4F7] flex items-center p-1 rounded-[12px] shrink-0 max-md:w-full max-md:overflow-x-auto max-md:no-scrollbar">
+          <div className="bg-[#F2F4F7] flex items-center p-1 rounded-[8px] shrink-0 max-md:w-full max-md:overflow-x-auto max-md:no-scrollbar">
             {TABS.map((tab) => (
               <button
                 key={tab}

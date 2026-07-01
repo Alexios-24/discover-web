@@ -635,7 +635,7 @@ export function LandingHeroV2() {
             </motion.div>
 
             {/* Heading + Subtitle + Search — gap-24px from Figma */}
-            <motion.div {...fadeUp(0.2)} className="flex flex-col gap-[24px] items-start w-full">
+            <motion.div {...fadeUp(0.2)} className="flex flex-col gap-[24px] items-start w-full max-md:items-center">
               <div className="flex flex-col gap-[8px] items-start w-full">
                 <AnimatePresence mode="wait">
                   <motion.div
@@ -644,7 +644,7 @@ export function LandingHeroV2() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -12 }}
                     transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] as const }}
-                    className="flex flex-col gap-[8px] items-start w-full"
+                    className="flex flex-col gap-[8px] items-start w-full max-md:items-center"
                   >
                     <h1
                       className="font-montserrat font-bold text-white text-left max-lg:!text-[56px] max-lg:!leading-[64px] max-md:!text-[34px] max-md:!leading-[normal] max-md:!tracking-[-1.8px] max-md:text-center max-md:-mx-4"
@@ -750,7 +750,7 @@ export function LandingHeroV2() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -6 }}
                   transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] as const }}
-                  className="flex gap-[8px] items-center w-full"
+                  className="flex gap-[8px] items-center w-full max-md:justify-center"
                 >
                   <div className="flex items-center justify-center size-[18px]">
                     <BadgeCheck size={18} className="text-[#6172F3]" />

@@ -76,6 +76,14 @@ const V1_TRENDING_CARDS = [
     imageSrc: "/trending/trending-3.jpg",
     gradientTo: "#011016",
   },
+  {
+    id: "f1-enthusiasts",
+    title: "F1 enthusiasts",
+    pricing: "Free",
+    members: "27.4K members",
+    imageSrc: "/trending/trending-f1-enthusiasts.jpg",
+    gradientTo: "#011016",
+  },
 ] as const;
 
 function SimpleTrendingCard({
@@ -102,7 +110,7 @@ function SimpleTrendingCard({
         }}
       >
         <div className="flex min-w-0 flex-1 flex-col justify-center gap-2">
-          <h3 className="truncate font-inter text-[24px] font-semibold leading-8 text-white max-md:text-[18px] max-md:leading-6">
+          <h3 className="truncate font-inter text-[20px] font-semibold leading-[30px] text-white max-md:text-[18px] max-md:leading-6">
             {card.title}
           </h3>
           <div className="flex min-w-0 items-center gap-2">

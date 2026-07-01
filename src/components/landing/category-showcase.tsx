@@ -556,7 +556,10 @@ const CATEGORY_CARDS: CategoryCard[] = [
 function CategoryCard({ card }: { card: CategoryCard }) {
   return (
     <Link
-      href="/discover"
+      href={{
+        pathname: "/discover",
+        query: { category: card.label },
+      }}
       aria-label={`Explore ${card.label}`}
       className="group relative block h-[132px] overflow-hidden rounded-[16px] bg-[#F7F8FA] ring-1 ring-inset ring-[#EAECF0] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-[#F2F4F7] hover:ring-[#D0D5DD] hover:shadow-[0px_12px_24px_-10px_rgba(16,24,40,0.16)] max-md:h-[100px]"
     >

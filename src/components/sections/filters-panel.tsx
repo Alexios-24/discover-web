@@ -165,6 +165,17 @@ export interface FilterState {
   priceMax: number;
 }
 
+export const CATEGORY_FILTER_OPTIONS = [
+  "Entrepreneurship",
+  "Marketing",
+  "Productivity",
+  "Technology",
+  "Wellness",
+  "Creative",
+  "Leadership",
+  "Miscellaneous",
+];
+
 export function hasActiveFilters(filters: FilterState): boolean {
   return (
     filters.categories.length > 0 ||
@@ -208,7 +219,7 @@ export function FiltersPanelBody({ filters, onFiltersChange }: FiltersPanelProps
     <>
       <FilterSection
         label="Browse categories"
-        options={["Finance", "Travel", "Technology", "Productivity", "Creative", "Cooking", "Gaming", "Wellness", "Leadership"]}
+        options={CATEGORY_FILTER_OPTIONS}
         selected={filters.categories}
         onToggle={(v) => toggleFilter("categories", v)}
       />
@@ -434,7 +445,7 @@ export function FiltersDrawerBody({ filters, onFiltersChange }: FiltersPanelProp
     <div className="flex flex-col gap-6 items-start w-full">
       <DrawerFilterSection
         label="Browse categories"
-        options={["Finance", "Travel", "Technology", "Productivity", "Creative", "Cooking", "Gaming", "Wellness", "Leadership"]}
+        options={CATEGORY_FILTER_OPTIONS}
         selected={filters.categories}
         onToggle={(v) => toggleFilter("categories", v)}
       />

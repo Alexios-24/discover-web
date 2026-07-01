@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowDownUp,
   ChevronDown,
@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import {
   FiltersPanel,
   FiltersDrawerBody,
+  CATEGORY_FILTER_OPTIONS,
   clearFilters,
   hasActiveFilters,
   type FilterState,
@@ -187,6 +188,7 @@ function MobileChip({ icon, label, filled, count, onClick }: MobileChipProps) {
 }
 
 export function DiscoverContent() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState("All");
   const [filters, setFilters] = useState<FilterState>(clearFilters);
   const [sort, setSort] = useState<SortOption>(DEFAULT_SORT);
@@ -196,25 +198,68 @@ export function DiscoverContent() {
 
   const searchParams = useSearchParams();
   const query = searchParams?.get("q") ?? "";
+  const categoryParam = searchParams?.get("category") ?? "";
   const hasQuery = query.length > 0;
+  const selectedCategoryFromUrl =
+    CATEGORY_FILTER_OPTIONS.find(
+      (category) => category.toLowerCase() === categoryParam.toLowerCase(),
+    ) ?? "";
 
   const isActive = hasActiveFilters(filters);
   const activeFilterCount = getActiveFilterCount(filters);
-  const tags = isActive ? getFilterTags(filters, setFilters) : [];
   const handleBrowseExhaustedChange = useCallback((isExhausted: boolean) => {
     setShowDiscoverFooter(isExhausted);
   }, []);
+  const syncFilters = useCallback(
+    (nextFilters: FilterState) => {
+      setFilters(nextFilters);
+
+      if (
+        selectedCategoryFromUrl &&
+        !nextFilters.categories.includes(selectedCategoryFromUrl)
+      ) {
+        const params = new URLSearchParams(searchParams?.toString() ?? "");
+        params.delete("category");
+        const queryString = params.toString();
+        router.replace(queryString ? `/discover?${queryString}` : "/discover", {
+          scroll: false,
+        });
+      }
+    },
+    [router, searchParams, selectedCategoryFromUrl],
+  );
+  const tags = isActive ? getFilterTags(filters, syncFilters) : [];
 
   useEffect(() => {
     setShowDiscoverFooter(false);
   }, [hasQuery, isActive]);
+
+  useEffect(() => {
+    if (!selectedCategoryFromUrl) {
+      setFilters((current) =>
+        current.categories.length === 0 ? current : { ...current, categories: [] },
+      );
+      return;
+    }
+
+    setFilters((current) => {
+      if (current.categories.includes(selectedCategoryFromUrl)) {
+        return current;
+      }
+
+      return {
+        ...current,
+        categories: [selectedCategoryFromUrl],
+      };
+    });
+  }, [selectedCategoryFromUrl]);
 
   return (
     <>
       <div className="mx-auto w-full max-w-[1440px] flex gap-[54px] items-start pt-6 px-[54px] pb-9 max-lg:gap-6 max-lg:px-6 max-md:px-4 max-md:pt-6 max-md:pb-6">
         {/* Sidebar filters — hidden only on mobile (below md) */}
         <div className="max-md:hidden sticky top-[84px] self-start">
-          <FiltersPanel filters={filters} onFiltersChange={setFilters} />
+          <FiltersPanel filters={filters} onFiltersChange={syncFilters} />
         </div>
         <div className="flex-1 min-w-0 flex flex-col gap-6 items-start max-md:gap-4">
           {/* Product type switcher + Sort */}
@@ -310,7 +355,7 @@ export function DiscoverContent() {
                   <h2 className="font-montserrat text-[18px] leading-normal font-semibold text-gray-900">
                     Products
                   </h2>
-                  <FilteredResults />
+                  <FilteredResults filters={filters} />
                 </div>
               </section>
             </>
@@ -335,7 +380,7 @@ export function DiscoverContent() {
           <div className="flex items-center justify-end gap-3 w-full">
             <button
               type="button"
-              onClick={() => setFilters(clearFilters())}
+              onClick={() => syncFilters(clearFilters())}
               disabled={!isActive}
               className="flex-1 inline-flex items-center justify-center gap-2 px-[18px] py-2.5 rounded-md border border-gray-300 bg-white text-[16px] leading-6 font-semibold text-gray-700 shadow-xs hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
@@ -351,7 +396,7 @@ export function DiscoverContent() {
           </div>
         }
       >
-        <FiltersDrawerBody filters={filters} onFiltersChange={setFilters} />
+        <FiltersDrawerBody filters={filters} onFiltersChange={syncFilters} />
       </BottomDrawer>
 
       {/* Mobile sort drawer */}

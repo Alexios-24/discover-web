@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import { Search } from "lucide-react";
 import { CursorTooltip } from "@/components/ui/animated-tooltip";
+import { useVariant } from "@/components/landing/variant-switcher";
 
 interface Product {
   title: string;
@@ -187,7 +188,7 @@ function ProductCard({
   );
 }
 
-export function CategoryShowcase() {
+function AnimatedCategoryShowcase() {
   const [pos, setPos] = useState(0);
   const [animate, setAnimate] = useState(true);
   const [isDocumentVisible, setIsDocumentVisible] = useState(() =>
@@ -291,7 +292,7 @@ export function CategoryShowcase() {
 
   return (
     <section
-      className="w-full px-[54px] py-20 bg-white max-md:px-4 max-md:py-14"
+      className="w-full px-[54px] pt-28 pb-20 bg-white max-md:px-4 max-md:pt-20 max-md:pb-14"
     >
       <div className="max-w-[1332px] mx-auto flex flex-col items-center gap-8 max-md:gap-6">
         {/* Heading */}
@@ -485,4 +486,124 @@ export function CategoryShowcase() {
       </div>
     </section>
   );
+}
+
+// V1 category cards — a grid of interest categories, each shown as a 2x2
+// image collage with a label + count. Matches the reference set (Cosmos /
+// Framer marketplace style) and stays visually distinct from the product
+// cards used elsewhere on the page.
+interface CategoryCard {
+  label: string;
+  communities: string;
+  courses: string;
+  image: string;
+}
+
+const img = (id: string) =>
+  `https://images.unsplash.com/${id}?w=400&h=400&auto=format&fit=crop&q=70`;
+
+const CATEGORY_CARDS: CategoryCard[] = [
+  {
+    label: "Entrepreneurship",
+    communities: "1.2K communities",
+    courses: "340 courses",
+    image: img("photo-1504384308090-c894fdcc538d"),
+  },
+  {
+    label: "Marketing",
+    communities: "860 communities",
+    courses: "980 courses",
+    image: img("photo-1516321318423-f06f85e504b3"),
+  },
+  {
+    label: "Productivity",
+    communities: "540 communities",
+    courses: "760 courses",
+    image: img("photo-1517694712202-14dd9538aa97"),
+  },
+  {
+    label: "Technology",
+    communities: "2.4K communities",
+    courses: "1.9K courses",
+    image: img("photo-1461749280684-dccba630e2f6"),
+  },
+  {
+    label: "Wellness",
+    communities: "1.5K communities",
+    courses: "420 courses",
+    image: img("photo-1506126613408-eca07ce68773"),
+  },
+  {
+    label: "Creative",
+    communities: "1.1K communities",
+    courses: "1.3K courses",
+    image: img("photo-1526280760714-f9e8b26f318f"),
+  },
+  {
+    label: "Leadership",
+    communities: "320 communities",
+    courses: "540 courses",
+    image: img("photo-1573496359142-b8d87734a5a2"),
+  },
+  {
+    label: "Miscellaneous",
+    communities: "280 communities",
+    courses: "190 courses",
+    image: img("photo-1525625293386-3f8f99389edd"),
+  },
+];
+
+function CategoryCard({ card }: { card: CategoryCard }) {
+  return (
+    <Link
+      href="/discover"
+      aria-label={`Explore ${card.label}`}
+      className="group relative block h-[132px] overflow-hidden rounded-[16px] bg-[#F7F8FA] ring-1 ring-inset ring-[#EAECF0] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-[#F2F4F7] hover:ring-[#D0D5DD] hover:shadow-[0px_12px_24px_-10px_rgba(16,24,40,0.16)] max-md:h-[100px]"
+    >
+      <div className="flex flex-col gap-1.5 p-[18px] pr-[104px] max-md:h-full max-md:justify-center max-md:p-4 max-md:pr-[124px]">
+        <h3 className="font-inter text-[16px] font-semibold leading-5 tracking-[-0.01em] text-[#101828] max-md:text-[15px]">
+          {card.label}
+        </h3>
+        <p className="font-inter text-[12.5px] leading-[18px] text-[#667085] whitespace-nowrap">
+          {card.communities} <span className="text-[#D0D5DD]">·</span> {card.courses}
+        </p>
+      </div>
+      <img
+        src={card.image}
+        alt=""
+        aria-hidden="true"
+        draggable={false}
+        loading="lazy"
+        className="absolute bottom-0 right-0 size-[96px] rounded-tl-[20px] object-cover transition-transform duration-500 ease-out group-hover:scale-[1.06] max-md:inset-y-0 max-md:top-0 max-md:size-auto max-md:h-full max-md:w-[104px] max-md:rounded-none"
+      />
+    </Link>
+  );
+}
+
+function CategoryCardsShowcase() {
+  return (
+    <section className="w-full bg-white px-[54px] pt-28 pb-20 max-md:px-4 max-md:pt-20 max-md:pb-14">
+      <div className="mx-auto flex w-full max-w-[1332px] flex-col items-center gap-10 max-md:gap-7">
+        <h2 className="text-center font-montserrat text-[36px] font-semibold leading-normal text-[#101828] max-md:text-[28px] max-md:leading-[36px]">
+          Explore categories built around your interests
+        </h2>
+
+        <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 max-md:gap-3">
+          {CATEGORY_CARDS.map((card) => (
+            <CategoryCard key={card.label} card={card} />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export function CategoryShowcase() {
+  const { variant } = useVariant();
+
+  if (variant === "v1") {
+    return <CategoryCardsShowcase />;
+  }
+
+  return <AnimatedCategoryShowcase />;
 }

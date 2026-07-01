@@ -142,7 +142,7 @@ function SimpleTrendingCard({
 
 function SimpleTrendingSection() {
   return (
-    <section className="w-full bg-white py-16 max-md:py-12">
+    <section className="w-full bg-white pt-16 pb-24 max-md:pt-12 max-md:pb-16">
       <div className="mx-auto flex w-full max-w-[1440px] flex-col items-center gap-8 px-[54px] max-md:gap-5 max-md:px-4">
         <h2 className="w-full text-center font-montserrat text-[36px] font-semibold leading-normal text-[#101828] max-md:text-[24px] max-md:leading-[32px]">
           Trending now

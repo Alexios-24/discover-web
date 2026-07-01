@@ -506,13 +506,13 @@ const CATEGORY_CARDS: CategoryCard[] = [
     label: "Entrepreneurship",
     communities: "1.2K communities",
     courses: "340 courses",
-    image: "/categories/entrepreneurship.png",
+    image: "/categories/marketing.png",
   },
   {
     label: "Marketing",
     communities: "860 communities",
     courses: "980 courses",
-    image: "/categories/marketing.png",
+    image: "/categories/entrepreneurship.png",
   },
   {
     label: "Productivity",

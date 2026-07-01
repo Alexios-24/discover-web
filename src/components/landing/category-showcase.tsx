@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import { Search } from "lucide-react";
@@ -488,10 +489,8 @@ function AnimatedCategoryShowcase() {
   );
 }
 
-// V1 category cards — a grid of interest categories, each shown as a 2x2
-// image collage with a label + count. Matches the reference set (Cosmos /
-// Framer marketplace style) and stays visually distinct from the product
-// cards used elsewhere on the page.
+// V1 category cards — a grid of interest categories with compact thumbnails,
+// labels, and counts. Stays visually distinct from the product cards elsewhere.
 interface CategoryCard {
   label: string;
   communities: string;
@@ -507,25 +506,25 @@ const CATEGORY_CARDS: CategoryCard[] = [
     label: "Entrepreneurship",
     communities: "1.2K communities",
     courses: "340 courses",
-    image: img("photo-1504384308090-c894fdcc538d"),
+    image: "/categories/entrepreneurship.png",
   },
   {
     label: "Marketing",
     communities: "860 communities",
     courses: "980 courses",
-    image: img("photo-1516321318423-f06f85e504b3"),
+    image: "/categories/marketing.png",
   },
   {
     label: "Productivity",
     communities: "540 communities",
     courses: "760 courses",
-    image: img("photo-1517694712202-14dd9538aa97"),
+    image: "/categories/productivity.png",
   },
   {
     label: "Technology",
     communities: "2.4K communities",
     courses: "1.9K courses",
-    image: img("photo-1461749280684-dccba630e2f6"),
+    image: "/categories/technology.png",
   },
   {
     label: "Wellness",
@@ -537,7 +536,7 @@ const CATEGORY_CARDS: CategoryCard[] = [
     label: "Creative",
     communities: "1.1K communities",
     courses: "1.3K courses",
-    image: img("photo-1526280760714-f9e8b26f318f"),
+    image: "/categories/creative.png",
   },
   {
     label: "Leadership",
@@ -549,7 +548,7 @@ const CATEGORY_CARDS: CategoryCard[] = [
     label: "Miscellaneous",
     communities: "280 communities",
     courses: "190 courses",
-    image: img("photo-1525625293386-3f8f99389edd"),
+    image: "/categories/miscellaneous.png",
   },
 ];
 
@@ -571,14 +570,17 @@ function CategoryCard({ card }: { card: CategoryCard }) {
           {card.communities} <span className="text-[#D0D5DD]">·</span> {card.courses}
         </p>
       </div>
-      <img
-        src={card.image}
-        alt=""
-        aria-hidden="true"
-        draggable={false}
-        loading="lazy"
-        className="absolute bottom-0 right-0 size-[96px] rounded-tl-[20px] object-cover transition-transform duration-500 ease-out group-hover:scale-[1.06] max-md:inset-y-0 max-md:top-0 max-md:size-auto max-md:h-full max-md:w-[104px] max-md:rounded-none"
-      />
+      <div className="absolute bottom-0 right-0 size-[96px] overflow-hidden rounded-tl-[20px] max-md:inset-y-0 max-md:top-0 max-md:size-auto max-md:h-full max-md:w-[104px] max-md:rounded-none">
+        <Image
+          src={card.image}
+          alt=""
+          aria-hidden="true"
+          draggable={false}
+          fill
+          sizes="(max-width: 767px) 104px, 96px"
+          className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.06]"
+        />
+      </div>
     </Link>
   );
 }
